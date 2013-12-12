@@ -1,0 +1,537 @@
+{
+    "wasDerivedFrom": {
+        "_:id5": {
+            "prov:usedEntity": "niiri:contrast_id", 
+            "prov:generatedEntity": "niiri:contrast_map_id"
+        }, 
+        "_:id4": {
+            "prov:usedEntity": "niiri:design_matrix_id", 
+            "prov:generatedEntity": "niiri:contrast_map_id"
+        }, 
+        "_:id7": {
+            "prov:usedEntity": "niiri:contrast_id", 
+            "prov:generatedEntity": "niiri:contrast_standard_error_map_id"
+        }, 
+        "_:id6": {
+            "prov:usedEntity": "niiri:design_matrix_id", 
+            "prov:generatedEntity": "niiri:contrast_standard_error_map_id"
+        }, 
+        "_:id1": {
+            "prov:usedEntity": "niiri:contrast_map_id", 
+            "prov:generatedEntity": "niiri:statistical_map_id"
+        }, 
+        "_:id3": {
+            "prov:usedEntity": "niiri:residual_mean_squares_map_id", 
+            "prov:generatedEntity": "niiri:contrast_standard_error_map_id"
+        }, 
+        "_:id2": {
+            "prov:usedEntity": "niiri:contrast_standard_error_map_id", 
+            "prov:generatedEntity": "niiri:statistical_map_id"
+        }, 
+        "_:id22": {
+            "prov:usedEntity": "niiri:cluster_2", 
+            "prov:generatedEntity": "niiri:peak_3"
+        }, 
+        "_:id23": {
+            "prov:usedEntity": "niiri:cluster_2", 
+            "prov:generatedEntity": "niiri:peak_4"
+        }, 
+        "_:id8": {
+            "prov:usedEntity": "niiri:design_matrix_id", 
+            "prov:generatedEntity": "niiri:residual_mean_squares_map_id"
+        }, 
+        "_:id20": {
+            "prov:usedEntity": "niiri:cluster_2", 
+            "prov:generatedEntity": "niiri:peak_1"
+        }, 
+        "_:id21": {
+            "prov:usedEntity": "niiri:cluster_2", 
+            "prov:generatedEntity": "niiri:peak_2"
+        }, 
+        "_:id17": {
+            "prov:usedEntity": "niiri:cluster_2", 
+            "prov:generatedEntity": "niiri:centerOfGravity_2"
+        }, 
+        "_:id16": {
+            "prov:usedEntity": "niiri:excursion_set_id", 
+            "prov:generatedEntity": "niiri:cluster_2"
+        }, 
+        "_:id24": {
+            "prov:usedEntity": "niiri:cluster_1", 
+            "prov:generatedEntity": "niiri:peak_5"
+        }, 
+        "_:id25": {
+            "prov:usedEntity": "niiri:cluster_1", 
+            "prov:generatedEntity": "niiri:peak_6"
+        }, 
+        "_:id26": {
+            "prov:usedEntity": "niiri:cluster_1", 
+            "prov:generatedEntity": "niiri:peak_7"
+        }, 
+        "_:id19": {
+            "prov:usedEntity": "niiri:cluster_1", 
+            "prov:generatedEntity": "niiri:centerOfGravity_1"
+        }, 
+        "_:id18": {
+            "prov:usedEntity": "niiri:excursion_set_id", 
+            "prov:generatedEntity": "niiri:cluster_1"
+        }
+    }, 
+    "wasAssociatedWith": {
+        "_:id15": {
+            "prov:agent": "niiri:software_id", 
+            "prov:activity": "niiri:inference_id"
+        }
+    }, 
+    "used": {
+        "_:id11": {
+            "prov:entity": "niiri:height_threshold_id", 
+            "prov:activity": "niiri:inference_id"
+        }, 
+        "_:id9": {
+            "prov:entity": "niiri:statistical_map_id", 
+            "prov:activity": "niiri:inference_id"
+        }, 
+        "_:id10": {
+            "prov:entity": "niiri:search_space_id", 
+            "prov:activity": "niiri:inference_id"
+        }, 
+        "_:id12": {
+            "prov:entity": "niiri:extent_threshold_id", 
+            "prov:activity": "niiri:inference_id"
+        }
+    }, 
+    "agent": {
+        "niiri:software_id": {
+            "prov:type": [
+                {
+                    "type": "xsd:QName", 
+                    "$": "nidm:fsl"
+                }, 
+                {
+                    "type": "xsd:QName", 
+                    "$": "prov:SoftwareAgent"
+                }
+            ], 
+            "nidm:softwareVersion": "FSL", 
+            "prov:label": "FSL"
+        }
+    }, 
+    "entity": {
+        "niiri:residual_mean_squares_map_id": {
+            "prov:type": {
+                "type": "xsd:QName", 
+                "$": "nidm:residualMeanSquaresMap"
+            }, 
+            "prov:location": "file:///path/to/ResMS.img"
+        }, 
+        "niiri:coordinate_5": {
+            "nidm:coordinate2": "10", 
+            "nidm:coordinate3": "16", 
+            "nidm:coordinate1": "32", 
+            "prov:type": [
+                {
+                    "type": "xsd:QName", 
+                    "$": "prov:location"
+                }, 
+                {
+                    "type": "xsd:QName", 
+                    "$": "nidm:coordinate"
+                }
+            ], 
+            "nidm:coordinateInUnits3": "3.23", 
+            "nidm:coordinateInUnits2": "-87.2", 
+            "nidm:coordinateInUnits1": "0.791", 
+            "prov:label": "Coordinate 5"
+        }, 
+        "niiri:cluster_1": {
+            "fsl:pGRF": "1.03e-12", 
+            "prov:type": {
+                "type": "xsd:QName", 
+                "$": "spm:clusterLevelStatistic"
+            }, 
+            "fsl:clusterSizeInVoxels": "511", 
+            "prov:label": "Cluster Level Statistic: 1"
+        }, 
+        "niiri:cluster_2": {
+            "fsl:pGRF": "3.09e-15", 
+            "prov:type": {
+                "type": "xsd:QName", 
+                "$": "spm:clusterLevelStatistic"
+            }, 
+            "fsl:clusterSizeInVoxels": "654", 
+            "prov:label": "Cluster Level Statistic: 2"
+        }, 
+        "niiri:contrast_id": {
+            "prov:type": {
+                "type": "xsd:QName", 
+                "$": "nidm:contrast"
+            }, 
+            "nidm:contrastName": "listening &gt; rest"
+        }, 
+        "niiri:stat_image_properties_id": {
+            "spm:expectedNumberOfVoxelsPerCluster": "0.553331387916112", 
+            "prov:type": {
+                "type": "xsd:QName", 
+                "$": "spm:statisticImageProperties"
+            }
+        }, 
+        "niiri:excursion_set_id": {
+            "nidm:voxelUnits": "['mm' 'mm' 'mm']", 
+            "nidm:voxelSize": "[3 3 3]", 
+            "nidm:voxelToWorldMapping": "[[1,2,3,4], [1,2,3,4], [1,2,3,4], [0,0,0,1]]", 
+            "nidm:dimensions": "[53 63 46]", 
+            "prov:type": "fsl:excursionSet", 
+            "nidm:numberOfDimensions": "3", 
+            "prov:location": "file:///path/to/thresh_zstat1.nii.gz"
+        }, 
+        "niiri:height_threshold_id": {
+            "prov:userSpecifiedThresholdType": "TODO", 
+            "prov:type": {
+                "type": "xsd:QName", 
+                "$": "nidm:heightThreshold"
+            }, 
+            "prov:value": "2.3", 
+            "prov:label": "Height Threshold: TODO"
+        }, 
+        "niiri:peak_3": {
+            "prov:atLocation": {
+                "type": "xsd:QName", 
+                "$": "niiri:coordinate_3"
+            }, 
+            "prov:type": {
+                "type": "xsd:QName", 
+                "$": "spm:peakLevelStatistic"
+            }, 
+            "nidm:equivalentZStatistic": "5.75"
+        }, 
+        "niiri:peak_2": {
+            "prov:atLocation": {
+                "type": "xsd:QName", 
+                "$": "niiri:coordinate_2"
+            }, 
+            "prov:type": {
+                "type": "xsd:QName", 
+                "$": "spm:peakLevelStatistic"
+            }, 
+            "nidm:equivalentZStatistic": "6.04"
+        }, 
+        "niiri:peak_1": {
+            "prov:atLocation": {
+                "type": "xsd:QName", 
+                "$": "niiri:coordinate_1"
+            }, 
+            "prov:type": {
+                "type": "xsd:QName", 
+                "$": "spm:peakLevelStatistic"
+            }, 
+            "nidm:equivalentZStatistic": "6.14"
+        }, 
+        "niiri:peak_7": {
+            "prov:atLocation": {
+                "type": "xsd:QName", 
+                "$": "niiri:coordinate_7"
+            }, 
+            "prov:type": {
+                "type": "xsd:QName", 
+                "$": "spm:peakLevelStatistic"
+            }, 
+            "nidm:equivalentZStatistic": "4.8"
+        }, 
+        "niiri:peak_6": {
+            "prov:atLocation": {
+                "type": "xsd:QName", 
+                "$": "niiri:coordinate_6"
+            }, 
+            "prov:type": {
+                "type": "xsd:QName", 
+                "$": "spm:peakLevelStatistic"
+            }, 
+            "nidm:equivalentZStatistic": "5.65"
+        }, 
+        "niiri:peak_5": {
+            "prov:atLocation": {
+                "type": "xsd:QName", 
+                "$": "niiri:coordinate_5"
+            }, 
+            "prov:type": {
+                "type": "xsd:QName", 
+                "$": "spm:peakLevelStatistic"
+            }, 
+            "nidm:equivalentZStatistic": "5.87"
+        }, 
+        "niiri:peak_4": {
+            "prov:atLocation": {
+                "type": "xsd:QName", 
+                "$": "niiri:coordinate_4"
+            }, 
+            "prov:type": {
+                "type": "xsd:QName", 
+                "$": "spm:peakLevelStatistic"
+            }, 
+            "nidm:equivalentZStatistic": "5.75"
+        }, 
+        "niiri:search_space_id": {
+            "prov:type": {
+                "type": "xsd:QName", 
+                "$": "nidm:mask"
+            }, 
+            "prov:location": "file:///path/to/mask.img"
+        }, 
+        "niiri:contrast_map_id": {
+            "prov:type": [
+                {
+                    "type": "xsd:QName", 
+                    "$": "nidm:contrastMap2"
+                }, 
+                {
+                    "type": "xsd:QName", 
+                    "$": "nidm:contrastMap"
+                }
+            ]
+        }, 
+        "niiri:statistical_map_id": {
+            "prov:fileName": "TODO.img", 
+            "prov:type": {
+                "type": "xsd:QName", 
+                "$": "nidm:statisticalMap"
+            }, 
+            "prov:contrastName": "TODO", 
+            "prov:effectDegreesOfFreedom": "TODO", 
+            "prov:errorDegreesOfFreedom": "TODO", 
+            "prov:label": "Statistical Map: TODO", 
+            "prov:location": "file:///path/to/TODO.img", 
+            "prov:statisticType": {
+                "type": "xsd:QName", 
+                "$": "nidm:tStatisticTODO"
+            }
+        }, 
+        "niiri:contrast_standard_error_map_id": {
+            "prov:type": [
+                {
+                    "type": "xsd:QName", 
+                    "$": "nidm:contrastStandardErrorMap2"
+                }, 
+                {
+                    "type": "xsd:QName", 
+                    "$": "nidm:contrastStandardErrorMap"
+                }
+            ]
+        }, 
+        "niiri:coordinate_6": {
+            "nidm:coordinate2": "7", 
+            "nidm:coordinate3": "16", 
+            "nidm:coordinate1": "28", 
+            "prov:type": [
+                {
+                    "type": "xsd:QName", 
+                    "$": "nidm:coordinate"
+                }, 
+                {
+                    "type": "xsd:QName", 
+                    "$": "prov:location"
+                }
+            ], 
+            "nidm:coordinateInUnits3": "5.82", 
+            "nidm:coordinateInUnits2": "-96.6", 
+            "nidm:coordinateInUnits1": "16.1", 
+            "prov:label": "Coordinate 6"
+        }, 
+        "niiri:centerOfGravity_1": {
+            "prov:atLocation": {
+                "type": "xsd:QName", 
+                "$": "niiri:coordinate_100"
+            }, 
+            "prov:type": "fsl:centerOfGravity", 
+            "prov:label": "Center of Gravity: 1"
+        }, 
+        "niiri:coordinate_7": {
+            "nidm:coordinate2": "18", 
+            "nidm:coordinate3": "10", 
+            "nidm:coordinate1": "19", 
+            "prov:type": [
+                {
+                    "type": "xsd:QName", 
+                    "$": "nidm:coordinate"
+                }, 
+                {
+                    "type": "xsd:QName", 
+                    "$": "prov:location"
+                }
+            ], 
+            "nidm:coordinateInUnits3": "-26.5", 
+            "nidm:coordinateInUnits2": "-60.7", 
+            "nidm:coordinateInUnits1": "47.7", 
+            "prov:label": "Coordinate 7"
+        }, 
+        "niiri:coordinate_4": {
+            "nidm:coordinate2": "13", 
+            "nidm:coordinate3": "12", 
+            "nidm:coordinate1": "39", 
+            "prov:type": [
+                {
+                    "type": "xsd:QName", 
+                    "$": "nidm:coordinate"
+                }, 
+                {
+                    "type": "xsd:QName", 
+                    "$": "prov:location"
+                }
+            ], 
+            "nidm:coordinateInUnits3": "-15.3", 
+            "nidm:coordinateInUnits2": "-80.4", 
+            "nidm:coordinateInUnits1": "-25.5", 
+            "prov:label": "Coordinate 4"
+        }, 
+        "niiri:centerOfGravity_2": {
+            "prov:type": "fsl:centerOfGravity", 
+            "prov:atLocation": {
+                "type": "xsd:QName", 
+                "$": "niiri:coordinate_200"
+            }, 
+            "prov:label": "Center of Gravity: 2"
+        }, 
+        "niiri:coordinate_2": {
+            "nidm:coordinate2": "21", 
+            "nidm:coordinate3": "13", 
+            "nidm:coordinate1": "42", 
+            "prov:type": [
+                {
+                    "type": "xsd:QName", 
+                    "$": "prov:location"
+                }, 
+                {
+                    "type": "xsd:QName", 
+                    "$": "nidm:coordinate"
+                }
+            ], 
+            "nidm:coordinateInUnits3": "-18", 
+            "nidm:coordinateInUnits2": "-53.4", 
+            "nidm:coordinateInUnits1": "-38.1", 
+            "prov:label": "Coordinate 2"
+        }, 
+        "niiri:coordinate_3": {
+            "nidm:coordinate2": "15", 
+            "nidm:coordinate3": "12", 
+            "nidm:coordinate1": "40", 
+            "prov:type": [
+                {
+                    "type": "xsd:QName", 
+                    "$": "prov:location"
+                }, 
+                {
+                    "type": "xsd:QName", 
+                    "$": "nidm:coordinate"
+                }
+            ], 
+            "nidm:coordinateInUnits3": "-16.9", 
+            "nidm:coordinateInUnits2": "-73.8", 
+            "nidm:coordinateInUnits1": "-29.6", 
+            "prov:label": "Coordinate 3"
+        }, 
+        "niiri:coordinate_1": {
+            "nidm:coordinate2": "15", 
+            "nidm:coordinate3": "14", 
+            "nidm:coordinate1": "45", 
+            "prov:type": [
+                {
+                    "type": "xsd:QName", 
+                    "$": "nidm:coordinate"
+                }, 
+                {
+                    "type": "xsd:QName", 
+                    "$": "prov:location"
+                }
+            ], 
+            "nidm:coordinateInUnits3": "-9.24", 
+            "nidm:coordinateInUnits2": "-73.7", 
+            "nidm:coordinateInUnits1": "-48.1", 
+            "prov:label": "Coordinate 1"
+        }, 
+        "niiri:extent_threshold_id": {
+            "fsl:pValueGRF": "0.05", 
+            "prov:type": {
+                "type": "xsd:QName", 
+                "$": "nidm:extentThreshold"
+            }, 
+            "prov:label": "Extent Threshold: TODO"
+        }, 
+        "niiri:coordinate_100": {
+            "nidm:coordinate2": "12.8", 
+            "nidm:coordinate3": "14.6", 
+            "nidm:coordinate1": "25.6", 
+            "nidm:coordinateSystem": {
+                "type": "xsd:QName", 
+                "$": "nidm:mni"
+            }, 
+            "prov:type": [
+                {
+                    "type": "xsd:QName", 
+                    "$": "nidm:coordinate"
+                }, 
+                {
+                    "type": "xsd:QName", 
+                    "$": "prov:location"
+                }
+            ], 
+            "nidm:coordinateInUnits3": "-4.27", 
+            "nidm:coordinateInUnits2": "-77.1", 
+            "nidm:coordinateInUnits1": "24.1"
+        }, 
+        "niiri:design_matrix_id": {
+            "prov:type": {
+                "type": "xsd:QName", 
+                "$": "nidm:designMatrix"
+            }, 
+            "prov:location": "file:///path/to/design_matrix.csv"
+        }, 
+        "niiri:coordinate_200": {
+            "nidm:coordinate2": "16.4", 
+            "nidm:coordinate3": "13.2", 
+            "nidm:coordinate1": "40.2", 
+            "nidm:coordinateSystem": {
+                "type": "xsd:QName", 
+                "$": "nidm:mni"
+            }, 
+            "prov:type": [
+                {
+                    "type": "xsd:QName", 
+                    "$": "nidm:coordinate"
+                }, 
+                {
+                    "type": "xsd:QName", 
+                    "$": "prov:location"
+                }
+            ], 
+            "nidm:coordinateInUnits3": "-13.4", 
+            "nidm:coordinateInUnits2": "-68.5", 
+            "nidm:coordinateInUnits1": "-30.8"
+        }
+    }, 
+    "prefix": {
+        "neurolex": "http://neurolex.org/wiki/", 
+        "niiri": "http://iri.nidash.org/", 
+        "spm": "http://www.fil.ion.ucl.ac.uk/spm/ns/", 
+        "nidm": "http://nidm.nidash.org/", 
+        "crypto": "http://www.w3.org/2000/10/swap/crypto#"
+    }, 
+    "activity": {
+        "niiri:inference_id": {
+            "prov:type": {
+                "type": "xsd:QName", 
+                "$": "spm:inference"
+            }, 
+            "prov:label": "Inference"
+        }
+    }, 
+    "wasGeneratedBy": {
+        "_:id14": {
+            "prov:entity": "niiri:excursion_set_id", 
+            "prov:activity": "niiri:inference_id"
+        }, 
+        "_:id13": {
+            "prov:entity": "niiri:stat_image_properties_id", 
+            "prov:activity": "niiri:inference_id"
+        }
+    }
+}
