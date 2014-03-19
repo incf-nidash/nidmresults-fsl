@@ -36,21 +36,28 @@ class FSL_NIDM():
                     s = re.compile('zstat\d+')
                     zstatnum = s.search(file)
                     zstatnum = zstatnum.group()
+                    self.add_contrast(zstatnum.replace('zstat', ''))
                     self.add_zstat_file(os.path.join(self.featDir, 'cluster_'+zstatnum+'.txt'))
                 # FIXME: For now do only 1 zstat
                 break; 
         self.maskFile = os.path.join(self.featDir, 'mask.nii.gz')
-        self.add_mask_info()
+        self.add_search_space()
 
                 
+    def add_contrast(self, contrastNum):
+        contrastFile = os.path.join(self.featDir, 'stats', 'cope'+str(contrastNum)+'.nii.gz')
+        varContrastFile = os.path.join(self.featDir, 'stats', 'varcope'+str(contrastNum)+'.nii.gz')
+        statMapFile = os.path.join(self.featDir, 'stats', 'zstat'+str(contrastNum)+'.nii.gz')
+        self.nidm.create_contrast_map(contrastFile, varContrastFile, statMapFile)
 
-    def add_mask_info(self):
-        self.nidm.create_mask_info()
+    def add_search_space(self):
+        searchSpaceFile = os.path.join(self.featDir, 'mask.nii.gz')
+        smoothnessFile = os.path.join(self.featDir, 'stats', 'smoothness')
 
-        
-
-    # def create_coordinate_entity(self):
-
+        # Load DLH, VOLUME and RESELS
+        smoothness = np.loadtxt(smoothnessFile, usecols=[1])
+        print searchSpaceFile
+        self.nidm.create_search_space(searchSpaceFile=searchSpaceFile, searchVolume=smoothness[1], reselSizeInVoxels=smoothness[2])
 
 
     def add_report_file(self, myReportFile):
