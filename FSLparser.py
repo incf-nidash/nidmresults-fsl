@@ -11,14 +11,16 @@ from prov.model import ProvBundle, ProvRecord, ProvExceptionCannotUnifyAttribute
 import prov.model.graph
 import os
 import numpy as np
+import nibabel as nib
+from NIDMStat import NIDMStat
 
 class FSL_NIDM():
 
     def __init__(self, *args, **kwargs):
         self.featDir = None
+        self.nidm = NIDMStat();
         self.reportFile = None
         self.zstatFile = None
-        self.create_basis_fsl_prov()
         if 'featDir' in kwargs:
             self.featDir = kwargs.pop('featDir')
             self.parse_feat_dir()
@@ -34,66 +36,22 @@ class FSL_NIDM():
                     s = re.compile('zstat\d+')
                     zstatnum = s.search(file)
                     zstatnum = zstatnum.group()
-                    self.add_zstat_file(os.path.join(self.featDir, 'cluster_'+zstatnum+'.html'),
-                    os.path.join(self.featDir, 'cluster_'+zstatnum+'_std.html'))
+                    self.add_zstat_file(os.path.join(self.featDir, 'cluster_'+zstatnum+'.txt'))
                 # FIXME: For now do only 1 zstat
                 break; 
+        self.maskFile = os.path.join(self.featDir, 'mask.nii.gz')
+        self.add_mask_info()
 
-    def create_basis_fsl_prov(self):
-        g = ProvBundle()
-        g.add_namespace("neurolex", "http://neurolex.org/wiki/")
-        g.add_namespace("spm", "http://www.fil.ion.ucl.ac.uk/spm/ns/")
-        g.add_namespace("nidm", "http://nidm.nidash.org/")
-        g.add_namespace("niiri", "http://iri.nidash.org/")
-        g.add_namespace("crypto", "http://www.w3.org/2000/10/swap/crypto#")
+                
 
-        g.entity('niiri:statistical_map_id' ,
-            other_attributes=(  ('prov:type', 'nidm:statisticalMap'), 
-                                ('prov:label', "Statistical Map: TODO") ,
-                                ('prov:contrastName', "TODO") ,
-                                ('prov:location', "file:///path/to/TODO.img"),
-                                ('prov:fileName', "TODO.img"),
-                                ('prov:statisticType', 'nidm:tStatisticTODO'),
-                                ('prov:errorDegreesOfFreedom', 'TODO'),
-                                ('prov:effectDegreesOfFreedom', 'TODO')
-                                ) )
-        g.entity('niiri:contrast_map_id', other_attributes=(  ('prov:type', 'nidm:contrastMap'), ('prov:type', 'nidm:contrastMap2')))
-        g.wasDerivedFrom('niiri:statistical_map_id', 'niiri:contrast_map_id')
+    def add_mask_info(self):
+        self.nidm.create_mask_info()
 
-        g.entity('niiri:contrast_standard_error_map_id', other_attributes=( ('prov:type' , 'nidm:contrastStandardErrorMap'), ('prov:type' , 'nidm:contrastStandardErrorMap2')))
-
-        g.wasDerivedFrom('niiri:statistical_map_id', 'niiri:contrast_standard_error_map_id')
-        g.entity('niiri:residual_mean_squares_map_id', other_attributes=( ('prov:type','nidm:residualMeanSquaresMap',), ('prov:location',"file:///path/to/ResMS.img" )))
-        g.wasDerivedFrom('niiri:contrast_standard_error_map_id', 'niiri:residual_mean_squares_map_id')
-        g.entity('niiri:design_matrix_id', other_attributes=( ('prov:type','nidm:designMatrix',), ('prov:location', "file:///path/to/design_matrix.csv")))
-        g.entity('niiri:contrast_id', other_attributes=( ('prov:type', 'nidm:contrast'), ('nidm:contrastName',"listening &gt; rest")))
-        g.wasDerivedFrom('niiri:contrast_map_id', 'niiri:design_matrix_id')
-        g.wasDerivedFrom('niiri:contrast_map_id', 'niiri:contrast_id')
-        g.wasDerivedFrom('niiri:contrast_standard_error_map_id', 'niiri:design_matrix_id')
-        g.wasDerivedFrom('niiri:contrast_standard_error_map_id', 'niiri:contrast_id')
-        g.wasDerivedFrom('niiri:residual_mean_squares_map_id', 'niiri:design_matrix_id')
-        g.entity('niiri:search_space_id',other_attributes=( ('prov:type', 'nidm:mask',), ('prov:location', "file:///path/to/mask.img")))
         
-        g.activity('niiri:inference_id', other_attributes=( ('prov:type', 'spm:inference'), ('prov:label' , "Inference")))
-        g.used('niiri:inference_id', 'niiri:statistical_map_id')
-        g.used('niiri:inference_id', 'niiri:search_space_id')
-        g.used('niiri:inference_id', 'niiri:height_threshold_id')
-        g.used('niiri:inference_id', 'niiri:extent_threshold_id')
-        
-        
-        g.entity('niiri:stat_image_properties_id', other_attributes=( ('prov:type', 'spm:statisticImageProperties'), ('spm:expectedNumberOfVoxelsPerCluster', "0.553331387916112")))
-        g.wasGeneratedBy('niiri:stat_image_properties_id', 'niiri:inference_id')
-        g.entity('niiri:excursion_set_id', other_attributes=( 
-            ('prov:type', 'fsl:excursionSet'), 
-            ('prov:location',"file:///path/to/thresh_zstat1.nii.gz"),
-            ('nidm:voxelToWorldMapping', "[[1,2,3,4], [1,2,3,4], [1,2,3,4], [0,0,0,1]]"),
-            ('nidm:numberOfDimensions', "3"),
-            ('nidm:dimensions', "[53 63 46]"),
-            ('nidm:voxelUnits', "['mm' 'mm' 'mm']"),
-            ('nidm:voxelSize', "[3 3 3]"),
-            ))
-        g.wasGeneratedBy('niiri:excursion_set_id', 'niiri:inference_id')
-        self.provBundle = g
+
+    # def create_coordinate_entity(self):
+
+
 
     def add_report_file(self, myReportFile):
         self.reportFile = myReportFile
@@ -101,32 +59,26 @@ class FSL_NIDM():
         file = open(myReportFile, 'r')
         parser.feed(file.read());
 
-        heightThreshAllFields = {
-            'prov:type': 'nidm:heightThreshold', 'prov:label': "Height Threshold: TODO",
-            'prov:userSpecifiedThresholdType': "TODO" , 'prov:value': parser.get_voxelThreshValue(),
-            'nidm:pValueUncorrected': parser.get_voxelPUncorr(), 'fsl:pValueGRF': parser.get_voxelPCorr()
-            }
-        self.provBundle.entity('niiri:height_threshold_id', other_attributes=dict((k,v) for k,v in heightThreshAllFields.iteritems() if v is not None))
-        exentThreshAllFields = {
-            'prov:type': 'nidm:extentThreshold', 'prov:label': "Extent Threshold: TODO", 'nidm:clusterSizeInVoxels': parser.get_extentValue(),
-            'nidm:pValueUncorrected': parser.get_extentPUncorr(), 'fsl:pValueGRF': parser.get_extentPCorr()
-        }
-        self.provBundle.entity('niiri:extent_threshold_id', other_attributes=dict((k,v) for k,v in exentThreshAllFields.iteritems() if v is not None))
-
-        self.provBundle.agent('niiri:software_id', other_attributes=( 
-            ('prov:type', 'nidm:fsl'), 
-            ('prov:type','prov:SoftwareAgent'),
-            ('prov:label','FSL'),
-            ('nidm:softwareVersion','FSL') ))
-
-        self.provBundle.wasAssociatedWith('niiri:inference_id', 'niiri:software_id')
+        self.nidm.create_thresholds( voxelThreshold=parser.get_voxelThreshValue(), 
+            voxelPUncorr=parser.get_voxelPUncorr(), 
+            voxelPCorr=parser.get_voxelPCorr(), 
+            extent=parser.get_extentValue(),
+            extentPUncorr=parser.get_extentPUncorr(), 
+            extentPCorr=parser.get_extentPCorr())
 
 
-    def add_zstat_file(self, myZstatFile, myStdZstatFile):
+    def add_zstat_file(self, myZstatFile):
+
+        # Excursion set
+        zFileImg = myZstatFile.replace('cluster_', 'thresh_').replace('.txt', '.nii.gz')
+        self.nidm.create_excursion_set(zFileImg=zFileImg)
+
+        # Clusters
         self.zstatFile = myZstatFile
-        clusterTable = np.loadtxt(myZstatFile.replace('html','txt'), skiprows=1)
+        clusterTable = np.loadtxt(myZstatFile, skiprows=1)
 
-        # FIXME: could be nicer
+        # FIXME: error if only one row in the table as row is then a cell...
+        # FIXME: could be nicer (do not repeat for std)
         clusters = []
         for row in clusterTable:
             cluster = Cluster(int(row[0]))
@@ -137,7 +89,8 @@ class FSL_NIDM():
             cluster.set_COG3(row[10])
             clusters.append(cluster)
             
-        clusterStdTable = np.loadtxt(myStdZstatFile.replace('html','txt'), skiprows=1)
+        myStdZstatFile = myZstatFile.replace('.txt', '_std.txt')
+        clusterStdTable = np.loadtxt(myStdZstatFile, skiprows=1)
         clustersStd = []
         for row in clusterStdTable:
             cluster = Cluster(int(row[0]))
@@ -148,8 +101,8 @@ class FSL_NIDM():
             cluster.set_COG3(row[10])
             clustersStd.append(cluster)
 
-        print myStdZstatFile.replace('html','txt').replace('cluster', 'lmax')
-        peakTable = np.loadtxt(myStdZstatFile.replace('html','txt').replace('cluster', 'lmax'), skiprows=1)
+        # Peaks
+        peakTable = np.loadtxt(myStdZstatFile.replace('cluster', 'lmax'), skiprows=1)
         peaks = []
         for row in peakTable:
             peak = Peak(int(row[0]))
@@ -159,7 +112,7 @@ class FSL_NIDM():
             peak.set_z(row[4])
             peaks.append(peak)
 
-        peakStdTable = np.loadtxt(myStdZstatFile.replace('html','txt').replace('cluster', 'lmax'), skiprows=1)
+        peakStdTable = np.loadtxt(myStdZstatFile.replace('cluster', 'lmax'), skiprows=1)
         peaksStd = []
         for row in peakTable:
             peak = Peak(int(row[0]))
@@ -173,62 +126,22 @@ class FSL_NIDM():
         if clusters is not None:
             for cluster in clusters:               
                 clusIdx = clusIdx + 1
-                self.provBundle.entity('niiri:cluster_'+str(cluster.get_id()), other_attributes=( 
-                             ('prov:type' , 'spm:clusterLevelStatistic'), 
-                             ('prov:label', "Cluster Level Statistic: "+str(cluster.get_id())),
-                             ('fsl:clusterSizeInVoxels', str(cluster.get_SizeInVoxels())),
-                             ('fsl:pGRF', str(cluster.get_pGRF()) )))
-                self.provBundle.wasDerivedFrom('niiri:cluster_'+str(cluster.get_id()), 'niiri:excursion_set_id')
-
-                self.provBundle.entity('niiri:coordinate_'+str(cluster.get_id())+"00", other_attributes=( 
-                    ('prov:type' , 'prov:location'), 
-                    ('prov:type' , 'nidm:coordinate'),
-                    ('nidm:coordinateSystem' , 'nidm:mni'),
-                    ('nidm:coordinate1' , str(cluster.get_COG1())),
-                    ('nidm:coordinate2' , str(cluster.get_COG2())),
-                    ('nidm:coordinate3' , str(cluster.get_COG3())),
-                    ('nidm:coordinateInUnits1' , str(clustersStd[clusIdx].get_COG1())),
-                    ('nidm:coordinateInUnits2' , str(clustersStd[clusIdx].get_COG2())),
-                    ('nidm:coordinateInUnits3' , str(clustersStd[clusIdx].get_COG3()))
-                    ))
-                self.provBundle.entity('niiri:centerOfGravity_'+str(cluster.get_id()), other_attributes=( 
-                             ('prov:type' , 'fsl:centerOfGravity'), 
-                             ('prov:label', "Center of Gravity: "+str(cluster.get_id())),
-                             ('prov:atLocation' , 'niiri:coordinate_'+str(cluster.get_id())+"00"))   )
-                self.provBundle.wasDerivedFrom('niiri:centerOfGravity_'+str(cluster.get_id()), 'niiri:cluster_'+str(cluster.get_id()))
+                self.nidm.create_cluster(id=cluster.get_id(), size=cluster.get_SizeInVoxels(), pGRF=cluster.get_pGRF(),
+                    COG1=cluster.get_COG1(),COG2=cluster.get_COG2(),COG3=cluster.get_COG3(),
+                    COG1_std=clustersStd[clusIdx-1].get_COG1(),COG2_std=clustersStd[clusIdx-1].get_COG2(),COG3_std=clustersStd[clusIdx-1].get_COG3())
         
         if peaks is not None:
             peakIndex = 1;
             for peak in peaks:      
-                self.provBundle.entity('niiri:coordinate_'+str(peakIndex), other_attributes=( 
-                    ('prov:type' , 'prov:location'), 
-                    ('prov:type' , 'nidm:coordinate'),
-                    ('prov:label' , "Coordinate "+str(peakIndex)),
-                    ('nidm:coordinate1' , peak.get_x()),
-                    ('nidm:coordinate2' , peak.get_y()),
-                    ('nidm:coordinate3' , peak.get_z()),
-                    ('nidm:coordinateInUnits1' , str(peaksStd[peakIndex-1].get_x())),
-                    ('nidm:coordinateInUnits2' , str(peaksStd[peakIndex-1].get_y())),
-                    ('nidm:coordinateInUnits3' , str(peaksStd[peakIndex-1].get_z()))
-                    ))
-                self.provBundle.entity('niiri:peak_'+str(peakIndex), other_attributes=( 
-                    ('prov:type' , 'spm:peakLevelStatistic'), 
-                    ('nidm:equivalentZStatistic', str(peak.get_equivZStat())),
-                    ('prov:atLocation' , 'niiri:coordinate_'+str(peakIndex)))         )
-                self.provBundle.wasDerivedFrom('niiri:peak_'+str(peakIndex), 'niiri:cluster_'+str(peak.get_cluster_id()))
+
+                self.nidm.create_peak(id=peakIndex, x=peak.get_x(), y=peak.get_y(), z=peak.get_z(), 
+                    std_x=peaksStd[peakIndex-1].get_x(), std_y=peaksStd[peakIndex-1].get_y(), std_z=peaksStd[peakIndex-1].get_z(),
+                    equivZ=peak.get_equivZStat(), clusterId=peak.get_cluster_id())
                 peakIndex = peakIndex + 1
         
 
     def save_prov_to_files(self):
-        jsondata = self.provBundle.get_provjson(indent=4)
-        JSONfile = open('./FSL_example.json', 'w');
-        JSONfile.write(jsondata)
-        PROVNfile = open('./FSL_example.provn', 'w');
-        PROVNfile.write(self.provBundle.get_provn(4))
-
-        dot = graph.prov_to_dot(self.provBundle, use_labels=True)
-        dot.set_dpi(120)
-        dot.write_png('./FSL_example.png')
+        self.nidm.save_prov_to_files()
 
 '''HTML parser for report files
 
