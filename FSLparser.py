@@ -1,7 +1,7 @@
 '''Python implemetation of the export of FSL results into NI-DM
 
 @author: Camille Maumet <c.m.j.maumet@warwick.ac.uk>
-@copyright: University of Warwick 2013
+@copyright: University of Warwick 2013-2014
 '''
 
 from HTMLParser import HTMLParser
@@ -9,13 +9,35 @@ from htmlentitydefs import name2codepoint
 import re
 from prov.model import ProvBundle, ProvRecord, ProvExceptionCannotUnifyAttribute, graph, ProvEntity
 import prov.model.graph
+import os
+import numpy as np
 
 class FSL_NIDM():
 
     def __init__(self, *args, **kwargs):
-        self.reportFile = []
-        self.zstatFile = []
+        self.featDir = None
+        self.reportFile = None
+        self.zstatFile = None
         self.create_basis_fsl_prov()
+        if 'featDir' in kwargs:
+            self.featDir = kwargs.pop('featDir')
+            self.parse_feat_dir()
+
+    def parse_feat_dir(self):
+        print os.path.join(self.featDir, 'report_poststats.html')
+        self.add_report_file(os.path.join(self.featDir, 'report_poststats.html'))
+
+        for file in os.listdir(self.featDir):
+            if file.startswith("thresh_zstat"):
+                if file.endswith(".nii.gz"):
+                    print file
+                    s = re.compile('zstat\d+')
+                    zstatnum = s.search(file)
+                    zstatnum = zstatnum.group()
+                    self.add_zstat_file(os.path.join(self.featDir, 'cluster_'+zstatnum+'.html'),
+                    os.path.join(self.featDir, 'cluster_'+zstatnum+'_std.html'))
+                # FIXME: For now do only 1 zstat
+                break; 
 
     def create_basis_fsl_prov(self):
         g = ProvBundle()
@@ -102,15 +124,51 @@ class FSL_NIDM():
 
     def add_zstat_file(self, myZstatFile, myStdZstatFile):
         self.zstatFile = myZstatFile
-        clusterParser = MyFSLClusterParser();
-        fileVox = open(myZstatFile, 'r')
-        clusterParser.feed(fileVox.read());
-        clusterParserInStdSpace = MyFSLClusterParser();
-        fileUnits = open(myStdZstatFile, 'r')
-        clusterParserInStdSpace.feed(fileUnits.read());
-        
-        clusters = clusterParser.get_clusters()
-        clustersStd = clusterParserInStdSpace.get_clusters()
+        clusterTable = np.loadtxt(myZstatFile.replace('html','txt'), skiprows=1)
+
+        # FIXME: could be nicer
+        clusters = []
+        for row in clusterTable:
+            cluster = Cluster(int(row[0]))
+            cluster.sizeInVoxels(row[1])
+            cluster.set_pGRF(row[2])
+            cluster.set_COG1(row[8])
+            cluster.set_COG2(row[9])
+            cluster.set_COG3(row[10])
+            clusters.append(cluster)
+            
+        clusterStdTable = np.loadtxt(myStdZstatFile.replace('html','txt'), skiprows=1)
+        clustersStd = []
+        for row in clusterStdTable:
+            cluster = Cluster(int(row[0]))
+            cluster.sizeInVoxels(row[1])
+            cluster.set_pGRF(row[2])
+            cluster.set_COG1(row[8])
+            cluster.set_COG2(row[9])
+            cluster.set_COG3(row[10])
+            clustersStd.append(cluster)
+
+        print myStdZstatFile.replace('html','txt').replace('cluster', 'lmax')
+        peakTable = np.loadtxt(myStdZstatFile.replace('html','txt').replace('cluster', 'lmax'), skiprows=1)
+        peaks = []
+        for row in peakTable:
+            peak = Peak(int(row[0]))
+            peak.set_equivZStat(row[1])
+            peak.set_x(row[2])
+            peak.set_y(row[3])
+            peak.set_z(row[4])
+            peaks.append(peak)
+
+        peakStdTable = np.loadtxt(myStdZstatFile.replace('html','txt').replace('cluster', 'lmax'), skiprows=1)
+        peaksStd = []
+        for row in peakTable:
+            peak = Peak(int(row[0]))
+            peak.set_equivZStat(row[1])
+            peak.set_x(row[2])
+            peak.set_y(row[3])
+            peak.set_z(row[4])
+            peaksStd.append(peak)
+
         clusIdx = -1
         if clusters is not None:
             for cluster in clusters:               
@@ -138,8 +196,7 @@ class FSL_NIDM():
                              ('prov:label', "Center of Gravity: "+str(cluster.get_id())),
                              ('prov:atLocation' , 'niiri:coordinate_'+str(cluster.get_id())+"00"))   )
                 self.provBundle.wasDerivedFrom('niiri:centerOfGravity_'+str(cluster.get_id()), 'niiri:cluster_'+str(cluster.get_id()))
-        peaks = clusterParser.get_peaks()
-        peaksStd = clusterParserInStdSpace.get_peaks()
+        
         if peaks is not None:
             peakIndex = 1;
             for peak in peaks:      
@@ -169,8 +226,7 @@ class FSL_NIDM():
         PROVNfile = open('./FSL_example.provn', 'w');
         PROVNfile.write(self.provBundle.get_provn(4))
 
-        dot = graph.prov_to_dot(self.provBundle)
-        # , use_labels=True)
+        dot = graph.prov_to_dot(self.provBundle, use_labels=True)
         dot.set_dpi(120)
         dot.write_png('./FSL_example.png')
 
@@ -253,103 +309,6 @@ class MyFSLReportParser(HTMLParser):
 
     def get_extentPUncorr(self):
         return self.extentPUncorr
-
-'''HTML parser for cluster files
-
-'''
-class MyFSLClusterParser(HTMLParser):
-    def __init__(self, *args, **kwargs):
-        HTMLParser.__init__(self, *args, **kwargs)
-        self.descriptions = None
-        self.inside_a_element = 0
-        self.hyperlinks = None
-        self.inside_h1 = False;
-        self.inside_cluster_list = False;
-        self.inside_peak_list = False;
-        self.in_cluster_table = False;
-        self.in_peak_table = False;
-        self.row_number = 0;
-        self.clusters = []
-        self.clusterAppended = False
-        self.peaks = []
-        self.peakAppended = False
-        # self.peakIndex = 1
-
-    def handle_starttag(self, tag, attrs):
-        if tag == "h1":
-            self.inside_h1 = True;
-            self.inside_cluster_list = False;            
-        elif tag == "table":
-            if self.inside_cluster_list:         
-                self.in_cluster_table = True;
-                self.row_number = 0;
-            elif self.inside_peak_list:         
-                self.in_peak_table = True;
-                self.row_number = 0;
-        elif tag == "tr":
-            self.row_number = self.row_number + 1;
-            self.col_number = 0;
-        elif tag == "td":
-            self.col_number = self.col_number + 1;
-
-    def handle_endtag(self, tag):
-        if tag == "h1":    
-            self.inside_h1 = False;
-        elif tag == "table":
-            self.in_cluster_table = False;
-        
-
-    def handle_data(self, data):
-        if self.inside_h1:
-            if data == "Cluster List":
-                self.inside_cluster_list = True;
-            elif data == "Local Maxima":
-                self.inside_peak_list = True;
-
-        if self.in_cluster_table:
-            if self.row_number > 1:
-                if self.col_number == 1:
-                    self.cluster = Cluster(data);
-                    self.clusterAppended = False
-                elif self.col_number == 2:
-                    self.cluster.sizeInVoxels(data)
-                elif self.col_number == 3:
-                    self.cluster.set_pGRF(data)
-                elif self.col_number == 9:
-                    self.cluster.set_COG1(data)
-                elif self.col_number == 10:
-                    self.cluster.set_COG2(data)
-                elif self.col_number == 11:
-                    self.cluster.set_COG3(data)
-                elif self.col_number == 16:
-                    if not self.clusterAppended:
-                        self.clusters.append(self.cluster)
-                        self.clusterAppended = True
-        
-
-        if self.in_peak_table:
-            if self.row_number > 1:
-                if self.col_number == 1:
-                    self.peak = Peak(data);
-                    self.peakAppended = False
-                elif self.col_number == 2:
-                    self.peak.set_equivZStat(data)
-                elif self.col_number == 3:
-                    self.peak.set_x(data)
-                elif self.col_number == 4:
-                    self.peak.set_y(data)
-                elif self.col_number == 5:
-                    if not self.peakAppended:
-                        self.peak.set_z(data)
-                        self.peaks.append(self.peak)
-                        self.peakAppended = True
-
-                        
-    def get_clusters(self):
-        return self.clusters
-
-    def get_peaks(self):
-        return self.peaks        
 
 class Peak():
     def __init__(self, clusterId, *args, **kwargs):
