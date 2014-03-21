@@ -26,13 +26,11 @@ class FSL_NIDM():
             self.parse_feat_dir()
 
     def parse_feat_dir(self):
-        print os.path.join(self.featDir, 'report_poststats.html')
         self.add_report_file(os.path.join(self.featDir, 'report_poststats.html'))
 
         for file in os.listdir(self.featDir):
             if file.startswith("thresh_zstat"):
                 if file.endswith(".nii.gz"):
-                    print file
                     s = re.compile('zstat\d+')
                     zstatnum = s.search(file)
                     zstatnum = zstatnum.group()
@@ -56,7 +54,6 @@ class FSL_NIDM():
 
         # Load DLH, VOLUME and RESELS
         smoothness = np.loadtxt(smoothnessFile, usecols=[1])
-        print searchSpaceFile
         self.nidm.create_search_space(searchSpaceFile=searchSpaceFile, searchVolume=smoothness[1], reselSizeInVoxels=smoothness[2])
 
 
@@ -82,9 +79,8 @@ class FSL_NIDM():
 
         # Clusters
         self.zstatFile = myZstatFile
-        clusterTable = np.loadtxt(myZstatFile, skiprows=1)
+        clusterTable = np.loadtxt(myZstatFile, skiprows=1, ndmin=2)
 
-        # FIXME: error if only one row in the table as row is then a cell...
         # FIXME: could be nicer (do not repeat for std)
         clusters = []
         for row in clusterTable:
@@ -97,7 +93,7 @@ class FSL_NIDM():
             clusters.append(cluster)
             
         myStdZstatFile = myZstatFile.replace('.txt', '_std.txt')
-        clusterStdTable = np.loadtxt(myStdZstatFile, skiprows=1)
+        clusterStdTable = np.loadtxt(myStdZstatFile, skiprows=1, ndmin=2)
         clustersStd = []
         for row in clusterStdTable:
             cluster = Cluster(int(row[0]))
@@ -109,7 +105,7 @@ class FSL_NIDM():
             clustersStd.append(cluster)
 
         # Peaks
-        peakTable = np.loadtxt(myStdZstatFile.replace('cluster', 'lmax'), skiprows=1)
+        peakTable = np.loadtxt(myStdZstatFile.replace('cluster', 'lmax'), skiprows=1, ndmin=2)
         peaks = []
         for row in peakTable:
             peak = Peak(int(row[0]))
@@ -119,7 +115,7 @@ class FSL_NIDM():
             peak.set_z(row[4])
             peaks.append(peak)
 
-        peakStdTable = np.loadtxt(myStdZstatFile.replace('cluster', 'lmax'), skiprows=1)
+        peakStdTable = np.loadtxt(myStdZstatFile.replace('cluster', 'lmax'), skiprows=1, ndmin=2)
         peaksStd = []
         for row in peakTable:
             peak = Peak(int(row[0]))
