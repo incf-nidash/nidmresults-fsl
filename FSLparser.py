@@ -37,7 +37,7 @@ class FSL_NIDM():
                     self.add_contrast(zstatnum.replace('zstat', ''))
                     self.add_zstat_file(os.path.join(self.featDir, 'cluster_'+zstatnum+'.txt'))
                 # FIXME: For now do only 1 zstat
-                break; 
+                # break; 
         self.maskFile = os.path.join(self.featDir, 'mask.nii.gz')
         self.add_search_space()
 
@@ -46,7 +46,18 @@ class FSL_NIDM():
         contrastFile = os.path.join(self.featDir, 'stats', 'cope'+str(contrastNum)+'.nii.gz')
         varContrastFile = os.path.join(self.featDir, 'stats', 'varcope'+str(contrastNum)+'.nii.gz')
         statMapFile = os.path.join(self.featDir, 'stats', 'zstat'+str(contrastNum)+'.nii.gz')
-        self.nidm.create_contrast_map(contrastFile, varContrastFile, statMapFile)
+
+        designFile = open(os.path.join(self.featDir, 'design.con'), 'r')
+        designTxt = designFile.read()
+        # FIXME: to do only once (and not each time we load a new contrast)
+        contrastNameSearch = re.compile(r'.*/ContrastName'+str(contrastNum)+'\s+(?P<contrastName>\w+)\s.*')
+        extractedData = contrastNameSearch.search(designTxt) 
+
+        # FIXME: to do only once (and not each time we load a new contrast)
+        dofFile = open(os.path.join(self.featDir, 'stats', 'dof'), 'r')
+        dof = float(dofFile.read())
+
+        self.nidm.create_contrast_map(contrastFile, varContrastFile, statMapFile, extractedData.group('contrastName'), dof)
 
     def add_search_space(self):
         searchSpaceFile = os.path.join(self.featDir, 'mask.nii.gz')
