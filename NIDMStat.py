@@ -25,23 +25,24 @@ class NIDMStat():
         g.add_namespace("niiri", "http://iri.nidash.org/")
         g.add_namespace("crypto", "http://www.w3.org/2000/10/swap/crypto#")
 
-        
-
+        g.agent('niiri:software_id', other_attributes=( 
+            ('prov:type', 'nidm:fsl'), 
+            ('prov:type','prov:SoftwareAgent'),
+            ('prov:label','FSL'),
+            ('nidm:softwareVersion','FSL') ))
         
        
         # FIXME: Check one-tailed or two-tailed test and get test type from data
         # FIXME: We want to be able to add for than one inference activity for on graph -> create a function for that
-        g.activity('niiri:inference_id', other_attributes=( ('prov:type', 'fsl:inference'), ('prov:label' , "Inference"), ('prov:statisticalTest' , 'nidm:oneTailedTtest')))
         
-        g.wasGeneratedBy('niiri:search_space_id', 'niiri:inference_id')
-        g.used('niiri:inference_id', 'niiri:height_threshold_id')
-        g.used('niiri:inference_id', 'niiri:extent_threshold_id')
+        
+        
         
         # FIXME: is this really empty? If so, should be deleted
         g.entity('niiri:stat_image_properties_id', other_attributes=( 
             ('prov:type', 'fsl:statisticImageProperties'), 
             ('prov:label', 'Statistical image properties')))
-        g.wasGeneratedBy('niiri:stat_image_properties_id', 'niiri:inference_id')
+        
         
         self.provBundle = g
         
@@ -79,23 +80,19 @@ class NIDMStat():
         }
         self.provBundle.entity('niiri:extent_threshold_id', other_attributes=dict((k,v) for k,v in exentThreshAllFields.iteritems() if v is not None))
 
-
-        self.provBundle.agent('niiri:software_id', other_attributes=( 
-            ('prov:type', 'nidm:fsl'), 
-            ('prov:type','prov:SoftwareAgent'),
-            ('prov:label','FSL'),
-            ('nidm:softwareVersion','FSL') ))
-
-        self.provBundle.wasAssociatedWith('niiri:inference_id', 'niiri:software_id')
-
     def create_cluster(self, *args, **kwargs):
-        clusterId = kwargs.pop('id')
+        clusterIndex = kwargs.pop('id')
+        statNum = int(kwargs.pop('statNum'))
+
+        # FIXME: Currently assumes less than 10 clusters per contrast
+        clusterId = statNum*10+clusterIndex
+
         self.provBundle.entity('niiri:cluster_'+str(clusterId), other_attributes=( 
                              ('prov:type' , 'fsl:clusterLevelStatistic'), 
                              ('prov:label', "Cluster Level Statistic: "+str(clusterId)),
                              ('fsl:clusterSizeInVoxels', str(kwargs.pop('size'))),
                              ('fsl:pGRF', str(kwargs.pop('pGRF')) )))
-        self.provBundle.wasDerivedFrom('niiri:cluster_'+str(clusterId), 'niiri:excursion_set_id')
+        self.provBundle.wasDerivedFrom('niiri:cluster_'+str(clusterId), 'niiri:excursion_set_id_'+str(statNum))
 
         self.provBundle.entity('niiri:coordinate_'+str(clusterId)+"00", other_attributes=( 
             ('prov:type' , 'prov:location'), 
@@ -116,10 +113,14 @@ class NIDMStat():
 
     def create_peak(self, *args, **kwargs):
         peakIndex = kwargs.pop('id')
-        clusterIndex = kwargs.pop('clusterId');
+        clusterIndex = kwargs.pop('clusterId')
+        statNum = int(kwargs.pop('statNum'))
 
-        # FIXME: Currently assumes less than 100 peaks per cluster
-        peakUniqueId = clusterIndex*100+peakIndex
+        # FIXME: Currently assumes less than 10 clusters per contrast
+        clusterId = statNum*10+clusterIndex
+
+        # FIXME: Currently assumes less than 100 peaks 
+        peakUniqueId = clusterId*100+peakIndex
 
         self.provBundle.entity('niiri:coordinate_'+str(peakUniqueId), other_attributes=( 
                     ('prov:type' , 'prov:location'), 
@@ -136,7 +137,7 @@ class NIDMStat():
             ('prov:type' , 'fsl:peakLevelStatistic'), 
             ('nidm:equivalentZStatistic', str(kwargs.pop('equivZ'))),
             ('prov:location' , 'niiri:coordinate_'+str(peakUniqueId)))         )
-        self.provBundle.wasDerivedFrom('niiri:peak_'+str(peakUniqueId), 'niiri:cluster_'+str(clusterIndex))
+        self.provBundle.wasDerivedFrom('niiri:peak_'+str(peakUniqueId), 'niiri:cluster_'+str(clusterId))
 
     def create_model_fitting(self, residualsFile):
         # FIXME: Add crypto sha
@@ -156,10 +157,10 @@ class NIDMStat():
 
 
     # Generate prov for contrast map
-    def create_contrast_map(self, copeFile, varCopeFile, statFile, contrastName, dof):
+    def create_contrast_map(self, copeFile, varCopeFile, statFile, contrastName, contrastNum, dof):
         # Contrast id entity
         # FIXME: Get contrast weights
-        self.provBundle.entity('niiri:contrast_id_'+contrastName, 
+        self.provBundle.entity('niiri:contrast_id_'+contrastNum, 
             other_attributes=( ('prov:type', 'nidm:contrast'), 
                                ('nidm:contrastName', contrastName),
                                ('nidm:contrastWeights', "TODO")))
@@ -177,7 +178,7 @@ class NIDMStat():
 
         path, filename = os.path.split(copeFile)
 
-        self.provBundle.entity('niiri:'+'contrast_map_id_'+contrastName, other_attributes=( 
+        self.provBundle.entity('niiri:'+'contrast_map_id_'+contrastNum, other_attributes=( 
             ('prov:type', 'nidm:contrastMap'), 
             ('nidm:coordinateSpace', 'coordinate_space_id_'+str(self.coordinateSpaceId)),
             ('prov:location', "file://./"+filename),
@@ -185,25 +186,25 @@ class NIDMStat():
             ('nidm:contrastName', contrastName),
             ('prov:label', "Contrast map: "+contrastName)))
         self.create_coordinate_space(copeFile)
-        self.provBundle.wasGeneratedBy('niiri:contrast_map_id_'+contrastName, 'niiri:contrast_estimation_id'+contrastName)
+        self.provBundle.wasGeneratedBy('niiri:contrast_map_id_'+contrastNum, 'niiri:contrast_estimation_id'+contrastName)
         self.provBundle.wasAssociatedWith('niiri:contrast_estimation_id'+contrastName, 'niiri:software_id')
 
         path, filename = os.path.split(varCopeFile)
         # FIXME: Standard error or contrast variance...
-        self.provBundle.entity('niiri:'+'contrast_standard_error_map_id_'+contrastName, other_attributes=( 
+        self.provBundle.entity('niiri:'+'contrast_standard_error_map_id_'+contrastNum, other_attributes=( 
             ('prov:type', 'nidm:contrastStandardErrorMap'), 
             ('nidm:coordinateSpace', 'coordinate_space_id_'+str(self.coordinateSpaceId)),
             ('prov:location', "file://./"+filename),
             ('nidm:fileName', filename),
             ('prov:label', "Contrast variance map")))
         self.create_coordinate_space(varCopeFile)
-        self.provBundle.wasGeneratedBy('niiri:contrast_standard_error_map_id_'+contrastName, 'niiri:contrast_estimation_id'+contrastName)
+        self.provBundle.wasGeneratedBy('niiri:contrast_standard_error_map_id_'+contrastNum, 'niiri:contrast_estimation_id'+contrastName)
 
         path, filename = os.path.split(statFile)
         # FIXME: Remove TODOs
 
         # Specify a different URI for each contrast (for now just by adding contrastName in URI)
-        self.provBundle.entity('niiri:statistical_map_id_'+contrastName ,
+        self.provBundle.entity('niiri:statistical_map_id_'+contrastNum ,
             other_attributes=(  ('prov:type', 'nidm:statisticalMap'), 
                                 ('prov:label', "Statistical Map: "+contrastName) ,
                                 ('prov:location', "file://./"+filename),
@@ -214,15 +215,25 @@ class NIDMStat():
                                 ('nidm:coordinateSpace', 'coordinate_space_id_'+str(self.coordinateSpaceId)),
                                 ) )
         self.create_coordinate_space(statFile)
-        self.provBundle.wasGeneratedBy('niiri:statistical_map_id_'+contrastName, 'niiri:contrast_estimation_id'+contrastName)
-        self.provBundle.used('niiri:inference_id', 'niiri:statistical_map_id_'+contrastName)
+        self.provBundle.wasGeneratedBy('niiri:statistical_map_id_'+contrastNum, 'niiri:contrast_estimation_id'+contrastName)
                
         self.provBundle.used('niiri:contrast_estimation_id'+contrastName, 'niiri:residual_mean_squares_map_id')
         self.provBundle.used('niiri:contrast_estimation_id'+contrastName, 'niiri:design_matrix_id')
-        self.provBundle.used('niiri:contrast_estimation_id'+contrastName, 'niiri:contrast_id_'+contrastName)
+        self.provBundle.used('niiri:contrast_estimation_id'+contrastName, 'niiri:contrast_id_'+contrastNum)
 
-        self.provBundle.used('niiri:inference_id', 'niiri:statistical_map_id_'+contrastName)
 
+        # In FSL we have a single thresholding (extent, height) applied to all contrasts 
+        self.provBundle.activity('niiri:inference_id_'+contrastNum, 
+            other_attributes=( ('prov:type', 'fsl:inference'), 
+                               ('prov:label' , "Inference: "+contrastName), 
+                               ('prov:statisticalTest' , 'nidm:oneTailedTtest')))
+        self.provBundle.used('niiri:inference_id_'+contrastNum, 'niiri:height_threshold_id')
+        self.provBundle.used('niiri:inference_id_'+contrastNum, 'niiri:extent_threshold_id')
+        self.provBundle.used('niiri:inference_id_'+contrastNum, 'niiri:statistical_map_id_'+contrastNum)
+        self.provBundle.wasAssociatedWith('niiri:inference_id_'+contrastNum, 'niiri:software_id')
+
+        self.provBundle.wasGeneratedBy('niiri:search_space_id', 'niiri:inference_id_'+contrastNum)
+        self.provBundle.wasGeneratedBy('niiri:stat_image_properties_id', 'niiri:inference_id_'+contrastNum)
 
     # Generate prov for a coordinate space entity 
     def create_coordinate_space(self, niftiFile):
@@ -257,18 +268,18 @@ class NIDMStat():
         self.create_coordinate_space(searchSpaceFile)
         
 
-    def create_excursion_set(self, *args, **kwargs):
-        zFileImg = kwargs.pop('zFileImg')
+    def create_excursion_set(self, excusionSetFile, statNum):
+        zFileImg = excusionSetFile
         path, filename = os.path.split(zFileImg)
 
-        self.provBundle.entity('niiri:excursion_set_id', other_attributes=( 
+        self.provBundle.entity('niiri:excursion_set_id_'+str(statNum), other_attributes=( 
             ('prov:type', 'fsl:excursionSet'), 
             ('prov:location', "file:./"+filename),
             ('nidm:fileName', filename),
             ('nidm:coordinateSpace', 'coordinate_space_id_'+str(self.coordinateSpaceId)),
             ('prov:label', "Excursion set"),
             ))
-        self.provBundle.wasGeneratedBy('niiri:excursion_set_id', 'niiri:inference_id')
+        self.provBundle.wasGeneratedBy('niiri:excursion_set_id_'+str(statNum), 'niiri:inference_id_'+str(statNum))
         self.create_coordinate_space(zFileImg)
 
     def save_prov_to_files(self):
