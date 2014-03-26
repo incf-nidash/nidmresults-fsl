@@ -27,8 +27,7 @@ class NIDMStat():
 
         
 
-        g.entity('niiri:residual_mean_squares_map_id', other_attributes=( ('prov:type','nidm:residualMeanSquaresMap',), ('prov:location',"file:///path/to/ResMS.img" )))
-        g.entity('niiri:design_matrix_id', other_attributes=( ('prov:type','nidm:designMatrix',), ('prov:location', "file:///path/to/design_matrix.csv")))
+        
        
         # FIXME: Check one-tailed or two-tailed test and get test type from data
         # FIXME: We want to be able to add for than one inference activity for on graph -> create a function for that
@@ -139,6 +138,23 @@ class NIDMStat():
             ('prov:location' , 'niiri:coordinate_'+str(peakUniqueId)))         )
         self.provBundle.wasDerivedFrom('niiri:peak_'+str(peakUniqueId), 'niiri:cluster_'+str(clusterIndex))
 
+    def create_model_fitting(self, residualsFile):
+        # FIXME: Add crypto sha
+
+        path, filename = os.path.split(residualsFile)
+        self.provBundle.entity('niiri:residual_mean_squares_map_id', 
+            other_attributes=( ('prov:type','nidm:residualMeanSquaresMap',), 
+                               ('prov:location',"file:///path/to/"+filename ),
+                               ('prov:label',"Residual Mean Squares Map" ),
+                               ('prov:fileName',filename ),
+                               ('crypto:sha',"TODO" ),
+                               ('nidm:coordinateSpace', 'coordinate_space_id_'+str(self.coordinateSpaceId))))
+        self.create_coordinate_space(residualsFile)
+        self.provBundle.entity('niiri:design_matrix_id', 
+            other_attributes=( ('prov:type','nidm:designMatrix',), 
+                               ('prov:location', "file:///path/to/design_matrix.csv")))
+
+
     # Generate prov for contrast map
     def create_contrast_map(self, copeFile, varCopeFile, statFile, contrastName, dof):
         # Contrast id entity
@@ -207,13 +223,6 @@ class NIDMStat():
 
         self.provBundle.used('niiri:inference_id', 'niiri:statistical_map_id_'+contrastName)
 
-        # entity(niiri:residual_mean_squares_map_id,
-  #   [prov:type = 'nidm:residualMeanSquaresMap',
-  #   prov:location = "file:///path/to/ResMS.img" %% xsd:anyURI,
-  #   prov:label = "Residual Mean Squares Map" %% xsd:string,
-  #   nidm:fileName = "ResMS.img" %% xsd:string,
-  #   nidm:coordinateSpace = 'niiri:coordinate_space_id_1',
-  #   crypto:sha = "e43b6e01b0463fe7d40782137867a..." %% xsd:string])
 
     # Generate prov for a coordinate space entity 
     def create_coordinate_space(self, niftiFile):

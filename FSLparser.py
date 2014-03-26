@@ -27,6 +27,9 @@ class FSL_NIDM():
     # Main function: parse a feat directory and build the corresponding NI-DM graph
     def parse_feat_dir(self):
         self.add_report_file(os.path.join(self.featDir, 'report_poststats.html'))
+        self.add_model_fitting()
+        self.maskFile = os.path.join(self.featDir, 'mask.nii.gz')
+        self.add_search_space()
 
         for file in os.listdir(self.featDir):
             if file.startswith("thresh_zstat"):
@@ -38,8 +41,14 @@ class FSL_NIDM():
                     self.add_clusters_peaks(os.path.join(self.featDir, 'cluster_'+zstatnum+'.txt'))
                 # FIXME: For now do only 1 zstat
                 # break; 
-        self.maskFile = os.path.join(self.featDir, 'mask.nii.gz')
-        self.add_search_space()
+        
+
+        
+
+    # Add model fitting, residuals map
+    def add_model_fitting(self):
+        residualsFile = os.path.join(self.featDir, 'stats', 'sigmasquareds.nii.gz')
+        self.nidm.create_model_fitting(residualsFile)
 
     # For a given contrast, create the contrast map, contrast variance map, contrast and statistical map emtities
     def add_contrast(self, contrastNum):
