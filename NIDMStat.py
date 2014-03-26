@@ -282,14 +282,18 @@ class NIDMStat():
         self.provBundle.wasGeneratedBy('niiri:excursion_set_id_'+str(statNum), 'niiri:inference_id_'+str(statNum))
         self.create_coordinate_space(zFileImg)
 
-    def save_prov_to_files(self):
+    def save_prov_to_files(self, showattributes=False):
+        suffixName = ''
+        if showattributes is False:
+            suffixName = '_without_attributes'
+
         jsondata = self.provBundle.get_provjson(indent=4)
         JSONfile = open('./FSL_example.json', 'w');
         JSONfile.write(jsondata)
         PROVNfile = open('./FSL_example.provn', 'w');
         PROVNfile.write(self.provBundle.get_provn(4))
 
-        dot = graph.prov_to_dot(self.provBundle, use_labels=True)
+        dot = graph.prov_to_dot(self.provBundle, use_labels=True, show_element_attributes=showattributes)
         dot.set_dpi(120)
-        dot.write_png('./FSL_example.png')
+        dot.write_png('./FSL_example'+suffixName+'.png')
 
