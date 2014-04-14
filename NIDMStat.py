@@ -120,7 +120,8 @@ class NIDMStat():
         clusterId = statNum*10+clusterIndex
 
         # FIXME: Currently assumes less than 100 peaks 
-        peakUniqueId = clusterId*100+peakIndex
+        peakUniqueId = str(clusterIndex)+'_'+str(peakIndex)
+        print "peakUniqueId: "+peakUniqueId
 
         self.provBundle.entity('niiri:coordinate_'+str(peakUniqueId), other_attributes=( 
                     ('prov:type' , 'prov:location'), 
@@ -154,7 +155,12 @@ class NIDMStat():
         self.provBundle.entity('niiri:design_matrix_id', 
             other_attributes=( ('prov:type','nidm:designMatrix',), 
                                ('prov:location', "file:///path/to/design_matrix.csv")))
-
+        self.provBundle.activity('niiri:model_fitting_id', other_attributes=( 
+            ('prov:type', 'fsl:estimation'),('prov:label', "Model fitting")))
+        self.provBundle.used('niiri:model_fitting_id', 'niiri:design_matrix_id')
+        self.provBundle.wasAssociatedWith('niiri:model_fitting_id', 'niiri:software_id')
+        
+        self.provBundle.wasGeneratedBy('niiri:residual_mean_squares_map_id', 'niiri:model_fitting_id')
 
     # Generate prov for contrast map
     def create_contrast_map(self, copeFile, varCopeFile, statFile, contrastName, contrastNum, dof):
@@ -169,12 +175,6 @@ class NIDMStat():
         self.provBundle.activity('niiri:contrast_estimation_id'+contrastName, other_attributes=( 
             ('prov:type', 'fsl:contrast'),
             ('prov:label', "Contrast estimation: "+contrastName)))
-
-        self.provBundle.activity('niiri:model_fitting_id', other_attributes=( 
-            ('prov:type', 'fsl:estimation'),('prov:label', "Model fitting")))
-        self.provBundle.wasAssociatedWith('niiri:model_fitting_id', 'niiri:software_id')
-        self.provBundle.used('niiri:model_fitting_id', 'niiri:design_matrix_id')
-        self.provBundle.wasGeneratedBy('niiri:residual_mean_squares_map_id', 'niiri:model_fitting_id')
 
         path, filename = os.path.split(copeFile)
 
@@ -294,6 +294,6 @@ class NIDMStat():
         PROVNfile.write(self.provBundle.get_provn(4))
 
         dot = graph.prov_to_dot(self.provBundle, use_labels=True, show_element_attributes=showattributes)
-        dot.set_dpi(120)
+        dot.set_dpi(200)
         dot.write_png('./FSL_example'+suffixName+'.png')
 
