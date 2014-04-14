@@ -60,7 +60,7 @@ class FSL_NIDM():
         designFile = open(os.path.join(self.featDir, 'design.con'), 'r')
         designTxt = designFile.read()
         # FIXME: to do only once (and not each time we load a new contrast)
-        contrastNameSearch = re.compile(r'.*/ContrastName'+str(contrastNum)+'\s+(?P<contrastName>\w+)\s.*')
+        contrastNameSearch = re.compile(r'.*/ContrastName'+str(contrastNum)+'\s+(?P<contrastName>[\w\s><]+)\s*[\n\r]')
         extractedData = contrastNameSearch.search(designTxt) 
 
         # FIXME: to do only once (and not each time we load a new contrast)
