@@ -180,7 +180,7 @@ class NIDMStat():
 
         # Create related activities
         self.provBundle.activity(NIIRI['contrast_estimation_id_'+contrastNum], other_attributes=( 
-            (PROV['type'], FSL['contrast']),
+            (PROV['type'], NIDM['ContrastEstimation']),
             (PROV['label'], "Contrast estimation: "+contrastName)))
 
         # Contrast Map entity
