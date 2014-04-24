@@ -247,7 +247,7 @@ class NIDMStat():
 
         # In FSL we have a single thresholding (extent], height) applied to all contrasts 
         self.provBundle.activity(NIIRI['inference_id_'+contrastNum], 
-            other_attributes=( (PROV['type'], FSL['inference']), 
+            other_attributes=( (PROV['type'], NIDM['inference']), 
                                (PROV['label'] , "Inference: "+contrastName), 
                                (PROV['statisticalTest'] , NIDM['oneTailedTtest'])))
         self.provBundle.used(NIIRI['inference_id_'+contrastNum], NIIRI['height_threshold_id'])
