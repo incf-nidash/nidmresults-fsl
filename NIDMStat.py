@@ -303,7 +303,7 @@ class NIDMStat():
             (PROV['location'], Identifier("file:./"+filename)),
             (NIDM['fileName'], filename),
             (NIDM['coordinateSpace'], 'coordinate_space_id_'+str(self.coordinateSpaceId)),
-            (PROV['label'], "Excursion set"),
+            (PROV['label'], "Excursion Set"),
             ))
         self.provBundle.wasGeneratedBy(NIIRI['excursion_set_id_'+str(statNum)], NIIRI['inference_id_'+str(statNum)])
         self.create_coordinate_space(zFileImg)
