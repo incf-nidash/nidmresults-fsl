@@ -153,7 +153,7 @@ class NIDMStat():
         path, filename = os.path.split(residualsFile)
         self.provBundle.entity(NIIRI['residual_mean_squares_map_id'], 
             other_attributes=( (PROV['type'],NIDM['residualMeanSquaresMap'],), 
-                               (PROV['location'], Identifier("file:///path/to/"+filename) ),
+                               (PROV['location'], Identifier("file://./"+filename) ),
                                (PROV['label'],"Residual Mean Squares Map" ),
                                (NIDM['fileName'],filename ),
                                (CRYPTO['sha'],"TODO" ),
@@ -161,7 +161,7 @@ class NIDMStat():
         self.create_coordinate_space(residualsFile)
         self.provBundle.entity(NIIRI['design_matrix_id'], 
             other_attributes=( (PROV['type'],NIDM['designMatrix'],), 
-                               (PROV['location'], Identifier("file:///path/to/design_matrix.csv"))))
+                               (PROV['location'], Identifier("file://./design_matrix.csv"))))
         self.provBundle.activity(NIIRI['model_parameters_estimation_id'], other_attributes=( 
             (PROV['type'], NIDM['ModelParametersEstimation']),(PROV['label'], "Model Parameters Estimation")))
         self.provBundle.used(NIIRI['model_parameters_estimation_id'], NIIRI['design_matrix_id'])
