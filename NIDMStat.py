@@ -194,7 +194,7 @@ class NIDMStat():
             (PROV['label'], "Contrast map: "+contrastName)))
         self.create_coordinate_space(copeFile)
         self.provBundle.wasGeneratedBy(NIIRI['contrast_map_id_'+contrastNum], NIIRI['contrast_estimation_id'+contrastNum])
-        self.provBundle.wasAssociatedWith(NIIRI['contrast_estimation_id'+contrastName], NIIRI['software_id'])
+        self.provBundle.wasAssociatedWith(NIIRI['contrast_estimation_id'+contrastNum], NIIRI['software_id'])
 
         # Contrast Variance Map entity
         path, filename = os.path.split(varCopeFile)
@@ -206,7 +206,7 @@ class NIDMStat():
             (NIDM['fileName'], filename),
             (PROV['label'], "Contrast variance map")))
         self.create_coordinate_space(varCopeFile)
-        self.provBundle.wasGeneratedBy(NIIRI['contrast_standard_error_map_id_'+contrastNum], NIIRI['contrast_estimation_id'+contrastName])
+        self.provBundle.wasGeneratedBy(NIIRI['contrast_standard_error_map_id_'+contrastNum], NIIRI['contrast_estimation_id'+contrastNum])
 
         
         # FIXME: Remove TODOs
@@ -237,12 +237,12 @@ class NIDMStat():
                                 (NIDM['coordinateSpace'], 'coordinate_space_id_'+str(self.coordinateSpaceId)),
                                 ) )
         self.create_coordinate_space(statFile)
-        self.provBundle.wasGeneratedBy(NIIRI['statistical_map_id_'+contrastNum], NIIRI['contrast_estimation_id'+contrastName])
+        self.provBundle.wasGeneratedBy(NIIRI['statistical_map_id_'+contrastNum], NIIRI['contrast_estimation_id'+contrastNum])
                
-        self.provBundle.wasGeneratedBy(NIIRI['statistical_map_id_'+contrastNum], NIIRI['contrast_estimation_id'+contrastName])
-        self.provBundle.used(NIIRI['contrast_estimation_id'+contrastName], NIIRI['residual_mean_squares_map_id'])
-        self.provBundle.used(NIIRI['contrast_estimation_id'+contrastName], NIIRI['design_matrix_id'])
-        self.provBundle.used(NIIRI['contrast_estimation_id'+contrastName], NIIRI['contrast_id_'+contrastNum])
+        self.provBundle.wasGeneratedBy(NIIRI['statistical_map_id_'+contrastNum], NIIRI['contrast_estimation_id'+contrastNum])
+        self.provBundle.used(NIIRI['contrast_estimation_id'+contrastNum], NIIRI['residual_mean_squares_map_id'])
+        self.provBundle.used(NIIRI['contrast_estimation_id'+contrastNum], NIIRI['design_matrix_id'])
+        self.provBundle.used(NIIRI['contrast_estimation_id'+contrastNum], NIIRI['contrast_id_'+contrastNum])
 
 
         # In FSL we have a single thresholding (extent], height) applied to all contrasts 
