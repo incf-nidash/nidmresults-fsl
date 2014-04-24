@@ -170,7 +170,7 @@ class NIDMStat():
         self.provBundle.wasGeneratedBy(NIIRI['residual_mean_squares_map_id'], NIIRI['model_parameters_estimation_id'])
 
     # Generate prov for contrast map
-    def create_contrast_map(self, copeFile, varCopeFile, statFile, contrastName, contrastNum, dof):
+    def create_contrast_map(self, copeFile, varCopeFile, statFile, zStatFile, contrastName, contrastNum, dof):
         # Contrast id entity
         # FIXME: Get contrast weights
         self.provBundle.entity(NIIRI['contrast_id_'+contrastNum], 
@@ -179,12 +179,12 @@ class NIDMStat():
                                (NIDM['contrastWeights'], "TODO")))
 
         # Create related activities
-        self.provBundle.activity(NIIRI['contrast_estimation_id'+contrastName], other_attributes=( 
+        self.provBundle.activity(NIIRI['contrast_estimation_id_'+contrastNum], other_attributes=( 
             (PROV['type'], FSL['contrast']),
             (PROV['label'], "Contrast estimation: "+contrastName)))
 
+        # Contrast Map entity
         path, filename = os.path.split(copeFile)
-
         self.provBundle.entity('niiri:'+'contrast_map_id_'+contrastNum, other_attributes=( 
             (PROV['type'], NIDM['contrastMap']), 
             (NIDM['coordinateSpace'], 'coordinate_space_id_'+str(self.coordinateSpaceId)),
@@ -196,6 +196,7 @@ class NIDMStat():
         self.provBundle.wasGeneratedBy(NIIRI['contrast_map_id_'+contrastNum], NIIRI['contrast_estimation_id'+contrastName])
         self.provBundle.wasAssociatedWith(NIIRI['contrast_estimation_id'+contrastName], NIIRI['software_id'])
 
+        # Contrast Variance Map entity
         path, filename = os.path.split(varCopeFile)
         # FIXME: Standard error or contrast variance...
         self.provBundle.entity('niiri:'+'contrast_standard_error_map_id_'+contrastNum, other_attributes=( 
@@ -207,10 +208,24 @@ class NIDMStat():
         self.create_coordinate_space(varCopeFile)
         self.provBundle.wasGeneratedBy(NIIRI['contrast_standard_error_map_id_'+contrastNum], NIIRI['contrast_estimation_id'+contrastName])
 
-        path, filename = os.path.split(statFile)
+        
         # FIXME: Remove TODOs
+        # FIXME: Add sha sum
 
-        # Specify a different URI for each contrast (for now just by adding contrastName in URI)
+        # Z-Statistical Map entity
+        path, filename = os.path.split(zStatFile)
+        self.provBundle.entity(NIIRI['z_statistical_map_id_'+contrastNum ],
+            other_attributes=(  (PROV['type'], FSL['ZStatisticalMap']), 
+                                (PROV['label'], "Z-statistical Map: "+contrastName) ,
+                                (PROV['location'], Identifier("file://./"+filename)),
+                                (NIDM['fileName'], filename),
+                                (NIDM['coordinateSpace'], 'coordinate_space_id_'+str(self.coordinateSpaceId)),
+                                ) )
+        self.create_coordinate_space(zStatFile)
+        
+
+        # Statistical Map entity
+        path, filename = os.path.split(statFile)
         self.provBundle.entity(NIIRI['statistical_map_id_'+contrastNum ],
             other_attributes=(  (PROV['type'], NIDM['statisticalMap']), 
                                 (PROV['label'], "Statistical Map: "+contrastName) ,
@@ -224,6 +239,7 @@ class NIDMStat():
         self.create_coordinate_space(statFile)
         self.provBundle.wasGeneratedBy(NIIRI['statistical_map_id_'+contrastNum], NIIRI['contrast_estimation_id'+contrastName])
                
+        self.provBundle.wasGeneratedBy(NIIRI['statistical_map_id_'+contrastNum], NIIRI['contrast_estimation_id'+contrastName])
         self.provBundle.used(NIIRI['contrast_estimation_id'+contrastName], NIIRI['residual_mean_squares_map_id'])
         self.provBundle.used(NIIRI['contrast_estimation_id'+contrastName], NIIRI['design_matrix_id'])
         self.provBundle.used(NIIRI['contrast_estimation_id'+contrastName], NIIRI['contrast_id_'+contrastNum])
@@ -236,7 +252,8 @@ class NIDMStat():
                                (PROV['statisticalTest'] , NIDM['oneTailedTtest'])))
         self.provBundle.used(NIIRI['inference_id_'+contrastNum], NIIRI['height_threshold_id'])
         self.provBundle.used(NIIRI['inference_id_'+contrastNum], NIIRI['extent_threshold_id'])
-        self.provBundle.used(NIIRI['inference_id_'+contrastNum], NIIRI['statistical_map_id_'+contrastNum])
+        self.provBundle.used(NIIRI['inference_id_'+contrastNum], NIIRI['z_statistical_map_id_'+contrastNum])
+
         self.provBundle.wasAssociatedWith(NIIRI['inference_id_'+contrastNum], NIIRI['software_id'])
 
         self.provBundle.wasGeneratedBy(NIIRI['search_space_id'], NIIRI['inference_id_'+contrastNum])
