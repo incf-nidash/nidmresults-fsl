@@ -193,7 +193,7 @@ class NIDMStat():
             (NIDM['contrastName'], contrastName),
             (PROV['label'], "Contrast map: "+contrastName)))
         self.create_coordinate_space(copeFile)
-        self.provBundle.wasGeneratedBy(NIIRI['contrast_map_id_'+contrastNum], NIIRI['contrast_estimation_id'+contrastName])
+        self.provBundle.wasGeneratedBy(NIIRI['contrast_map_id_'+contrastNum], NIIRI['contrast_estimation_id'+contrastNum])
         self.provBundle.wasAssociatedWith(NIIRI['contrast_estimation_id'+contrastName], NIIRI['software_id'])
 
         # Contrast Variance Map entity
