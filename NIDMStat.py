@@ -299,7 +299,7 @@ class NIDMStat():
         path, filename = os.path.split(zFileImg)
 
         self.provBundle.entity(NIIRI['excursion_set_id_'+str(statNum)], other_attributes=( 
-            (PROV['type'], FSL['excursionSet']), 
+            (PROV['type'], NIDM['excursionSet']), 
             (PROV['location'], Identifier("file:./"+filename)),
             (NIDM['fileName'], filename),
             (NIDM['coordinateSpace'], 'coordinate_space_id_'+str(self.coordinateSpaceId)),
