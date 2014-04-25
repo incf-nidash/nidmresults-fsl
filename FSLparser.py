@@ -98,9 +98,12 @@ class FSL_NIDM():
     def add_clusters_peaks(self, statNum):
         myClusterFile = os.path.join(self.featDir, 'cluster_zstat'+statNum+'.txt')
 
+        # FIXME: Is that really the file we want as underlay? Or maybe mean_func.nii.gz?
+        underlayFile = os.path.join(self.featDir, 'example_func.nii.gz')
+
         # Excursion set
         zFileImg = myClusterFile.replace('cluster_', 'thresh_').replace('.txt', '.nii.gz')
-        self.nidm.create_excursion_set(excusionSetFile=zFileImg, statNum=statNum)
+        self.nidm.create_excursion_set(excusionSetFile=zFileImg, statNum=statNum, underlayFile=underlayFile)
 
         # Clusters
         self.zstatFile = myClusterFile
