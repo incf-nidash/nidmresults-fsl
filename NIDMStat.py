@@ -61,16 +61,19 @@ class NIDMStat():
         threshDesc = ""
         if not voxelThreshold is None:
             threshDesc = "Z>"+str(voxelThreshold)
+            userSpecifiedThresholdType = NIDM['nidm:zStatistic']
         elif not voxelPUncorr is None:
             threshDesc = "p<"+str(voxelPUncorr)+" uncorr."
+            userSpecifiedThresholdType = NIDM['nidm:pValueUncorrected']
         elif not voxelPCorr is None:
             threshDesc = "p<"+str(voxelPCorr)+" (GRF)"
+            userSpecifiedThresholdType = NIDM['nidm:pValueFWER']
 
         # FIXME: Do we want to calculate an uncorrected p equivalent to the Z thresh? 
         # FIXME: Do we want/Can we find a corrected p equivalent to the Z thresh? 
         heightThreshAllFields = {
             PROV['type']: NIDM['heightThreshold'], PROV['label']: "Height Threshold: "+threshDesc,
-            NIDM['userSpecifiedThresholdType']: threshDesc , PROV['value']: voxelThreshold,
+            NIDM['userSpecifiedThresholdType']: userSpecifiedThresholdType , PROV['value']: voxelThreshold,
             NIDM['pValueUncorrected']: voxelPUncorr, NIDM['pValueFWER']: voxelPCorr
             }
         self.provBundle.entity(NIIRI['height_threshold_id'], other_attributes=dict((k,v) for k,v in heightThreshAllFields.iteritems() if v is not None))
@@ -173,14 +176,14 @@ class NIDMStat():
         self.provBundle.wasGeneratedBy(NIIRI['residual_mean_squares_map_id'], NIIRI['model_parameters_estimation_id'])
 
     # Generate prov for contrast map
-    def create_contrast_map(self, copeFile, varCopeFile, statFile, zStatFile, contrastName, contrastNum, dof):
+    def create_contrast_map(self, copeFile, varCopeFile, statFile, zStatFile, contrastName, contrastNum, dof, contrastWeights):
         # Contrast id entity
         # FIXME: Get contrast weights
         self.provBundle.entity(NIIRI['contrast_id_'+contrastNum], 
             other_attributes=( (PROV['type'], NIDM['TContrast']), 
                                (PROV['label'], "T Contrast: "+contrastName), 
                                (NIDM['contrastName'], contrastName),
-                               (NIDM['contrastWeights'], "TODO")))
+                               (NIDM['contrastWeights'], contrastWeights)))
 
         # Create related activities
         self.provBundle.activity(NIIRI['contrast_estimation_id_'+contrastNum], other_attributes=( 
@@ -277,8 +280,10 @@ class NIDMStat():
             NIDM['numberOfDimensions']: numDim,
             NIDM['voxelToWorldMapping']: '%s'%', '.join(str(thresImg.get_qform()).strip('()').replace('. ', '').split()).replace('[,', '[').replace('\n', ''),
             # FIXME: How to get the coordinate system? default for FSL?
-            NIDM['coordinateSystem']: "TO DO",           
-            NIDM['voxelUnits']: '[%s]'%str(thresImgHdr.get_xyzt_units()).strip('()'),
+            NIDM['coordinateSystem']: NIDM['mniCoordinateSystem'],           
+            # FIXME: this gives mm, sec => what is wrong, FSL file or nibabel?
+            # NIDM['voxelUnits']: '[%s]'%str(thresImgHdr.get_xyzt_units()).strip('()'),
+            NIDM['voxelUnits']: "['mm', 'mm', 'mm']",
             NIDM['voxelSize']: '[%s]'%', '.join(map(str, thresImgHdr['pixdim'][1:(numDim+1)])),
             PROV['label']: "Coordinate space "+str(self.coordinateSpaceId)}
 
@@ -309,7 +314,7 @@ class NIDMStat():
             (PROV['type'], NIDM['excursionSet']), 
             (PROV['location'], Identifier("file://./"+filename)),
             (NIDM['fileName'], filename),
-            (NIDM['underlayFile'], underlay_filename),
+            (NIDM['underlayFile'], Identifier("file://./"+underlay_filename)),
             (NIDM['coordinateSpace'], NIIRI['coordinate_space_id_'+str(self.coordinateSpaceId)]),
             (PROV['label'], "Excursion Set"),
             ))
