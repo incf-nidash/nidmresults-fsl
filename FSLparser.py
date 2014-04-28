@@ -119,82 +119,87 @@ class FSL_NIDM():
         self.nidm.create_excursion_set(excusionSetFile=zFileImg, statNum=statNum, underlayFile=underlayFile)
 
         # Clusters
+
+
+
         self.zstatFile = myClusterFile
         clusterTable = np.loadtxt(myClusterFile, skiprows=1, ndmin=2)
 
-        # FIXME: could be nicer (do not repeat for std)
-        clusters = []
-        for row in clusterTable:
-            cluster = Cluster(int(row[0]))
-            cluster.sizeInVoxels(int(row[1]))
-            cluster.set_pFWER(float(row[2]))
-            cluster.set_COG1(float(row[8]))
-            cluster.set_COG2(float(row[9]))
-            cluster.set_COG3(float(row[10]))
-            clusters.append(cluster)
+        # # FIXME: could be nicer (do not repeat for std)
+        # clusters = []
+        # for row in clusterTable:
+        #     print "cluster "+str(row[0])
+        #     cluster = Cluster(int(row[0]))
+        #     cluster.sizeInVoxels(int(row[1]))
+        #     cluster.set_pFWER(float(row[2]))
+        #     print row[8]
+        #     cluster.set_COG1(float(row[8]))
+        #     cluster.set_COG2(float(row[9]))
+        #     cluster.set_COG3(float(row[10]))
+        #     clusters.append(cluster)
             
         myStdZstatFile = myClusterFile.replace('.txt', '_std.txt')
         clusterStdTable = np.loadtxt(myStdZstatFile, skiprows=1, ndmin=2)
-        clustersStd = []
-        for row in clusterStdTable:
-            cluster = Cluster(int(row[0]))
-            cluster.sizeInVoxels(int(row[1]))
-            cluster.set_pFWER(float(row[2]))
-            cluster.set_COG1(float(row[8]))
-            cluster.set_COG2(float(row[9]))
-            cluster.set_COG3(float(row[10]))
-            clustersStd.append(cluster)
+        # clustersStd = []
+        # for row in clusterStdTable:
+        #     print "cluster "+str(row[0])
+        #     cluster = Cluster(int(row[0]))
+        #     cluster.sizeInVoxels(int(row[1]))
+        #     cluster.set_pFWER(float(row[2]))
+        #     print row[8]
+        #     cluster.set_COG1(float(row[8]))
+        #     cluster.set_COG2(float(row[9]))
+        #     cluster.set_COG3(float(row[10]))
+        #     clustersStd.append(cluster)
+
+        clustersJoinTable = np.column_stack((clusterTable, clusterStdTable))
 
         # Peaks
         peakTable = np.loadtxt(myClusterFile.replace('cluster', 'lmax'), skiprows=1, ndmin=2)
-        peaks = []
+        # peaks = []
 
-        peakIndex = 1;
-        for row in peakTable:
-            # FIXME: Find a more efficient command to find row number
-            peak = Peak(peakIndex, int(row[0]))
-            peak.set_equivZStat(float(row[1]))
-            peak.set_x(int(row[2]))
-            peak.set_y(int(row[3]))
-            peak.set_z(int(row[4]))
-            peaks.append(peak)
-            peakIndex = peakIndex + 1;
+        # peakIndex = 1;
+        # for row in peakTable:
+        #     # FIXME: Find a more efficient command to find row number
+        #     peak = Peak(peakIndex, int(row[0]))
+        #     peak.set_equivZStat(float(row[1]))
+        #     peak.set_x(int(row[2]))
+        #     peak.set_y(int(row[3]))
+        #     peak.set_z(int(row[4]))
+        #     peaks.append(peak)
+        #     peakIndex = peakIndex + 1;
 
         peakStdTable = np.loadtxt(myStdZstatFile.replace('cluster', 'lmax'), skiprows=1, ndmin=2)
-        peaksStd = []
-        peakIndex = 1;
-        for row in peakStdTable:
-            peak = Peak(peakIndex, int(row[0]))
-            peak.set_equivZStat(float(row[1]))
-            peak.set_x(float(row[2]))
-            peak.set_y(float(row[3]))
-            peak.set_z(float(row[4]))
-            peaksStd.append(peak)
-            peakIndex = peakIndex + 1;
+        # peaksStd = []
+        # peakIndex = 1;
+        # for row in peakStdTable:
+        #     peak = Peak(peakIndex, int(row[0]))
+        #     peak.set_equivZStat(float(row[1]))
+        #     peak.set_x(float(row[2]))
+        #     peak.set_y(float(row[3]))
+        #     peak.set_z(float(row[4]))
+        #     peaksStd.append(peak)
+        #     peakIndex = peakIndex + 1;
+        peaksJoinTable = np.column_stack((peakTable, peakStdTable))
 
-        clusIdx = -1
-        if clusters is not None:
-            for cluster in clusters:               
-                clusIdx = clusIdx + 1
-                self.nidm.create_cluster(id=cluster.get_id(), size=cluster.get_SizeInVoxels(), pFWER=cluster.get_pFWER(),
-                    COG1=cluster.get_COG1(),COG2=cluster.get_COG2(),COG3=cluster.get_COG3(),
-                    COG1_std=clustersStd[clusIdx-1].get_COG1(),COG2_std=clustersStd[clusIdx-1].get_COG2(),COG3_std=clustersStd[clusIdx-1].get_COG3(),
-                    statNum=statNum)
+        for cluster_row in clustersJoinTable:               
+            self.nidm.create_cluster(id=int(cluster_row[0]), size=int(cluster_row[1]), pFWER=float(cluster_row[2]),
+                COG1=float(cluster_row[8]),COG2=float(cluster_row[9]),COG3=float(cluster_row[10]),
+                COG1_std=float(cluster_row[24]),COG2_std=float(cluster_row[25]),COG3_std=float(cluster_row[26]),
+                statNum=statNum)
         
-        peakIndex = 1
-        peakIndexInTable = 1
-        if peaks is not None:
-            prevCluster = -1
-            for peak in peaks:      
-                if peak.get_cluster_id() is not prevCluster:
-                    peakIndex = 1;
+        prevCluster = -1
+        for peak_row in peaksJoinTable:    
+            clusterId = int(peak_row[0])  
+            if clusterId is not prevCluster:
+                peakIndex = 1;
 
-                self.nidm.create_peak(id=peakIndex, x=peak.get_x(), y=peak.get_y(), z=peak.get_z(), 
-                    std_x=peaksStd[peakIndexInTable-1].get_x(), std_y=peaksStd[peakIndexInTable-1].get_y(), std_z=peaksStd[peakIndexInTable-1].get_z(),
-                    equivZ=peak.get_equivZStat(), clusterId=peak.get_cluster_id(), statNum=statNum)
-                peakIndex = peakIndex + 1
-                peakIndexInTable = peakIndexInTable + 1
-                prevCluster = peak.get_cluster_id()
+            self.nidm.create_peak(id=peakIndex, x=int(peak_row[2]), y=int(peak_row[3]), z=int(peak_row[4]), 
+                std_x=float(peak_row[7]), std_y=float(peak_row[8]), std_z=float(peak_row[9]),
+                equivZ=float(peak_row[1]), clusterId=clusterId, statNum=statNum)
+            prevCluster = clusterId
+
+            peakIndex = peakIndex + 1
 
         
     # Create a graph as a png file, a provn and a json serialisations

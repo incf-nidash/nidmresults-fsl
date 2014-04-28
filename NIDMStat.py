@@ -94,6 +94,20 @@ class NIDMStat():
         }
         self.provBundle.entity(NIIRI['extent_threshold_id'], other_attributes=dict((k,v) for k,v in exentThreshAllFields.iteritems() if v is not None))
 
+    def create_coordinate(self, coordinate_id, x, y, z, x_std, y_std, z_std):
+        self.provBundle.entity(coordinate_id, other_attributes=( 
+            (PROV['type'] , PROV['Location']), 
+            (PROV['type'] , NIDM['Coordinate']),
+            # FIXME: Set coordinate system
+            (NIDM['coordinateSystem'] , NIDM['mni']),
+            (NIDM['coordinate1'] , x),
+            (NIDM['coordinate2'] , y),
+            (NIDM['coordinate3'] , z),
+            (NIDM['coordinate1InUnits'] , x_std),
+            (NIDM['coordinate2InUnits'] , y_std),
+            (NIDM['coordinate3InUnits'] , z_std)
+            ))
+
     def create_cluster(self, *args, **kwargs):
         clusterIndex = kwargs.pop('id')
         statNum = int(kwargs.pop('statNum'))
@@ -108,22 +122,24 @@ class NIDMStat():
                              (NIDM['pValueFWER'], kwargs.pop('pFWER') )))
         self.provBundle.wasDerivedFrom(NIIRI['cluster_000'+str(clusterId)], NIIRI['excursion_set_id_'+str(statNum)])
 
-        self.provBundle.entity(NIIRI['coordinate_'+str(clusterId)+"00"], other_attributes=( 
-            (PROV['type'] , PROV['location']), 
-            (PROV['type'] , NIDM['coordinate']),
-            (NIDM['coordinateSystem'] , NIDM['mni']),
-            (NIDM['coordinate1'] , str(kwargs.pop('COG1'))),
-            (NIDM['coordinate2'] , str(kwargs.pop('COG2'))),
-            (NIDM['coordinate3'] , str(kwargs.pop('COG3'))),
-            (NIDM['coordinateInUnits1'] , str(kwargs.pop('COG1_std'))),
-            (NIDM['coordinateInUnits2'] , str(kwargs.pop('COG2_std'))),
-            (NIDM['coordinateInUnits3'] , str(kwargs.pop('COG3_std')))
-            ))
-        self.provBundle.entity(NIIRI['centerOfGravity_'+str(clusterId)], other_attributes=( 
+        self.create_coordinate(NIIRI['COG_coordinate_000'+str(clusterId)], kwargs.pop('COG1'), kwargs.pop('COG2'), kwargs.pop('COG3'), kwargs.pop('COG1_std'), kwargs.pop('COG2_std'), kwargs.pop('COG3_std'))
+
+        # self.provBundle.entity(NIIRI['COG_coordinate_000'+str(clusterId)], other_attributes=( 
+        #     (PROV['type'] , PROV['Location']), 
+        #     (PROV['type'] , NIDM['Coordinate']),
+        #     (NIDM['coordinateSystem'] , NIDM['mni']),
+        #     (NIDM['coordinate1'] , kwargs.pop('COG1')),
+        #     (NIDM['coordinate2'] , kwargs.pop('COG2')),
+        #     (NIDM['coordinate3'] , kwargs.pop('COG3')),
+        #     (NIDM['coordinate1InUnits'] , kwargs.pop('COG1_std')),
+        #     (NIDM['coordinate2InUnits'] , kwargs.pop('COG2_std')),
+        #     (NIDM['coordinate3InUnits'] , kwargs.pop('COG3_std'))
+        #     ))
+        self.provBundle.entity(NIIRI['center_of_gravity_'+str(clusterId)], other_attributes=( 
                      (PROV['type'] , FSL['centerOfGravity']), 
-                     (PROV['label'], "Center of Gravity: "+str(clusterId)),
-                     (PROV['location'] , NIIRI['coordinate_'+str(clusterId)+"00"]))   )
-        self.provBundle.wasDerivedFrom(NIIRI['centerOfGravity_'+str(clusterId)], NIIRI['cluster_000'+str(clusterId)])
+                     (PROV['label'], "Center of gravity "+str(clusterId)),
+                     (PROV['location'] , NIIRI['COG_coordinate_000'+str(clusterId)]))   )
+        self.provBundle.wasDerivedFrom(NIIRI['center_of_gravity_'+str(clusterId)], NIIRI['cluster_000'+str(clusterId)])
 
     def create_peak(self, *args, **kwargs):
         peakIndex = kwargs.pop('id')
@@ -131,7 +147,7 @@ class NIDMStat():
         statNum = int(kwargs.pop('statNum'))
 
         # FIXME: Currently assumes less than 10 clusters per contrast
-        clusterId = statNum*10+clusterIndex
+        clusterId = clusterIndex
 
         # FIXME: Currently assumes less than 100 peaks 
         peakUniqueId = '000'+str(clusterIndex)+'_'+str(peakIndex)
