@@ -113,7 +113,7 @@ class FSL_NIDM():
         clusters = []
         for row in clusterTable:
             cluster = Cluster(int(row[0]))
-            cluster.sizeInVoxels(float(row[1]))
+            cluster.sizeInVoxels(int(row[1]))
             cluster.set_pFWER(float(row[2]))
             cluster.set_COG1(float(row[8]))
             cluster.set_COG2(float(row[9]))
@@ -125,7 +125,7 @@ class FSL_NIDM():
         clustersStd = []
         for row in clusterStdTable:
             cluster = Cluster(int(row[0]))
-            cluster.sizeInVoxels(float(row[1]))
+            cluster.sizeInVoxels(int(row[1]))
             cluster.set_pFWER(float(row[2]))
             cluster.set_COG1(float(row[8]))
             cluster.set_COG2(float(row[9]))
@@ -135,22 +135,28 @@ class FSL_NIDM():
         # Peaks
         peakTable = np.loadtxt(myClusterFile.replace('cluster', 'lmax'), skiprows=1, ndmin=2)
         peaks = []
+        print type(peakTable)
         for row in peakTable:
-            peak = Peak(int(row[0]))
+            # FIXME: Find a more efficient command to find row number
+            peakIndex = np.where(peakTable==row)
+            peak = Peak(peakIndex, int(row[0]))
             peak.set_equivZStat(float(row[1]))
-            peak.set_x(float(row[2]))
-            peak.set_y(float(row[3]))
-            peak.set_z(float(row[4]))
+            peak.set_x(int(row[2]))
+            peak.set_y(int(row[3]))
+            peak.set_z(int(row[4]))
             peaks.append(peak)
 
         peakStdTable = np.loadtxt(myStdZstatFile.replace('cluster', 'lmax'), skiprows=1, ndmin=2)
         peaksStd = []
         for row in peakStdTable:
-            peak = Peak(int(row[0]))
+            peakIndex = np.where(peakStdTable==row)
+            print peakIndex
+            peak = Peak(peakIndex, int(row[0]))
+            print peak.get_id()
             peak.set_equivZStat(float(row[1]))
-            peak.set_x(int(row[2]))
-            peak.set_y(int(row[3]))
-            peak.set_z(int(row[4]))
+            peak.set_x(float(row[2]))
+            peak.set_y(float(row[3]))
+            peak.set_z(float(row[4]))
             peaksStd.append(peak)
 
         clusIdx = -1
@@ -163,12 +169,17 @@ class FSL_NIDM():
                     statNum=statNum)
         
         if peaks is not None:
-            peakIndex = 1;
+            prevCluster = -1
             for peak in peaks:      
+                if peak.get_cluster_id() is not prevCluster:
+                    peakIndex = 1;
+
                 self.nidm.create_peak(id=peakIndex, x=peak.get_x(), y=peak.get_y(), z=peak.get_z(), 
                     std_x=peaksStd[peakIndex-1].get_x(), std_y=peaksStd[peakIndex-1].get_y(), std_z=peaksStd[peakIndex-1].get_z(),
                     equivZ=peak.get_equivZStat(), clusterId=peak.get_cluster_id(), statNum=statNum)
                 peakIndex = peakIndex + 1
+                prevCluster = peak.get_cluster_id()
+
         
     # Create a graph as a png file, a provn and a json serialisations
     def save_prov_to_files(self):
@@ -261,12 +272,13 @@ class MyFSLReportParser(HTMLParser):
 '''
 # TODO: check if indeed useful to have a class for this
 class Peak():
-    def __init__(self, clusterId, *args, **kwargs):
+    def __init__(self, id, clusterId, *args, **kwargs):
         self.cluster_id = clusterId
         self.equivZStat = None
         self.x = None
         self.y = None
         self.z = None
+        self.id = id
 
     def set_equivZStat(self,value):
         self.equivZStat = value
@@ -289,7 +301,9 @@ class Peak():
     def get_y(self):
         return self.y  
     def get_z(self):
-        return self.z                  
+        return self.z     
+    def get_id(self):
+        return self.id                
 
 '''Cluster class stores the information related to a given cluster
 
