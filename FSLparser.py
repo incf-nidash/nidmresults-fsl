@@ -135,29 +135,29 @@ class FSL_NIDM():
         # Peaks
         peakTable = np.loadtxt(myClusterFile.replace('cluster', 'lmax'), skiprows=1, ndmin=2)
         peaks = []
-        print type(peakTable)
+
+        peakIndex = 1;
         for row in peakTable:
             # FIXME: Find a more efficient command to find row number
-            peakIndex = np.where(peakTable==row)
             peak = Peak(peakIndex, int(row[0]))
             peak.set_equivZStat(float(row[1]))
             peak.set_x(int(row[2]))
             peak.set_y(int(row[3]))
             peak.set_z(int(row[4]))
             peaks.append(peak)
+            peakIndex = peakIndex + 1;
 
         peakStdTable = np.loadtxt(myStdZstatFile.replace('cluster', 'lmax'), skiprows=1, ndmin=2)
         peaksStd = []
+        peakIndex = 1;
         for row in peakStdTable:
-            peakIndex = np.where(peakStdTable==row)
-            print peakIndex
             peak = Peak(peakIndex, int(row[0]))
-            print peak.get_id()
             peak.set_equivZStat(float(row[1]))
             peak.set_x(float(row[2]))
             peak.set_y(float(row[3]))
             peak.set_z(float(row[4]))
             peaksStd.append(peak)
+            peakIndex = peakIndex + 1;
 
         clusIdx = -1
         if clusters is not None:
@@ -168,6 +168,8 @@ class FSL_NIDM():
                     COG1_std=clustersStd[clusIdx-1].get_COG1(),COG2_std=clustersStd[clusIdx-1].get_COG2(),COG3_std=clustersStd[clusIdx-1].get_COG3(),
                     statNum=statNum)
         
+        peakIndex = 1
+        peakIndexInTable = 1
         if peaks is not None:
             prevCluster = -1
             for peak in peaks:      
@@ -175,9 +177,10 @@ class FSL_NIDM():
                     peakIndex = 1;
 
                 self.nidm.create_peak(id=peakIndex, x=peak.get_x(), y=peak.get_y(), z=peak.get_z(), 
-                    std_x=peaksStd[peakIndex-1].get_x(), std_y=peaksStd[peakIndex-1].get_y(), std_z=peaksStd[peakIndex-1].get_z(),
+                    std_x=peaksStd[peakIndexInTable-1].get_x(), std_y=peaksStd[peakIndexInTable-1].get_y(), std_z=peaksStd[peakIndexInTable-1].get_z(),
                     equivZ=peak.get_equivZStat(), clusterId=peak.get_cluster_id(), statNum=statNum)
                 peakIndex = peakIndex + 1
+                peakIndexInTable = peakIndexInTable + 1
                 prevCluster = peak.get_cluster_id()
 
         
