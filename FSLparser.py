@@ -14,11 +14,9 @@ import numpy as np
 import nibabel as nib
 from NIDMStat import NIDMStat
 
-# TODO:
-# - Deal with F-contrasts
 
-
-# Parse an FSL result directory to extract the pieces information stored in NI-DM (for statistical results)
+''' Parse an FSL result directory to extract the pieces information stored in NI-DM (for statistical results)
+'''
 class FSL_NIDM():
 
     def __init__(self, *args, **kwargs):
@@ -75,12 +73,7 @@ class FSL_NIDM():
         stat_map_file = os.path.join(self.feat_dir, 'stats', 'tstat'+str(contrast_num)+'.nii.gz')
         z_stat_map_file = os.path.join(self.feat_dir, 'stats', 'zstat'+str(contrast_num)+'.nii.gz')
 
-        # designFile = open(os.path.join(self.feat_dir, 'design.con'), 'r')
-        # designTxt = designFile.read()
-        # # FIXME: to do only once (and not each time we load a new contrast)
-        # contrast_name_search = re.compile(r'.*/ContrastName'+str(contrast_num)+'\s+(?P<contrastName>[\w\s><]+)\s*[\n\r]')
-        # extracted_data = contrast_name_search.search(designTxt) 
-
+        # Get contrast name and contrast weights from design.fsf file
         designFile = open(os.path.join(self.feat_dir, 'design.fsf'), 'r')
         designTxt = designFile.read()
         contrast_name_search = re.compile(r'.*set fmri\(conname_real\.'+contrast_num+'\) "(?P<contrastName>[\w\s><]+)".*')
@@ -132,67 +125,18 @@ class FSL_NIDM():
         self.nidm.create_excursion_set(excursion_set_file=zFileImg, stat_num=stat_num, visualisation=visualisation)
 
         # Clusters
-
-
-
         self.zstatFile = cluster_file
         cluster_table = np.loadtxt(cluster_file, skiprows=1, ndmin=2)
-
-        # # FIXME: could be nicer (do not repeat for std)
-        # clusters = []
-        # for row in cluster_table:
-        #     print "cluster "+str(row[0])
-        #     cluster = Cluster(int(row[0]))
-        #     cluster.sizeInVoxels(int(row[1]))
-        #     cluster.set_pFWER(float(row[2]))
-        #     print row[8]
-        #     cluster.set_COG1(float(row[8]))
-        #     cluster.set_COG2(float(row[9]))
-        #     cluster.set_COG3(float(row[10]))
-        #     clusters.append(cluster)
-            
+           
         cluster_std_file = cluster_file.replace('.txt', '_std.txt')
         cluster_std_table = np.loadtxt(cluster_std_file, skiprows=1, ndmin=2)
-        # clustersStd = []
-        # for row in cluster_std_table:
-        #     print "cluster "+str(row[0])
-        #     cluster = Cluster(int(row[0]))
-        #     cluster.sizeInVoxels(int(row[1]))
-        #     cluster.set_pFWER(float(row[2]))
-        #     print row[8]
-        #     cluster.set_COG1(float(row[8]))
-        #     cluster.set_COG2(float(row[9]))
-        #     cluster.set_COG3(float(row[10]))
-        #     clustersStd.append(cluster)
 
         clusters_join_table = np.column_stack((cluster_table, cluster_std_table))
 
         # Peaks
         peak_table = np.loadtxt(cluster_file.replace('cluster', 'lmax'), skiprows=1, ndmin=2)
-        # peaks = []
-
-        # peakIndex = 1;
-        # for row in peak_table:
-        #     # FIXME: Find a more efficient command to find row number
-        #     peak = Peak(peakIndex, int(row[0]))
-        #     peak.set_equivZStat(float(row[1]))
-        #     peak.set_x(int(row[2]))
-        #     peak.set_y(int(row[3]))
-        #     peak.set_z(int(row[4]))
-        #     peaks.append(peak)
-        #     peakIndex = peakIndex + 1;
 
         peak_std_table = np.loadtxt(cluster_std_file.replace('cluster', 'lmax'), skiprows=1, ndmin=2)
-        # peaksStd = []
-        # peakIndex = 1;
-        # for row in peak_std_table:
-        #     peak = Peak(peakIndex, int(row[0]))
-        #     peak.set_equivZStat(float(row[1]))
-        #     peak.set_x(float(row[2]))
-        #     peak.set_y(float(row[3]))
-        #     peak.set_z(float(row[4]))
-        #     peaksStd.append(peak)
-        #     peakIndex = peakIndex + 1;
         peaks_join_table = np.column_stack((peak_table, peak_std_table))
 
         for cluster_row in clusters_join_table:               
@@ -215,7 +159,7 @@ class FSL_NIDM():
             peakIndex = peakIndex + 1
 
         
-    # Create a graph as a png file, a provn and a json serialisations
+    # Create a graph as a provn and a json serialisations
     def save_prov_to_files(self):
         self.nidm.save_prov_to_files()
 
