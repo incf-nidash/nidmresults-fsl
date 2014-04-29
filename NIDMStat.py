@@ -165,30 +165,37 @@ class NIDMStat():
             (PROV['location'] , NIIRI['coordinate_'+str(peakUniqueId)]))         )
         self.provBundle.wasDerivedFrom(NIIRI['peak_'+str(peakUniqueId)], NIIRI['cluster_000'+str(cluster_id)])
 
-    def create_model_fitting(self, residualsFile, design_matrix):
+    def create_model_fitting(self, residuals_file, design_matrix):
+        # Copy residuals map in export directory
+        shutil.copy(residuals_file, self.export_dir)
+        path, residuals_filename = os.path.split(residuals_file)
+        residuals_file = os.path.join(self.export_dir,residuals_filename)  
+
+        # Create "residuals map" entity
+        self.provBundle.entity(NIIRI['residual_mean_squares_map_id'], 
+            other_attributes=( (PROV['type'],NIDM['ResidualMeanSquaresMap'],), 
+                               (PROV['location'], Identifier("file://./stats/"+residuals_filename) ),
+                               (PROV['label'],"Residual Mean Squares Map" ),
+                               (NIDM['fileName'],residuals_filename ),
+                               (CRYPTO['sha'], self.get_sha_sum(residuals_file)),
+                               (NIDM['coordinateSpace'], self.create_coordinate_space(residuals_file))))
+        
         # Create cvs file containing design matrix
         design_matrix_csv = 'design_matrix.csv'
         np.savetxt(os.path.join(self.export_dir, design_matrix_csv), np.asarray(design_matrix), delimiter=",")
 
-        path, filename = os.path.split(residualsFile)
-        self.provBundle.entity(NIIRI['residual_mean_squares_map_id'], 
-            other_attributes=( (PROV['type'],NIDM['ResidualMeanSquaresMap'],), 
-                               (PROV['location'], Identifier("file://./stats/"+filename) ),
-                               (PROV['label'],"Residual Mean Squares Map" ),
-                               (NIDM['fileName'],filename ),
-                               (CRYPTO['sha'], self.get_sha_sum(residualsFile)),
-                               (NIDM['coordinateSpace'], self.create_coordinate_space(residualsFile))))
-        
+        # Create "design matrix" entity
         self.provBundle.entity(NIIRI['design_matrix_id'], 
             other_attributes=( (PROV['type'],NIDM['DesignMatrix']), 
                                (PROV['label'],"Design Matrix"), 
                                (NIDM['fileName'],design_matrix_csv ),
                                (PROV['location'], Identifier("file://./"+design_matrix_csv))))
+
+        # Create "Model Parameter estimation" activity
         self.provBundle.activity(NIIRI['model_parameters_estimation_id'], other_attributes=( 
             (PROV['type'], NIDM['ModelParametersEstimation']),(PROV['label'], "Model Parameters Estimation")))
         self.provBundle.used(NIIRI['model_parameters_estimation_id'], NIIRI['design_matrix_id'])
         self.provBundle.wasAssociatedWith(NIIRI['model_parameters_estimation_id'], NIIRI['software_id'])
-        
         self.provBundle.wasGeneratedBy(NIIRI['residual_mean_squares_map_id'], NIIRI['model_parameters_estimation_id'])  
 
     # Generate prov for contrast map
@@ -210,61 +217,69 @@ class NIDMStat():
         self.provBundle.wasGeneratedBy(NIIRI['beta_map_id_'+str(pe_num)], NIIRI['model_parameters_estimation_id'])  
 
     # Generate prov for contrast map
-    def create_contrast_map(self, copeFile, varCopeFile, statFile, zStatFile, contrastName, contrast_num, dof, contrastWeights):
+    def create_contrast_map(self, cope_file, var_cope_file, stat_file, z_stat_file, contrast_name, contrast_num, dof, contrastWeights):
         # Contrast id entity
         # FIXME: Get contrast weights
         self.provBundle.entity(NIIRI['contrast_id_'+contrast_num], 
             other_attributes=( (PROV['type'], NIDM['TContrast']), 
-                               (PROV['label'], "T Contrast: "+contrastName), 
-                               (NIDM['contrastName'], contrastName),
+                               (PROV['label'], "T Contrast: "+contrast_name), 
+                               (NIDM['contrastName'], contrast_name),
                                (NIDM['contrastWeights'], contrastWeights)))
 
         # Create related activities
         self.provBundle.activity(NIIRI['contrast_estimation_id_'+contrast_num], other_attributes=( 
             (PROV['type'], NIDM['ContrastEstimation']),
-            (PROV['label'], "Contrast estimation: "+contrastName)))
+            (PROV['label'], "Contrast estimation: "+contrast_name)))
+
+        # Copy contrast map in export directory
+        shutil.copy(cope_file, self.export_dir)
+        path, cope_filename = os.path.split(cope_file)
+        cope_file = os.path.join(self.export_dir,cope_filename)  
 
         # Contrast Map entity
-        path, filename = os.path.split(copeFile)
+        path, filename = os.path.split(cope_file)
         self.provBundle.entity('niiri:'+'contrast_map_id_'+contrast_num, other_attributes=( 
             (PROV['type'], NIDM['ContrastMap']), 
-            (NIDM['coordinateSpace'], self.create_coordinate_space(copeFile)),
-            (PROV['location'], Identifier("file://./stats/"+filename)),
-            (NIDM['fileName'], filename),
-            (NIDM['contrastName'], contrastName),
-            (CRYPTO['sha'], self.get_sha_sum(copeFile)),
-            (PROV['label'], "Contrast Map: "+contrastName)))
+            (NIDM['coordinateSpace'], self.create_coordinate_space(cope_file)),
+            (PROV['location'], Identifier("file://./stats/"+cope_filename)),
+            (NIDM['fileName'], cope_filename),
+            (NIDM['contrastName'], contrast_name),
+            (CRYPTO['sha'], self.get_sha_sum(cope_file)),
+            (PROV['label'], "Contrast Map: "+contrast_name)))
         
         self.provBundle.wasGeneratedBy(NIIRI['contrast_map_id_'+contrast_num], NIIRI['contrast_estimation_id_'+contrast_num])
         self.provBundle.wasAssociatedWith(NIIRI['contrast_estimation_id_'+contrast_num], NIIRI['software_id'])
 
-        # Contrast Variance Map entity
-        path, filename = os.path.split(varCopeFile)
+        # Copy contrast variance map in export directory
+        shutil.copy(var_cope_file, self.export_dir)
+        path, var_cope_filename = os.path.split(var_cope_file)
+        var_cope_file = os.path.join(self.export_dir,var_cope_filename)  
 
+        # Contrast Variance Map entity
         self.provBundle.entity('niiri:'+'contrast_variance_map_id_'+contrast_num, other_attributes=( 
             (PROV['type'], FSL['VarCope']), 
-            (NIDM['coordinateSpace'], self.create_coordinate_space(varCopeFile)),
-            (PROV['location'], Identifier("file://./stats/"+filename)),
-            (CRYPTO['sha'], self.get_sha_sum(varCopeFile)),
-            (NIDM['fileName'], filename),
+            (NIDM['coordinateSpace'], self.create_coordinate_space(var_cope_file)),
+            (PROV['location'], Identifier("file://./stats/"+var_cope_filename)),
+            (CRYPTO['sha'], self.get_sha_sum(var_cope_file)),
+            (NIDM['fileName'], var_cope_filename),
             (PROV['label'], "Contrast Variance Map "+contrast_num)))
         
         self.provBundle.wasGeneratedBy(NIIRI['contrast_variance_map_id_'+contrast_num], NIIRI['contrast_estimation_id_'+contrast_num])
 
         # Create standard error map from contrast variance map
-        varCopeImg = nib.load(varCopeFile)
-        contrastVariance = varCopeImg.get_data()
+        var_cope_img = nib.load(var_cope_file)
+        contrast_variance = var_cope_img.get_data()
 
-        standardErrorImg = nib.Nifti1Image(np.sqrt(contrastVariance), varCopeImg.get_qform())
-        standardErrorFile = varCopeFile.replace('var', 'sqrt_var')
-        nib.save(standardErrorImg, standardErrorFile)
+        standard_error_img = nib.Nifti1Image(np.sqrt(contrast_variance), var_cope_img.get_qform())
+        standard_error_file = var_cope_file.replace('var', 'sqrt_var')
+        nib.save(standard_error_img, standard_error_file)
 
-        path, filename = os.path.split(standardErrorFile)
+        path, filename = os.path.split(standard_error_file)
         self.provBundle.entity('niiri:'+'contrast_standard_error_map_id_'+contrast_num, other_attributes=( 
             (PROV['type'], NIDM['ContrastStandardErrorMap']), 
-            (NIDM['coordinateSpace'], self.create_coordinate_space(standardErrorFile)),
+            (NIDM['coordinateSpace'], self.create_coordinate_space(standard_error_file)),
             (PROV['location'], Identifier("file://./stats/"+filename)),
-            (CRYPTO['sha'], self.get_sha_sum(standardErrorFile)),
+            (CRYPTO['sha'], self.get_sha_sum(standard_error_file)),
             (NIDM['fileName'], filename),
             (PROV['label'], "Contrast Standard Error Map")))
         
@@ -272,33 +287,40 @@ class NIDMStat():
 
         
         # FIXME: Remove TODOs
-        # FIXME: Add sha sum
 
-        # Z-Statistical Map entity
-        path, filename = os.path.split(zStatFile)
+        # Copy Z-Statistical map in export directory
+        shutil.copy(z_stat_file, self.export_dir)
+        path, z_stat_filename = os.path.split(z_stat_file)
+        z_stat_file = os.path.join(self.export_dir,z_stat_filename)       
+
+        # Create "Z-Statistical Map" entity
         self.provBundle.entity(NIIRI['z_statistical_map_id_'+contrast_num ],
             other_attributes=(  (PROV['type'], FSL['ZStatisticalMap']), 
-                                (PROV['label'], "Z-statistical Map: "+contrastName) ,
-                                (PROV['location'], Identifier("file://./stats/"+filename)),
-                                (NIDM['contrastName'], contrastName),
-                                (NIDM['fileName'], filename),
-                                (CRYPTO['sha'], self.get_sha_sum(zStatFile)),
-                                (NIDM['coordinateSpace'], self.create_coordinate_space(zStatFile)),
+                                (PROV['label'], "Z-statistical Map: "+contrast_name) ,
+                                (PROV['location'], Identifier("file://./stats/"+z_stat_filename)),
+                                (NIDM['contrastName'], contrast_name),
+                                (NIDM['fileName'], z_stat_filename),
+                                (CRYPTO['sha'], self.get_sha_sum(z_stat_file)),
+                                (NIDM['coordinateSpace'], self.create_coordinate_space(z_stat_file)),
                                 ) )
 
-        # Statistical Map entity
-        path, filename = os.path.split(statFile)
+        # Copy Statistical map in export directory
+        shutil.copy(stat_file, self.export_dir)
+        path, stat_filename = os.path.split(stat_file)
+        stat_file = os.path.join(self.export_dir,stat_filename)     
+
+        # Create "Statistical Map" entity
         # FIXME: Deal with other than t-contrast maps: dof
         self.provBundle.entity(NIIRI['statistical_map_id_'+contrast_num ],
             other_attributes=(  (PROV['type'], NIDM['TStatisticalMap']), 
-                                (PROV['label'], "Statistical Map: "+contrastName) ,
-                                (PROV['location'], Identifier("file://./stats/"+filename)),
-                                (NIDM['fileName'], filename),
-                                (NIDM['contrastName'], contrastName),
+                                (PROV['label'], "Statistical Map: "+contrast_name) ,
+                                (PROV['location'], Identifier("file://./stats/"+stat_filename)),
+                                (NIDM['fileName'], stat_filename),
+                                (NIDM['contrastName'], contrast_name),
                                 (NIDM['errorDegreesOfFreedom'], dof),
                                 (NIDM['effectDegreesOfFreedom'], 1.0),
-                                (CRYPTO['sha'], self.get_sha_sum(statFile)),
-                                (NIDM['coordinateSpace'], self.create_coordinate_space(statFile)),
+                                (CRYPTO['sha'], self.get_sha_sum(stat_file)),
+                                (NIDM['coordinateSpace'], self.create_coordinate_space(stat_file)),
                                 ) )
         
         self.provBundle.wasGeneratedBy(NIIRI['statistical_map_id_'+contrast_num], NIIRI['contrast_estimation_id_'+contrast_num])
@@ -313,7 +335,7 @@ class NIDMStat():
         # FIXME: Deal with two-tailed inference?
         self.provBundle.activity(NIIRI['inference_id_'+contrast_num], 
             other_attributes=( (PROV['type'], NIDM['InferenceOneTailed']), 
-                               (PROV['label'] , "Inference: "+contrastName)))
+                               (PROV['label'] , "Inference: "+contrast_name)))
         self.provBundle.used(NIIRI['inference_id_'+contrast_num], NIIRI['height_threshold_id'])
         self.provBundle.used(NIIRI['inference_id_'+contrast_num], NIIRI['extent_threshold_id'])
         self.provBundle.used(NIIRI['inference_id_'+contrast_num], NIIRI['z_statistical_map_id_'+contrast_num])
@@ -349,13 +371,17 @@ class NIDMStat():
 
     # Generate prov for search space entity generated by the inference activity
     def create_search_space(self, search_space_file, search_volume, resel_size_in_voxels, dlh):
-        path, filename = os.path.split(search_space_file)
-
+        # Copy "Mask map" in export directory
+        shutil.copy(search_space_file, self.export_dir)
+        path, search_space_filename = os.path.split(search_space_file)
+        search_space_file = os.path.join(self.export_dir,search_space_filename)   
+        
+        # Crate "Mask map" entity
         self.provBundle.entity(NIIRI['search_space_id'], other_attributes=( 
                 (PROV['label'], "Search Space"), 
                 (PROV['type'], NIDM['Mask']), 
-                (PROV['location'], Identifier("file://./"+filename)),
-                (NIDM['fileName'], filename),
+                (PROV['location'], Identifier("file://./"+search_space_filename)),
+                (NIDM['fileName'], search_space_filename),
                 (NIDM['coordinateSpace'], self.create_coordinate_space(search_space_file)),
                 (NIDM['searchVolumeInVoxels'], search_volume),
                 (CRYPTO['sha'], self.get_sha_sum(search_space_file)),
@@ -365,18 +391,21 @@ class NIDMStat():
         
 
     def create_excursion_set(self, excursion_set_file, stat_num, visualisation):
-        zFileImg = excursion_set_file
-        path, filename = os.path.split(zFileImg)
+        # Copy "Excursion set map" in export directory
+        shutil.copy(excursion_set_file, self.export_dir)
+        path, excursion_set_filename = os.path.split(excursion_set_file)
+        excursion_set_file = os.path.join(self.export_dir,excursion_set_filename)   
 
         # Copy visualisation of excursion set in export directory
         shutil.copy(visualisation, self.export_dir)
         path, visu_filename = os.path.split(visualisation)
 
+        # Create "Excursion set" entity
         self.provBundle.entity(NIIRI['excursion_set_id_'+str(stat_num)], other_attributes=( 
             (PROV['type'], NIDM['ExcursionSet']), 
-            (PROV['location'], Identifier("file://./"+filename)),
-            (NIDM['fileName'], filename),
-            (NIDM['coordinateSpace'], self.create_coordinate_space(zFileImg)),
+            (PROV['location'], Identifier("file://./"+excursion_set_filename)),
+            (NIDM['fileName'], excursion_set_filename),
+            (NIDM['coordinateSpace'], self.create_coordinate_space(excursion_set_file)),
             (PROV['label'], "Excursion Set"),
             (NIDM['visualisation'], Identifier("file://./"+visu_filename)),
             (CRYPTO['sha'], self.get_sha_sum(excursion_set_file)),
@@ -390,12 +419,12 @@ class NIDMStat():
             suffixName = '_without_attributes'
 
         jsondata = self.provBundle.get_provjson(indent=4)
-        JSONfile = open('./FSL_example.json', 'w');
+        JSONfile = open(os.path.join(self.export_dir, 'nidm.json'), 'w');
         JSONfile.write(jsondata)
-        PROVNfile = open('./FSL_example.provn', 'w');
+        PROVNfile = open(os.path.join(self.export_dir, 'nidm.provn'), 'w');
         PROVNfile.write(self.provBundle.get_provn(4))
 
-        dot = graph.prov_to_dot(self.provBundle, use_labels=True, show_element_attributes=showattributes)
-        dot.set_dpi(200)
-        dot.write_png('./FSL_example'+suffixName+'.png')
+        # dot = graph.prov_to_dot(self.provBundle, use_labels=True, show_element_attributes=showattributes)
+        # dot.set_dpi(200)
+        # dot.write_png('./FSL_example'+suffixName+'.png')
 
