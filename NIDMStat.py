@@ -41,15 +41,7 @@ class NIDMStat():
         self.provBundle.add_namespace(NIDM)
         self.provBundle.add_namespace(NIIRI)
         self.provBundle.add_namespace(CRYPTO)
-
-        # Add software agent: FSL
-        self.provBundle.agent(NIIRI['software_id'], other_attributes=( 
-            (PROV['type'], NIDM['Fsl']), 
-            (PROV['type'], PROV['SoftwareAgent']),
-            (PROV['label'],'FSL'),
-            # FIXME find FSL software version
-            (NIDM['softwareVersion'],'TODO') ))
-        
+       
        
         # FIXME: Check one-tailed or two-tailed test and get test type from data
         # FIXME: We want to be able to add for than one inference activity for on graph -> create a function for that
@@ -60,7 +52,14 @@ class NIDMStat():
         #     (PROV['type'], FSL['statisticImageProperties']), 
         #     (PROV['label'], 'Statistical image properties')))
         
-        
+    def create_software(self, feat_version):
+        # Add software agent: FSL
+        self.provBundle.agent(NIIRI['software_id'], other_attributes=( 
+            (PROV['type'], NIDM['Fsl']), 
+            (PROV['type'], PROV['SoftwareAgent']),
+            (PROV['label'],'FSL'),
+            # FIXME find FSL software version
+            (FSL['featVersion'], feat_version) ))
         
     def create_thresholds(self, *args, **kwargs):
         voxelThreshold = kwargs.pop('voxelThreshold')
@@ -302,7 +301,7 @@ class NIDMStat():
 
         # Statistical Map entity
         path, filename = os.path.split(statFile)
-        # FIXME: Deal with other than t-contrast maps
+        # FIXME: Deal with other than t-contrast maps: dof
         self.provBundle.entity(NIIRI['statistical_map_id_'+contrastNum ],
             other_attributes=(  (PROV['type'], NIDM['TStatisticalMap']), 
                                 (PROV['label'], "Statistical Map: "+contrastName) ,
@@ -310,7 +309,7 @@ class NIDMStat():
                                 (NIDM['fileName'], filename),
                                 (NIDM['contrastName'], contrastName),
                                 (NIDM['errorDegreesOfFreedom'], dof),
-                                (NIDM['effectDegreesOfFreedom'], 'TODO'),
+                                (NIDM['effectDegreesOfFreedom'], 1.0),
                                 (CRYPTO['sha'], self.get_sha_sum(statFile)),
                                 (NIDM['coordinateSpace'], NIIRI['coordinate_space_id_'+str(self.coordinateSpaceId)]),
                                 ) )
