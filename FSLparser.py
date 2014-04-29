@@ -14,7 +14,6 @@ import numpy as np
 import nibabel as nib
 from NIDMStat import NIDMStat
 
-
 # TODO:
 # - Deal with F-contrasts
 
@@ -23,20 +22,31 @@ from NIDMStat import NIDMStat
 class FSL_NIDM():
 
     def __init__(self, *args, **kwargs):
-        self.featDir = None
-        self.nidm = NIDMStat();
-        if 'featDir' in kwargs:
-            self.featDir = kwargs.pop('featDir')
-            self.parse_feat_dir()
+        self.feat_dir = kwargs.pop('feat_dir')
+        self.export_dir = os.path.join(self.feat_dir, 'nidm')
+        self.nidm = NIDMStat(export_dir=self.export_dir);
+
+        self.parse_feat_dir()
 
     # Main function: parse a feat directory and build the corresponding NI-DM graph
     def parse_feat_dir(self):
-        self.add_report_file(os.path.join(self.featDir, 'report_poststats.html'))
+        self.add_report_file(os.path.join(self.feat_dir, 'report_poststats.html'))
         self.add_model_fitting()
-        self.maskFile = os.path.join(self.featDir, 'mask.nii.gz')
+        self.maskFile = os.path.join(self.feat_dir, 'mask.nii.gz')
         self.add_search_space()
 
-        for file in os.listdir(self.featDir):
+        # Find parameter estimates
+        for file in os.listdir(os.path.join(self.feat_dir, 'stats')):
+            if file.startswith("pe"):
+                if file.endswith(".nii.gz"):
+                    s = re.compile('pe\d+')
+                    penum = s.search(file)
+                    penum = penum.group()
+                    penum = penum.replace('pe', '')
+                    self.add_parameter_estimate(os.path.join(self.feat_dir, 'stats', file), penum)
+
+        # Find excursion sets (in a given feat directory we have one excursion set per contrast)
+        for file in os.listdir(self.feat_dir):
             if file.startswith("thresh_zstat"):
                 if file.endswith(".nii.gz"):
                     s = re.compile('zstat\d+')
@@ -44,28 +54,34 @@ class FSL_NIDM():
                     zstatnum = zstatnum.group()
                     statnum = zstatnum.replace('zstat', '')
                     self.add_contrast(statnum)
-                    self.add_clusters_peaks(statnum)      
-        
+                    self.add_clusters_peaks(statnum)        
 
     # Add model fitting, residuals map
     def add_model_fitting(self):
-        residualsFile = os.path.join(self.featDir, 'stats', 'sigmasquareds.nii.gz')
-        self.nidm.create_model_fitting(residualsFile)
+        residuals_file = os.path.join(self.feat_dir, 'stats', 'sigmasquareds.nii.gz')
+        design_matrix_file = open(os.path.join(self.feat_dir, 'design.mat'), 'r')
+        design_matrix = np.loadtxt(design_matrix_file, skiprows=5, ndmin=2)
+
+        self.nidm.create_model_fitting(residuals_file, design_matrix)
+
+    # For a parameter estimate, create the parameter estimate map emtity
+    def add_parameter_estimate(self, pe_file, pe_num):
+        self.nidm.create_parameter_estimate(pe_file, pe_num)
 
     # For a given contrast, create the contrast map, contrast variance map, contrast and statistical map emtities
     def add_contrast(self, contrastNum):
-        contrastFile = os.path.join(self.featDir, 'stats', 'cope'+str(contrastNum)+'.nii.gz')
-        varContrastFile = os.path.join(self.featDir, 'stats', 'varcope'+str(contrastNum)+'.nii.gz')
-        statMapFile = os.path.join(self.featDir, 'stats', 'tstat'+str(contrastNum)+'.nii.gz')
-        zStatMapFile = os.path.join(self.featDir, 'stats', 'zstat'+str(contrastNum)+'.nii.gz')
+        contrastFile = os.path.join(self.feat_dir, 'stats', 'cope'+str(contrastNum)+'.nii.gz')
+        varContrastFile = os.path.join(self.feat_dir, 'stats', 'varcope'+str(contrastNum)+'.nii.gz')
+        statMapFile = os.path.join(self.feat_dir, 'stats', 'tstat'+str(contrastNum)+'.nii.gz')
+        zStatMapFile = os.path.join(self.feat_dir, 'stats', 'zstat'+str(contrastNum)+'.nii.gz')
 
-        # designFile = open(os.path.join(self.featDir, 'design.con'), 'r')
+        # designFile = open(os.path.join(self.feat_dir, 'design.con'), 'r')
         # designTxt = designFile.read()
         # # FIXME: to do only once (and not each time we load a new contrast)
         # contrastNameSearch = re.compile(r'.*/ContrastName'+str(contrastNum)+'\s+(?P<contrastName>[\w\s><]+)\s*[\n\r]')
         # extractedData = contrastNameSearch.search(designTxt) 
 
-        designFile = open(os.path.join(self.featDir, 'design.fsf'), 'r')
+        designFile = open(os.path.join(self.feat_dir, 'design.fsf'), 'r')
         designTxt = designFile.read()
         contrastNameSearch = re.compile(r'.*set fmri\(conname_real\.'+contrastNum+'\) "(?P<contrastName>[\w\s><]+)".*')
         extractedDataNew = contrastNameSearch.search(designTxt) 
@@ -74,7 +90,7 @@ class FSL_NIDM():
         contrastWeights = str(re.findall(contrastWeightSearch, designTxt)).replace("'", '')
 
         # FIXME: to do only once (and not each time we load a new contrast)
-        dofFile = open(os.path.join(self.featDir, 'stats', 'dof'), 'r')
+        dofFile = open(os.path.join(self.feat_dir, 'stats', 'dof'), 'r')
         dof = float(dofFile.read())
 
         self.nidm.create_contrast_map(contrastFile, varContrastFile, statMapFile, zStatMapFile,
@@ -82,12 +98,12 @@ class FSL_NIDM():
 
     # Create the search space entity generated by an inference activity
     def add_search_space(self):
-        searchSpaceFile = os.path.join(self.featDir, 'mask.nii.gz')
-        smoothnessFile = os.path.join(self.featDir, 'stats', 'smoothness')
+        searchSpaceFile = os.path.join(self.feat_dir, 'mask.nii.gz')
+        smoothnessFile = os.path.join(self.feat_dir, 'stats', 'smoothness')
 
         # Load DLH, VOLUME and RESELS
         smoothness = np.loadtxt(smoothnessFile, usecols=[1])
-        self.nidm.create_search_space(searchSpaceFile=searchSpaceFile, searchVolume=int(smoothness[1]), reselSizeInVoxels=float(smoothness[2]))
+        self.nidm.create_search_space(searchSpaceFile=searchSpaceFile, searchVolume=int(smoothness[1]), reselSizeInVoxels=float(smoothness[2]), dlh=float(smoothness[0]))
 
     # Create the thresholding information for an inference activity (height threshold and extent threshold)
     def add_report_file(self, myReportFile):
@@ -105,10 +121,10 @@ class FSL_NIDM():
 
     # Create excursion set, clusters and peaks entities
     def add_clusters_peaks(self, statNum):
-        myClusterFile = os.path.join(self.featDir, 'cluster_zstat'+statNum+'.txt')
+        myClusterFile = os.path.join(self.feat_dir, 'cluster_zstat'+statNum+'.txt')
 
         # FIXME: Is that really the file we want as underlay? Or maybe mean_func.nii.gz?
-        underlayFile = os.path.join(self.featDir, 'example_func.nii.gz')
+        underlayFile = os.path.join(self.feat_dir, 'example_func.nii.gz')
 
         # Excursion set
         zFileImg = myClusterFile.replace('cluster_', 'thresh_').replace('.txt', '.nii.gz')

@@ -11,6 +11,7 @@ import os
 import numpy as np
 import nibabel as nib
 import hashlib
+import shutil
 
 
 NIDM = Namespace('nidm', "http://www.incf.org/ns/nidash/nidm#")
@@ -21,19 +22,28 @@ FSL = Namespace("fsl", "http://www.incf.org/ns/nidash/fsl#")
 class NIDMStat():
 
     def __init__(self, *args, **kwargs):
-        # Keep track of the number of coordinateSpace entity already generated
         # FIXME: Merge coordinateSpace entities if identical?
         # FIXME: Use actual URIs instead
+
+        # Directory in which export will be stored
+        self.export_dir = kwargs.pop('export_dir')
+        if not os.path.exists(self.export_dir):
+            os.makedirs(self.export_dir)
+        # FIXME: Do something if export dir already exist
+
+        # Keep track of the number of coordinateSpace entity already generated
         self.coordinateSpaceId = 1
 
-        g = ProvBundle()
-        g.add_namespace("neurolex", "http://neurolex.org/wiki/")
-        g.add_namespace(FSL)
-        g.add_namespace(NIDM)
-        g.add_namespace(NIIRI)
-        g.add_namespace(CRYPTO)
+        # Create namespaces
+        self.provBundle = ProvBundle()
+        self.provBundle.add_namespace("neurolex", "http://neurolex.org/wiki/")
+        self.provBundle.add_namespace(FSL)
+        self.provBundle.add_namespace(NIDM)
+        self.provBundle.add_namespace(NIIRI)
+        self.provBundle.add_namespace(CRYPTO)
 
-        g.agent(NIIRI['software_id'], other_attributes=( 
+        # Add software agent: FSL
+        self.provBundle.agent(NIIRI['software_id'], other_attributes=( 
             (PROV['type'], NIDM['Fsl']), 
             (PROV['type'], PROV['SoftwareAgent']),
             (PROV['label'],'FSL'),
@@ -45,15 +55,12 @@ class NIDMStat():
         # FIXME: We want to be able to add for than one inference activity for on graph -> create a function for that
         
         
-        
-        
         # # FIXME: is this really empty? If so, should be deleted
         # g.entity(NIIRI['stat_image_properties_id'], other_attributes=( 
         #     (PROV['type'], FSL['statisticImageProperties']), 
         #     (PROV['label'], 'Statistical image properties')))
         
         
-        self.provBundle = g
         
     def create_thresholds(self, *args, **kwargs):
         voxelThreshold = kwargs.pop('voxelThreshold')
@@ -62,13 +69,13 @@ class NIDMStat():
         threshDesc = ""
         if not voxelThreshold is None:
             threshDesc = "Z>"+str(voxelThreshold)
-            userSpecifiedThresholdType = NIDM['nidm:zStatistic']
+            userSpecifiedThresholdType = NIDM['zStatistic']
         elif not voxelPUncorr is None:
             threshDesc = "p<"+str(voxelPUncorr)+" uncorr."
-            userSpecifiedThresholdType = NIDM['nidm:pValueUncorrected']
+            userSpecifiedThresholdType = NIDM['pValueUncorrected']
         elif not voxelPCorr is None:
             threshDesc = "p<"+str(voxelPCorr)+" (GRF)"
-            userSpecifiedThresholdType = NIDM['nidm:pValueFWER']
+            userSpecifiedThresholdType = NIDM['pValueFWER']
 
         # FIXME: Do we want to calculate an uncorrected p equivalent to the Z thresh? 
         # FIXME: Do we want/Can we find a corrected p equivalent to the Z thresh? 
@@ -85,13 +92,13 @@ class NIDMStat():
         threshDesc = ""
         if not extent is None:
             threshDesc = "k>"+str(extent)
-            userSpecifiedThresholdType = NIDM['nidm:clusterSizeInVoxels']
+            userSpecifiedThresholdType = NIDM['clusterSizeInVoxels']
         elif not extentPUncorr is None:
             threshDesc = "p<"+str(extentPUncorr)+" uncorr."
-            userSpecifiedThresholdType = NIDM['nidm:pValueUncorrected']
+            userSpecifiedThresholdType = NIDM['pValueUncorrected']
         elif not extentPCorr is None:
             threshDesc = "p<"+str(extentPCorr)+" corr."
-            userSpecifiedThresholdType = NIDM['nidm:pValueFWER']
+            userSpecifiedThresholdType = NIDM['pValueFWER']
         exentThreshAllFields = {
             PROV['type']: NIDM['ExtentThreshold'], PROV['label']: "Extent Threshold: "+threshDesc, NIDM['clusterSizeInVoxels']: extent,
             NIDM['userSpecifiedThresholdType']: userSpecifiedThresholdType, NIDM['pValueUncorrected']: extentPUncorr, NIDM['pValueFWER']: extentPCorr
@@ -170,7 +177,11 @@ class NIDMStat():
             (PROV['location'] , NIIRI['coordinate_'+str(peakUniqueId)]))         )
         self.provBundle.wasDerivedFrom(NIIRI['peak_'+str(peakUniqueId)], NIIRI['cluster_000'+str(clusterId)])
 
-    def create_model_fitting(self, residualsFile):
+    def create_model_fitting(self, residualsFile, design_matrix):
+        # Create cvs file containing design matrix
+        design_matrix_csv = 'design_matrix.csv'
+        np.savetxt(os.path.join(self.export_dir, design_matrix_csv), np.asarray(design_matrix), delimiter=",")
+
         path, filename = os.path.split(residualsFile)
         self.provBundle.entity(NIIRI['residual_mean_squares_map_id'], 
             other_attributes=( (PROV['type'],NIDM['ResidualMeanSquaresMap'],), 
@@ -183,13 +194,32 @@ class NIDMStat():
         self.provBundle.entity(NIIRI['design_matrix_id'], 
             other_attributes=( (PROV['type'],NIDM['DesignMatrix']), 
                                (PROV['label'],"Design Matrix"), 
-                               (PROV['location'], Identifier("file://./design_matrix.csv"))))
+                               (NIDM['fileName'],design_matrix_csv ),
+                               (PROV['location'], Identifier("file://./"+design_matrix_csv))))
         self.provBundle.activity(NIIRI['model_parameters_estimation_id'], other_attributes=( 
             (PROV['type'], NIDM['ModelParametersEstimation']),(PROV['label'], "Model Parameters Estimation")))
         self.provBundle.used(NIIRI['model_parameters_estimation_id'], NIIRI['design_matrix_id'])
         self.provBundle.wasAssociatedWith(NIIRI['model_parameters_estimation_id'], NIIRI['software_id'])
         
-        self.provBundle.wasGeneratedBy(NIIRI['residual_mean_squares_map_id'], NIIRI['model_parameters_estimation_id'])
+        self.provBundle.wasGeneratedBy(NIIRI['residual_mean_squares_map_id'], NIIRI['model_parameters_estimation_id'])  
+
+    # Generate prov for contrast map
+    def create_parameter_estimate(self, pe_file, pe_num):
+        # Copy parameter estimate map in export directory
+        shutil.copy(pe_file, self.export_dir)
+        path, pe_filename = os.path.split(pe_file)
+        pe_file = os.path.join(self.export_dir,pe_filename)       
+
+        # Parameter estimate entity
+        self.provBundle.entity(NIIRI['beta_map_id_'+str(pe_num)], 
+            other_attributes=( (PROV['type'], NIDM['BetaMap']), 
+                               (PROV['location'], Identifier("file://./"+pe_filename)),
+                               (NIDM['fileName'], pe_filename), 
+                               (NIDM['coordinateSpace'], NIIRI['coordinate_space_id_'+str(self.coordinateSpaceId)]),
+                               (CRYPTO['sha'], self.get_sha_sum(pe_file)),
+                               (PROV['label'], "Parameter estimate "+str(pe_num))))
+        self.create_coordinate_space(pe_file)
+        self.provBundle.wasGeneratedBy(NIIRI['beta_map_id_'+str(pe_num)], NIIRI['model_parameters_estimation_id'])  
 
     # Generate prov for contrast map
     def create_contrast_map(self, copeFile, varCopeFile, statFile, zStatFile, contrastName, contrastNum, dof, contrastWeights):
@@ -222,23 +252,6 @@ class NIDMStat():
 
         # Contrast Variance Map entity
         path, filename = os.path.split(varCopeFile)
-        # FIXME: Standard error or contrast variance...
-    #         entity(niiri:contrast_variance_map_id_1,
-    #     [prov:type = 'fsl:varcope',
-    #     prov:location = "file://./varcope1.nii.gz" %% xsd:anyURI,
-    #     prov:label = "Contrast Variance Map 1" %% xsd:string,
-    #     nidm:fileName = "varcope1.nii.gz" %% xsd:string,
-    #     nidm:coordinateSpace = 'niiri:coordinate_space_id_4',
-    #     crypto:sha = "e43b6e01b0463fe7d40782137867a..." %% xsd:string])
-    # wasDerivedFrom(niiri:contrast_standard_error_map_id_1, niiri:contrast_variance_map_id_1)
-
-    # entity(niiri:contrast_standard_error_map_id_1,
-    #     [prov:type = 'nidm:contrastStandardErrorMap',
-    #     prov:location = "file://./sqrt_varcope1.nii.gz" %% xsd:anyURI,
-    #     prov:label = "Contrast Standard Error Map" %% xsd:string,
-    #     nidm:fileName = "std_varcope1.nii.gz" %% xsd:string,
-    #     nidm:coordinateSpace = 'niiri:coordinate_space_id_1',
-    #     crypto:sha = "e43b6e01b0463fe7d40782137867a..." %% xsd:string])
 
         self.provBundle.entity('niiri:'+'contrast_variance_map_id_'+contrastNum, other_attributes=( 
             (PROV['type'], FSL['VarCope']), 
@@ -266,8 +279,8 @@ class NIDMStat():
             (CRYPTO['sha'], self.get_sha_sum(standardErrorFile)),
             (NIDM['fileName'], filename),
             (PROV['label'], "Contrast Standard Error Map")))
-        self.create_coordinate_space(varCopeFile)
-        self.provBundle.wasGeneratedBy(NIIRI['contrast_variance_map_id_'+contrastNum], NIIRI['contrast_estimation_id_'+contrastNum])
+        self.create_coordinate_space(standardErrorFile)
+        self.provBundle.wasDerivedFrom(NIIRI['contrast_standard_error_map_id_'+contrastNum], NIIRI['contrast_variance_map_id_'+contrastNum])
 
         
         # FIXME: Remove TODOs
@@ -348,7 +361,7 @@ class NIDMStat():
         self.coordinateSpaceId = self.coordinateSpaceId + 1
 
     # Generate prov for search space entity generated by the inference activity
-    def create_search_space(self, searchSpaceFile, searchVolume, reselSizeInVoxels):
+    def create_search_space(self, searchSpaceFile, searchVolume, reselSizeInVoxels, dlh):
         path, filename = os.path.split(searchSpaceFile)
 
         self.provBundle.entity(NIIRI['search_space_id'], other_attributes=( 
@@ -359,7 +372,8 @@ class NIDMStat():
                 (NIDM['coordinateSpace'], NIIRI['coordinate_space_id_'+str(self.coordinateSpaceId)]),
                 (NIDM['searchVolumeInVoxels'], searchVolume),
                 (CRYPTO['sha'], self.get_sha_sum(searchSpaceFile)),
-                (FSL['reselSizeInVoxels'], reselSizeInVoxels)))
+                (FSL['reselSizeInVoxels'], reselSizeInVoxels),
+                (FSL['dlh'], dlh)))
         self.create_coordinate_space(searchSpaceFile)
         
 
