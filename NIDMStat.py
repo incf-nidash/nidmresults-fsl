@@ -94,10 +94,11 @@ class NIDMStat():
         }
         self.provBundle.entity(NIIRI['extent_threshold_id'], other_attributes=dict((k,v) for k,v in exentThreshAllFields.iteritems() if v is not None))
 
-    def create_coordinate(self, coordinate_id, x, y, z, x_std, y_std, z_std):
+    def create_coordinate(self, coordinate_id, label_id, x, y, z, x_std, y_std, z_std):
         self.provBundle.entity(coordinate_id, other_attributes=( 
             (PROV['type'] , PROV['Location']), 
             (PROV['type'] , NIDM['Coordinate']),
+            (PROV['label'] , "Coordinate "+label_id),
             # FIXME: Set coordinate system
             (NIDM['coordinateSystem'] , NIDM['mni']),
             (NIDM['coordinate1'] , x),
@@ -122,7 +123,7 @@ class NIDMStat():
                              (NIDM['pValueFWER'], kwargs.pop('pFWER') )))
         self.provBundle.wasDerivedFrom(NIIRI['cluster_000'+str(clusterId)], NIIRI['excursion_set_id_'+str(statNum)])
 
-        self.create_coordinate(NIIRI['COG_coordinate_000'+str(clusterId)], kwargs.pop('COG1'), kwargs.pop('COG2'), kwargs.pop('COG3'), kwargs.pop('COG1_std'), kwargs.pop('COG2_std'), kwargs.pop('COG3_std'))
+        self.create_coordinate(NIIRI['COG_coordinate_000'+str(clusterId)], '000'+str(clusterId),kwargs.pop('COG1'), kwargs.pop('COG2'), kwargs.pop('COG3'), kwargs.pop('COG1_std'), kwargs.pop('COG2_std'), kwargs.pop('COG3_std'))
 
         # self.provBundle.entity(NIIRI['COG_coordinate_000'+str(clusterId)], other_attributes=( 
         #     (PROV['type'] , PROV['Location']), 
@@ -152,19 +153,22 @@ class NIDMStat():
         # FIXME: Currently assumes less than 100 peaks 
         peakUniqueId = '000'+str(clusterIndex)+'_'+str(peakIndex)
 
-        self.provBundle.entity(NIIRI['coordinate_'+str(peakUniqueId)], other_attributes=( 
-                    (PROV['type'] , PROV['location']), 
-                    (PROV['type'] , NIDM['coordinate']),
-                    (PROV['label'] , "Coordinate "+str(peakUniqueId)),
-                    (NIDM['coordinate1'] , kwargs.pop('x')),
-                    (NIDM['coordinate2'] , kwargs.pop('y')),
-                    (NIDM['coordinate3'] , kwargs.pop('z')),
-                    (NIDM['coordinate1InUnits'] , kwargs.pop('std_x')),
-                    (NIDM['coordinate2InUnits'] , kwargs.pop('std_y')),
-                    (NIDM['coordinate3InUnits'] , kwargs.pop('std_z'))
-                    ))
+        self.create_coordinate(NIIRI['coordinate_'+str(peakUniqueId)], str(peakUniqueId), kwargs.pop('x'), kwargs.pop('y'), kwargs.pop('z'), kwargs.pop('std_x'), kwargs.pop('std_y'), kwargs.pop('std_z'))
+
+        # self.provBundle.entity(NIIRI['coordinate_'+str(peakUniqueId)], other_attributes=( 
+        #             (PROV['type'] , PROV['location']), 
+        #             (PROV['type'] , NIDM['coordinate']),
+        #             (PROV['label'] , "Coordinate "+str(peakUniqueId)),
+        #             (NIDM['coordinate1'] , kwargs.pop('x')),
+        #             (NIDM['coordinate2'] , kwargs.pop('y')),
+        #             (NIDM['coordinate3'] , kwargs.pop('z')),
+        #             (NIDM['coordinate1InUnits'] , kwargs.pop('std_x')),
+        #             (NIDM['coordinate2InUnits'] , kwargs.pop('std_y')),
+        #             (NIDM['coordinate3InUnits'] , kwargs.pop('std_z'))
+        #             ))
         self.provBundle.entity(NIIRI['peak_'+str(peakUniqueId)], other_attributes=( 
             (PROV['type'] , NIDM['peakLevelStatistic']), 
+            (PROV['label'] , "Peak "+str(peakUniqueId)), 
             (NIDM['equivalentZStatistic'], kwargs.pop('equivZ')),
             (PROV['location'] , NIIRI['coordinate_'+str(peakUniqueId)]))         )
         self.provBundle.wasDerivedFrom(NIIRI['peak_'+str(peakUniqueId)], NIIRI['cluster_000'+str(clusterId)])
@@ -211,10 +215,10 @@ class NIDMStat():
         self.provBundle.entity('niiri:'+'contrast_map_id_'+contrastNum, other_attributes=( 
             (PROV['type'], NIDM['contrastMap']), 
             (NIDM['coordinateSpace'], NIIRI['coordinate_space_id_'+str(self.coordinateSpaceId)]),
-            (PROV['location'], Identifier("file://./"+filename)),
+            (PROV['location'], Identifier("file://./stats/"+filename)),
             (NIDM['fileName'], filename),
             (NIDM['contrastName'], contrastName),
-            (PROV['label'], "Contrast map: "+contrastName)))
+            (PROV['label'], "Contrast Map: "+contrastName)))
         self.create_coordinate_space(copeFile)
         self.provBundle.wasGeneratedBy(NIIRI['contrast_map_id_'+contrastNum], NIIRI['contrast_estimation_id_'+contrastNum])
         self.provBundle.wasAssociatedWith(NIIRI['contrast_estimation_id_'+contrastNum], NIIRI['software_id'])
@@ -297,7 +301,7 @@ class NIDMStat():
             NIDM['voxelToWorldMapping']: '%s'%', '.join(str(thresImg.get_qform()).strip('()').replace('. ', '').split()).replace('[,', '[').replace('\n', ''),
             # FIXME: How to get the coordinate system? default for FSL?
             NIDM['coordinateSystem']: NIDM['mniCoordinateSystem'],           
-            # FIXME: this gives mm, sec => what is wrong, FSL file or nibabel?
+            # FIXME: this gives mm, sec => what is wrong: FSL file, nibabel, other?
             # NIDM['voxelUnits']: '[%s]'%str(thresImgHdr.get_xyzt_units()).strip('()'),
             NIDM['voxelUnits']: "['mm', 'mm', 'mm']",
             NIDM['voxelSize']: '[%s]'%', '.join(map(str, thresImgHdr['pixdim'][1:(numDim+1)])),
