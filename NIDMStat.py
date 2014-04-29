@@ -226,14 +226,49 @@ class NIDMStat():
         # Contrast Variance Map entity
         path, filename = os.path.split(varCopeFile)
         # FIXME: Standard error or contrast variance...
+    #         entity(niiri:contrast_variance_map_id_1,
+    #     [prov:type = 'fsl:varcope',
+    #     prov:location = "file://./varcope1.nii.gz" %% xsd:anyURI,
+    #     prov:label = "Contrast Variance Map 1" %% xsd:string,
+    #     nidm:fileName = "varcope1.nii.gz" %% xsd:string,
+    #     nidm:coordinateSpace = 'niiri:coordinate_space_id_4',
+    #     crypto:sha = "e43b6e01b0463fe7d40782137867a..." %% xsd:string])
+    # wasDerivedFrom(niiri:contrast_standard_error_map_id_1, niiri:contrast_variance_map_id_1)
+
+    # entity(niiri:contrast_standard_error_map_id_1,
+    #     [prov:type = 'nidm:contrastStandardErrorMap',
+    #     prov:location = "file://./sqrt_varcope1.nii.gz" %% xsd:anyURI,
+    #     prov:label = "Contrast Standard Error Map" %% xsd:string,
+    #     nidm:fileName = "std_varcope1.nii.gz" %% xsd:string,
+    #     nidm:coordinateSpace = 'niiri:coordinate_space_id_1',
+    #     crypto:sha = "e43b6e01b0463fe7d40782137867a..." %% xsd:string])
+
+        self.provBundle.entity('niiri:'+'contrast_variance_map_id_'+contrastNum, other_attributes=( 
+            (PROV['type'], FSL['varcope']), 
+            (NIDM['coordinateSpace'], NIIRI['coordinate_space_id_'+str(self.coordinateSpaceId)]),
+            (PROV['location'], Identifier("file://./stats/"+filename)),
+            (NIDM['fileName'], filename),
+            (PROV['label'], "Contrast Variance Map "+contrastNum)))
+        self.create_coordinate_space(varCopeFile)
+        self.provBundle.wasGeneratedBy(NIIRI['contrast_variance_map_id_'+contrastNum], NIIRI['contrast_estimation_id_'+contrastNum])
+
+        # Create standard error map from contrast variance map
+        varCopeImg = nib.load(varCopeFile)
+        contrastVariance = varCopeImg.get_data()
+
+        standardErrorImg = nib.Nifti1Image(np.sqrt(contrastVariance), varCopeImg.get_qform())
+        standardErrorFile = varCopeFile.replace('var', 'sqrt_var')
+        nib.save(standardErrorImg, standardErrorFile)
+
+        path, filename = os.path.split(standardErrorFile)
         self.provBundle.entity('niiri:'+'contrast_standard_error_map_id_'+contrastNum, other_attributes=( 
             (PROV['type'], NIDM['contrastStandardErrorMap']), 
             (NIDM['coordinateSpace'], NIIRI['coordinate_space_id_'+str(self.coordinateSpaceId)]),
-            (PROV['location'], Identifier("file://./"+filename)),
+            (PROV['location'], Identifier("file://./stats/"+filename)),
             (NIDM['fileName'], filename),
-            (PROV['label'], "Contrast variance map")))
+            (PROV['label'], "Contrast Standard Error Map")))
         self.create_coordinate_space(varCopeFile)
-        self.provBundle.wasGeneratedBy(NIIRI['contrast_standard_error_map_id_'+contrastNum], NIIRI['contrast_estimation_id_'+contrastNum])
+        self.provBundle.wasGeneratedBy(NIIRI['contrast_variance_map_id_'+contrastNum], NIIRI['contrast_estimation_id_'+contrastNum])
 
         
         # FIXME: Remove TODOs
