@@ -119,6 +119,8 @@ class FSL_NIDM():
             extentPUncorr=parser.get_extentPUncorr(), 
             extentPCorr=parser.get_extentPCorr())
 
+        self.nidm.create_software(parser.get_feat_version())
+
     # Create excursion set, clusters and peaks entities
     def add_clusters_peaks(self, statNum):
         myClusterFile = os.path.join(self.feat_dir, 'cluster_zstat'+statNum+'.txt')
@@ -277,6 +279,8 @@ class MyFSLReportParser(HTMLParser):
                     self.extentPUncorr = None
                     # self.threshType = extractedData.group('threshtype')
                     self.foundIntro = True;
+    def get_feat_version(self):
+        return self.featVersion
 
     def get_threshold_p_value(self):
         return self.pValue
