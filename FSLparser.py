@@ -44,11 +44,7 @@ class FSL_NIDM():
                     zstatnum = zstatnum.group()
                     statnum = zstatnum.replace('zstat', '')
                     self.add_contrast(statnum)
-                    self.add_clusters_peaks(statnum)
-                # FIXME: For now do only 1 zstat
-                # break; 
-        
-
+                    self.add_clusters_peaks(statnum)      
         
 
     # Add model fitting, residuals map
