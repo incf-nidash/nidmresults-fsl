@@ -377,19 +377,21 @@ class NIDMStat():
         self.create_coordinate_space(searchSpaceFile)
         
 
-    def create_excursion_set(self, excusionSetFile, statNum, underlayFile):
+    def create_excursion_set(self, excusionSetFile, statNum, visualisation):
         zFileImg = excusionSetFile
         path, filename = os.path.split(zFileImg)
 
-        path, underlay_filename = os.path.split(underlayFile)
+        # Copy visualisation of excursion set in export directory
+        shutil.copy(visualisation, self.export_dir)
+        path, visu_filename = os.path.split(visualisation)
 
         self.provBundle.entity(NIIRI['excursion_set_id_'+str(statNum)], other_attributes=( 
             (PROV['type'], NIDM['ExcursionSet']), 
             (PROV['location'], Identifier("file://./"+filename)),
             (NIDM['fileName'], filename),
-            (NIDM['underlayFile'], Identifier("file://./"+underlay_filename)),
             (NIDM['coordinateSpace'], NIIRI['coordinate_space_id_'+str(self.coordinateSpaceId)]),
             (PROV['label'], "Excursion Set"),
+            (NIDM['visualisation'], Identifier("file://./"+visu_filename)),
             (CRYPTO['sha'], self.get_sha_sum(excusionSetFile)),
             ))
         self.provBundle.wasGeneratedBy(NIIRI['excursion_set_id_'+str(statNum)], NIIRI['inference_id_'+str(statNum)])
