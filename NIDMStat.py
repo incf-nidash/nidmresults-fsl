@@ -19,6 +19,8 @@ NIIRI = Namespace("niiri", "http://iri.nidash.org/")
 CRYPTO = Namespace("crypto", "http://www.w3.org/2000/10/swap/crypto#")
 FSL = Namespace("fsl", "http://www.incf.org/ns/nidash/fsl#")
 
+''' Create a NIDM export file and copy related nifti files
+'''
 class NIDMStat():
 
     def __init__(self, *args, **kwargs):
@@ -44,10 +46,8 @@ class NIDMStat():
        
        
         # FIXME: Check one-tailed or two-tailed test and get test type from data
-        # FIXME: We want to be able to add for than one inference activity for on graph -> create a function for that
-        
-        
-        # # FIXME: is this really empty? If so, should be deleted
+               
+        # FIXME: is this really empty? If so, should be deleted form the model
         # g.entity(NIIRI['stat_image_properties_id'], other_attributes=( 
         #     (PROV['type'], FSL['statisticImageProperties']), 
         #     (PROV['label'], 'Statistical image properties')))
