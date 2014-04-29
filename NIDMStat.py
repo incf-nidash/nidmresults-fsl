@@ -411,7 +411,6 @@ class NIDMStat():
             (CRYPTO['sha'], self.get_sha_sum(excursion_set_file)),
             ))
         self.provBundle.wasGeneratedBy(NIIRI['excursion_set_id_'+str(stat_num)], NIIRI['inference_id_'+str(stat_num)])
-        
 
     def save_prov_to_files(self, showattributes=False):
         suffixName = ''
@@ -423,8 +422,3 @@ class NIDMStat():
         JSONfile.write(jsondata)
         PROVNfile = open(os.path.join(self.export_dir, 'nidm.provn'), 'w');
         PROVNfile.write(self.provBundle.get_provn(4))
-
-        # dot = graph.prov_to_dot(self.provBundle, use_labels=True, show_element_attributes=showattributes)
-        # dot.set_dpi(200)
-        # dot.write_png('./FSL_example'+suffixName+'.png')
-
