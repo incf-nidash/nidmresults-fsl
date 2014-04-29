@@ -32,7 +32,7 @@ class NIDMStat():
         # FIXME: Do something if export dir already exist
 
         # Keep track of the number of coordinateSpace entity already generated
-        self.coordinateSpaceId = 1
+        self.coordinateSpaceId = 0
 
         # Create namespaces
         self.provBundle = ProvBundle()
@@ -188,8 +188,8 @@ class NIDMStat():
                                (PROV['label'],"Residual Mean Squares Map" ),
                                (NIDM['fileName'],filename ),
                                (CRYPTO['sha'], self.get_sha_sum(residualsFile)),
-                               (NIDM['coordinateSpace'], NIIRI['coordinate_space_id_'+str(self.coordinateSpaceId)])))
-        self.create_coordinate_space(residualsFile)
+                               (NIDM['coordinateSpace'], self.create_coordinate_space(residualsFile))))
+        
         self.provBundle.entity(NIIRI['design_matrix_id'], 
             other_attributes=( (PROV['type'],NIDM['DesignMatrix']), 
                                (PROV['label'],"Design Matrix"), 
@@ -214,10 +214,10 @@ class NIDMStat():
             other_attributes=( (PROV['type'], NIDM['BetaMap']), 
                                (PROV['location'], Identifier("file://./"+pe_filename)),
                                (NIDM['fileName'], pe_filename), 
-                               (NIDM['coordinateSpace'], NIIRI['coordinate_space_id_'+str(self.coordinateSpaceId)]),
+                               (NIDM['coordinateSpace'], self.create_coordinate_space(pe_file)),
                                (CRYPTO['sha'], self.get_sha_sum(pe_file)),
                                (PROV['label'], "Parameter estimate "+str(pe_num))))
-        self.create_coordinate_space(pe_file)
+        
         self.provBundle.wasGeneratedBy(NIIRI['beta_map_id_'+str(pe_num)], NIIRI['model_parameters_estimation_id'])  
 
     # Generate prov for contrast map
@@ -239,13 +239,13 @@ class NIDMStat():
         path, filename = os.path.split(copeFile)
         self.provBundle.entity('niiri:'+'contrast_map_id_'+contrastNum, other_attributes=( 
             (PROV['type'], NIDM['ContrastMap']), 
-            (NIDM['coordinateSpace'], NIIRI['coordinate_space_id_'+str(self.coordinateSpaceId)]),
+            (NIDM['coordinateSpace'], self.create_coordinate_space(copeFile)),
             (PROV['location'], Identifier("file://./stats/"+filename)),
             (NIDM['fileName'], filename),
             (NIDM['contrastName'], contrastName),
             (CRYPTO['sha'], self.get_sha_sum(copeFile)),
             (PROV['label'], "Contrast Map: "+contrastName)))
-        self.create_coordinate_space(copeFile)
+        
         self.provBundle.wasGeneratedBy(NIIRI['contrast_map_id_'+contrastNum], NIIRI['contrast_estimation_id_'+contrastNum])
         self.provBundle.wasAssociatedWith(NIIRI['contrast_estimation_id_'+contrastNum], NIIRI['software_id'])
 
@@ -254,12 +254,12 @@ class NIDMStat():
 
         self.provBundle.entity('niiri:'+'contrast_variance_map_id_'+contrastNum, other_attributes=( 
             (PROV['type'], FSL['VarCope']), 
-            (NIDM['coordinateSpace'], NIIRI['coordinate_space_id_'+str(self.coordinateSpaceId)]),
+            (NIDM['coordinateSpace'], self.create_coordinate_space(varCopeFile)),
             (PROV['location'], Identifier("file://./stats/"+filename)),
             (CRYPTO['sha'], self.get_sha_sum(varCopeFile)),
             (NIDM['fileName'], filename),
             (PROV['label'], "Contrast Variance Map "+contrastNum)))
-        self.create_coordinate_space(varCopeFile)
+        
         self.provBundle.wasGeneratedBy(NIIRI['contrast_variance_map_id_'+contrastNum], NIIRI['contrast_estimation_id_'+contrastNum])
 
         # Create standard error map from contrast variance map
@@ -273,12 +273,12 @@ class NIDMStat():
         path, filename = os.path.split(standardErrorFile)
         self.provBundle.entity('niiri:'+'contrast_standard_error_map_id_'+contrastNum, other_attributes=( 
             (PROV['type'], NIDM['ContrastStandardErrorMap']), 
-            (NIDM['coordinateSpace'], NIIRI['coordinate_space_id_'+str(self.coordinateSpaceId)]),
+            (NIDM['coordinateSpace'], self.create_coordinate_space(standardErrorFile)),
             (PROV['location'], Identifier("file://./stats/"+filename)),
             (CRYPTO['sha'], self.get_sha_sum(standardErrorFile)),
             (NIDM['fileName'], filename),
             (PROV['label'], "Contrast Standard Error Map")))
-        self.create_coordinate_space(standardErrorFile)
+        
         self.provBundle.wasDerivedFrom(NIIRI['contrast_standard_error_map_id_'+contrastNum], NIIRI['contrast_variance_map_id_'+contrastNum])
 
         
@@ -294,10 +294,8 @@ class NIDMStat():
                                 (NIDM['contrastName'], contrastName),
                                 (NIDM['fileName'], filename),
                                 (CRYPTO['sha'], self.get_sha_sum(zStatFile)),
-                                (NIDM['coordinateSpace'], NIIRI['coordinate_space_id_'+str(self.coordinateSpaceId)]),
+                                (NIDM['coordinateSpace'], self.create_coordinate_space(zStatFile)),
                                 ) )
-        self.create_coordinate_space(zStatFile)
-        
 
         # Statistical Map entity
         path, filename = os.path.split(statFile)
@@ -311,9 +309,9 @@ class NIDMStat():
                                 (NIDM['errorDegreesOfFreedom'], dof),
                                 (NIDM['effectDegreesOfFreedom'], 1.0),
                                 (CRYPTO['sha'], self.get_sha_sum(statFile)),
-                                (NIDM['coordinateSpace'], NIIRI['coordinate_space_id_'+str(self.coordinateSpaceId)]),
+                                (NIDM['coordinateSpace'], self.create_coordinate_space(statFile)),
                                 ) )
-        self.create_coordinate_space(statFile)
+        
         self.provBundle.wasGeneratedBy(NIIRI['statistical_map_id_'+contrastNum], NIIRI['contrast_estimation_id_'+contrastNum])
                
         self.provBundle.wasGeneratedBy(NIIRI['z_statistical_map_id_'+contrastNum], NIIRI['contrast_estimation_id_'+contrastNum])
@@ -338,6 +336,7 @@ class NIDMStat():
 
     # Generate prov for a coordinate space entity 
     def create_coordinate_space(self, niftiFile):
+        self.coordinateSpaceId = self.coordinateSpaceId + 1
         thresImg = nib.load(niftiFile)
         thresImgHdr = thresImg.get_header()
 
@@ -357,7 +356,7 @@ class NIDMStat():
             PROV['label']: "Coordinate space "+str(self.coordinateSpaceId)}
 
         self.provBundle.entity(NIIRI['coordinate_space_id_'+str(self.coordinateSpaceId)], other_attributes=mydict)
-        self.coordinateSpaceId = self.coordinateSpaceId + 1
+        return NIIRI['coordinate_space_id_'+str(self.coordinateSpaceId)]
 
     # Generate prov for search space entity generated by the inference activity
     def create_search_space(self, searchSpaceFile, searchVolume, reselSizeInVoxels, dlh):
@@ -368,12 +367,12 @@ class NIDMStat():
                 (PROV['type'], NIDM['Mask']), 
                 (PROV['location'], Identifier("file://./"+filename)),
                 (NIDM['fileName'], filename),
-                (NIDM['coordinateSpace'], NIIRI['coordinate_space_id_'+str(self.coordinateSpaceId)]),
+                (NIDM['coordinateSpace'], self.create_coordinate_space(searchSpaceFile)),
                 (NIDM['searchVolumeInVoxels'], searchVolume),
                 (CRYPTO['sha'], self.get_sha_sum(searchSpaceFile)),
                 (FSL['reselSizeInVoxels'], reselSizeInVoxels),
                 (FSL['dlh'], dlh)))
-        self.create_coordinate_space(searchSpaceFile)
+        
         
 
     def create_excursion_set(self, excusionSetFile, statNum, visualisation):
@@ -388,13 +387,13 @@ class NIDMStat():
             (PROV['type'], NIDM['ExcursionSet']), 
             (PROV['location'], Identifier("file://./"+filename)),
             (NIDM['fileName'], filename),
-            (NIDM['coordinateSpace'], NIIRI['coordinate_space_id_'+str(self.coordinateSpaceId)]),
+            (NIDM['coordinateSpace'], self.create_coordinate_space(zFileImg)),
             (PROV['label'], "Excursion Set"),
             (NIDM['visualisation'], Identifier("file://./"+visu_filename)),
             (CRYPTO['sha'], self.get_sha_sum(excusionSetFile)),
             ))
         self.provBundle.wasGeneratedBy(NIIRI['excursion_set_id_'+str(statNum)], NIIRI['inference_id_'+str(statNum)])
-        self.create_coordinate_space(zFileImg)
+        
 
     def save_prov_to_files(self, showattributes=False):
         suffixName = ''
