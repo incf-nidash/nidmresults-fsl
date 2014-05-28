@@ -45,7 +45,8 @@ class NIDMStat():
 
         self.provBundle = ProvBundle(identifier=NIIRI['fsl_results_id'])
         
-       
+        self.standard_space = kwargs.pop('standard_space')
+        self.custom_standard = kwargs.pop('custom_standard')
        
         # FIXME: Check one-tailed or two-tailed test and get test type from data
                
@@ -112,7 +113,6 @@ class NIDMStat():
             (PROV['type'] , NIDM['Coordinate']),
             (PROV['label'] , "Coordinate "+label_id),
             # FIXME: Set coordinate system
-            (NIDM['coordinateSystem'] , NIDM['mniCoordinateSystem']),
             (NIDM['coordinate1'] , x),
             (NIDM['coordinate2'] , y),
             (NIDM['coordinate3'] , z),
@@ -367,13 +367,22 @@ class NIDMStat():
 
         numDim = len(thresImg.shape)
 
+        # As in https://github.com/ni-/ni-dm/issues/52 (not accepted yet)
+        if not self.standard_space:
+            coordinateSystem = NIDM['SubjectSpace'];
+        else:
+            if not self.custom_standard:
+                coordinateSystem = NIDM['IcbmMni152NonLinear6thGenerationSpace'];
+            else:
+                coordinateSystem = NIDM['StandarizedSpace'];
+
         mydict = { 
             PROV['type']: NIDM['CoordinateSpace'], 
             NIDM['dimensions']: str(thresImg.shape).replace('(', '[').replace(')', ']'),
             NIDM['numberOfDimensions']: numDim,
             NIDM['voxelToWorldMapping']: '%s'%', '.join(str(thresImg.get_qform()).strip('()').replace('. ', '').split()).replace('[,', '[').replace('\n', ''),
             # FIXME: How to get the coordinate system? default for FSL?
-            NIDM['coordinateSystem']: NIDM['mniCoordinateSystem'],           
+            NIDM['coordinateSystem']: coordinateSystem,           
             # FIXME: this gives mm, sec => what is wrong: FSL file, nibabel, other?
             # NIDM['voxelUnits']: '[%s]'%str(thresImgHdr.get_xyzt_units()).strip('()'),
             NIDM['voxelUnits']: "['mm', 'mm', 'mm']",

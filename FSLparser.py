@@ -22,8 +22,13 @@ class FSL_NIDM():
     def __init__(self, *args, **kwargs):
         self.feat_dir = kwargs.pop('feat_dir')
         self.export_dir = os.path.join(self.feat_dir, 'nidm')
-        self.nidm = NIDMStat(export_dir=self.export_dir);
+        
+        self.design_file = os.path.join(self.feat_dir, 'design.fsf');
+        self.find_reference_space();
 
+        self.nidm = NIDMStat(export_dir=self.export_dir, standard_space=self.standard_space, custom_standard=self.custom_standard);
+
+        
         self.parse_feat_dir()
 
     # Main function: parse a feat directory and build the corresponding NI-DM graph
@@ -66,6 +71,22 @@ class FSL_NIDM():
     def add_parameter_estimate(self, pe_file, pe_num):
         self.nidm.create_parameter_estimate(pe_file, pe_num)
 
+    # Find reference space 
+    def find_reference_space(self):
+        designFile = open(self.design_file, 'r')
+        designTxt = designFile.read()
+        standard_space_search = re.compile(r'.*set fmri\(regstandard_yn\) (?P<isStandard>[\d]+).*')
+        extracted_data = standard_space_search.search(designTxt) 
+        self.standard_space = bool(extracted_data.group('isStandard'))
+
+        if self.standard_space:
+            standard_space_search = re.compile(r'.*set fmri\(alternateReference_yn\) (?P<isCustom>[\d]+).*')
+            extracted_data = standard_space_search.search(designTxt) 
+            self.custom_standard = (extracted_data.group('isCustom') == "1");
+        else:
+            self.custom_standard = False;
+
+
     # For a given contrast, create the contrast map, contrast variance map, contrast and statistical map emtities
     def add_contrast(self, contrast_num):
         contrast_file = os.path.join(self.feat_dir, 'stats', 'cope'+str(contrast_num)+'.nii.gz')
@@ -74,7 +95,7 @@ class FSL_NIDM():
         z_stat_map_file = os.path.join(self.feat_dir, 'stats', 'zstat'+str(contrast_num)+'.nii.gz')
 
         # Get contrast name and contrast weights from design.fsf file
-        designFile = open(os.path.join(self.feat_dir, 'design.fsf'), 'r')
+        designFile = open(self.design_file, 'r')
         designTxt = designFile.read()
         contrast_name_search = re.compile(r'.*set fmri\(conname_real\.'+contrast_num+'\) "(?P<contrastName>[\w\s><]+)".*')
         extracted_data = contrast_name_search.search(designTxt) 
