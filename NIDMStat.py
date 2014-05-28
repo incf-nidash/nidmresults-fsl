@@ -4,8 +4,7 @@
 @copyright: University of Warwick 2013-2014
 '''
 
-from prov.model import ProvBundle, Namespace, ProvRecord, ProvExceptionCannotUnifyAttribute, graph, ProvEntity, Identifier
-import prov.model.graph
+from prov.model import ProvBundle, ProvDocument, Namespace, ProvRecord, ProvExceptionCannotUnifyAttribute, ProvEntity, Identifier
 from prov.model import PROV
 import os
 import numpy as np
@@ -37,12 +36,15 @@ class NIDMStat():
         self.coordinateSpaceId = 0
 
         # Create namespaces
-        self.provBundle = ProvBundle()
-        self.provBundle.add_namespace("neurolex", "http://neurolex.org/wiki/")
-        self.provBundle.add_namespace(FSL)
-        self.provBundle.add_namespace(NIDM)
-        self.provBundle.add_namespace(NIIRI)
-        self.provBundle.add_namespace(CRYPTO)
+        self.provDocument = ProvDocument();
+        self.provDocument.add_namespace("neurolex", "http://neurolex.org/wiki/")
+        self.provDocument.add_namespace(FSL)
+        self.provDocument.add_namespace(NIDM)
+        self.provDocument.add_namespace(NIIRI)
+        self.provDocument.add_namespace(CRYPTO)
+
+        self.provBundle = ProvBundle(identifier=NIIRI['fsl_results_id'])
+        
        
        
         # FIXME: Check one-tailed or two-tailed test and get test type from data
@@ -171,6 +173,23 @@ class NIDMStat():
         path, residuals_filename = os.path.split(residuals_file)
         residuals_file = os.path.join(self.export_dir,residuals_filename)  
 
+        # Create "Model Parameter estimation" activity
+        self.provBundle.activity(NIIRI['model_parameters_estimation_id'], other_attributes=( 
+            (PROV['type'], NIDM['ModelParametersEstimation']),(PROV['label'], "Model Parameters Estimation")))
+        self.provBundle.wasAssociatedWith(NIIRI['model_parameters_estimation_id'], NIIRI['software_id'])
+
+        # Create "Data" entity
+        # FIXME: grand mean scaling?
+        # FIXME: medianIntensity
+        self.provBundle.entity(NIIRI['data_id'],
+            other_attributes=(  (PROV['type'],NIDM['Data']),
+                                (PROV['type'],PROV['Collection']),
+                                (PROV['label'],"Data"),
+                                (NIDM['grandMeanScaling'], True),
+                                (NIDM['targetIntensity'], 10000.0),
+                                (NIDM['medianIntensity'], 0.0)))
+        self.provBundle.used(NIIRI['model_parameters_estimation_id'], NIIRI['data_id'])
+
         # Create "residuals map" entity
         self.provBundle.entity(NIIRI['residual_mean_squares_map_id'], 
             other_attributes=( (PROV['type'],NIDM['ResidualMeanSquaresMap'],), 
@@ -178,7 +197,8 @@ class NIDMStat():
                                (PROV['label'],"Residual Mean Squares Map" ),
                                (NIDM['fileName'],residuals_filename ),
                                (CRYPTO['sha'], self.get_sha_sum(residuals_file)),
-                               (NIDM['coordinateSpace'], self.create_coordinate_space(residuals_file))))
+                               (NIDM['atCoordinateSpace'], self.create_coordinate_space(residuals_file))))
+        self.provBundle.wasGeneratedBy(NIIRI['residual_mean_squares_map_id'], NIIRI['model_parameters_estimation_id'])  
         
         # Create cvs file containing design matrix
         design_matrix_csv = 'design_matrix.csv'
@@ -189,14 +209,8 @@ class NIDMStat():
             other_attributes=( (PROV['type'],NIDM['DesignMatrix']), 
                                (PROV['label'],"Design Matrix"), 
                                (NIDM['fileName'],design_matrix_csv ),
-                               (PROV['location'], Identifier("file://./"+design_matrix_csv))))
-
-        # Create "Model Parameter estimation" activity
-        self.provBundle.activity(NIIRI['model_parameters_estimation_id'], other_attributes=( 
-            (PROV['type'], NIDM['ModelParametersEstimation']),(PROV['label'], "Model Parameters Estimation")))
+                               (PROV['location'], Identifier("file://./"+design_matrix_csv))))       
         self.provBundle.used(NIIRI['model_parameters_estimation_id'], NIIRI['design_matrix_id'])
-        self.provBundle.wasAssociatedWith(NIIRI['model_parameters_estimation_id'], NIIRI['software_id'])
-        self.provBundle.wasGeneratedBy(NIIRI['residual_mean_squares_map_id'], NIIRI['model_parameters_estimation_id'])  
 
     # Generate prov for contrast map
     def create_parameter_estimate(self, pe_file, pe_num):
@@ -210,7 +224,7 @@ class NIDMStat():
             other_attributes=( (PROV['type'], NIDM['BetaMap']), 
                                (PROV['location'], Identifier("file://./"+pe_filename)),
                                (NIDM['fileName'], pe_filename), 
-                               (NIDM['coordinateSpace'], self.create_coordinate_space(pe_file)),
+                               (NIDM['atCoordinateSpace'], self.create_coordinate_space(pe_file)),
                                (CRYPTO['sha'], self.get_sha_sum(pe_file)),
                                (PROV['label'], "Parameter estimate "+str(pe_num))))
         
@@ -221,10 +235,10 @@ class NIDMStat():
         # Contrast id entity
         # FIXME: Get contrast weights
         self.provBundle.entity(NIIRI['contrast_id_'+contrast_num], 
-            other_attributes=( (PROV['type'], NIDM['TContrast']), 
+            other_attributes=( (PROV['type'], NIDM['TContrastWeights']), 
                                (PROV['label'], "T Contrast: "+contrast_name), 
                                (NIDM['contrastName'], contrast_name),
-                               (NIDM['contrastWeights'], contrastWeights)))
+                               (PROV['value'], contrastWeights)))
 
         # Create related activities
         self.provBundle.activity(NIIRI['contrast_estimation_id_'+contrast_num], other_attributes=( 
@@ -240,7 +254,7 @@ class NIDMStat():
         path, filename = os.path.split(cope_file)
         self.provBundle.entity('niiri:'+'contrast_map_id_'+contrast_num, other_attributes=( 
             (PROV['type'], NIDM['ContrastMap']), 
-            (NIDM['coordinateSpace'], self.create_coordinate_space(cope_file)),
+            (NIDM['atCoordinateSpace'], self.create_coordinate_space(cope_file)),
             (PROV['location'], Identifier("file://./stats/"+cope_filename)),
             (NIDM['fileName'], cope_filename),
             (NIDM['contrastName'], contrast_name),
@@ -258,7 +272,7 @@ class NIDMStat():
         # Contrast Variance Map entity
         self.provBundle.entity('niiri:'+'contrast_variance_map_id_'+contrast_num, other_attributes=( 
             (PROV['type'], FSL['VarCope']), 
-            (NIDM['coordinateSpace'], self.create_coordinate_space(var_cope_file)),
+            (NIDM['atCoordinateSpace'], self.create_coordinate_space(var_cope_file)),
             (PROV['location'], Identifier("file://./stats/"+var_cope_filename)),
             (CRYPTO['sha'], self.get_sha_sum(var_cope_file)),
             (NIDM['fileName'], var_cope_filename),
@@ -277,7 +291,7 @@ class NIDMStat():
         path, filename = os.path.split(standard_error_file)
         self.provBundle.entity('niiri:'+'contrast_standard_error_map_id_'+contrast_num, other_attributes=( 
             (PROV['type'], NIDM['ContrastStandardErrorMap']), 
-            (NIDM['coordinateSpace'], self.create_coordinate_space(standard_error_file)),
+            (NIDM['atCoordinateSpace'], self.create_coordinate_space(standard_error_file)),
             (PROV['location'], Identifier("file://./stats/"+filename)),
             (CRYPTO['sha'], self.get_sha_sum(standard_error_file)),
             (NIDM['fileName'], filename),
@@ -301,7 +315,7 @@ class NIDMStat():
                                 (NIDM['contrastName'], contrast_name),
                                 (NIDM['fileName'], z_stat_filename),
                                 (CRYPTO['sha'], self.get_sha_sum(z_stat_file)),
-                                (NIDM['coordinateSpace'], self.create_coordinate_space(z_stat_file)),
+                                (NIDM['atCoordinateSpace'], self.create_coordinate_space(z_stat_file)),
                                 ) )
 
         # Copy Statistical map in export directory
@@ -320,7 +334,7 @@ class NIDMStat():
                                 (NIDM['errorDegreesOfFreedom'], dof),
                                 (NIDM['effectDegreesOfFreedom'], 1.0),
                                 (CRYPTO['sha'], self.get_sha_sum(stat_file)),
-                                (NIDM['coordinateSpace'], self.create_coordinate_space(stat_file)),
+                                (NIDM['atCoordinateSpace'], self.create_coordinate_space(stat_file)),
                                 ) )
         
         self.provBundle.wasGeneratedBy(NIIRI['statistical_map_id_'+contrast_num], NIIRI['contrast_estimation_id_'+contrast_num])
@@ -379,10 +393,10 @@ class NIDMStat():
         # Crate "Mask map" entity
         self.provBundle.entity(NIIRI['search_space_id'], other_attributes=( 
                 (PROV['label'], "Search Space"), 
-                (PROV['type'], NIDM['Mask']), 
+                (PROV['type'], NIDM['SearchSpaceMap']), 
                 (PROV['location'], Identifier("file://./"+search_space_filename)),
                 (NIDM['fileName'], search_space_filename),
-                (NIDM['coordinateSpace'], self.create_coordinate_space(search_space_file)),
+                (NIDM['atCoordinateSpace'], self.create_coordinate_space(search_space_file)),
                 (NIDM['searchVolumeInVoxels'], search_volume),
                 (CRYPTO['sha'], self.get_sha_sum(search_space_file)),
                 (FSL['reselSizeInVoxels'], resel_size_in_voxels),
@@ -405,7 +419,7 @@ class NIDMStat():
             (PROV['type'], NIDM['ExcursionSet']), 
             (PROV['location'], Identifier("file://./"+excursion_set_filename)),
             (NIDM['fileName'], excursion_set_filename),
-            (NIDM['coordinateSpace'], self.create_coordinate_space(excursion_set_file)),
+            (NIDM['atCoordinateSpace'], self.create_coordinate_space(excursion_set_file)),
             (PROV['label'], "Excursion Set"),
             (NIDM['visualisation'], Identifier("file://./"+visu_filename)),
             (CRYPTO['sha'], self.get_sha_sum(excursion_set_file)),
@@ -413,12 +427,14 @@ class NIDMStat():
         self.provBundle.wasGeneratedBy(NIIRI['excursion_set_id_'+str(stat_num)], NIIRI['inference_id_'+str(stat_num)])
 
     def save_prov_to_files(self, showattributes=False):
+        self.provDocument.add_bundle(self.provBundle)
+
         suffixName = ''
         if showattributes is False:
             suffixName = '_without_attributes'
 
-        jsondata = self.provBundle.get_provjson(indent=4)
-        JSONfile = open(os.path.join(self.export_dir, 'nidm.json'), 'w');
-        JSONfile.write(jsondata)
+        # jsondata = self.provBundle.get_provjson(indent=4)
+        # JSONfile = open(os.path.join(self.export_dir, 'nidm.json'), 'w');
+        # JSONfile.write(jsondata)
         PROVNfile = open(os.path.join(self.export_dir, 'nidm.provn'), 'w');
-        PROVNfile.write(self.provBundle.get_provn(4))
+        PROVNfile.write(self.provDocument.get_provn(4))

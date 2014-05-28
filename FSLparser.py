@@ -7,8 +7,8 @@
 from HTMLParser import HTMLParser
 from htmlentitydefs import name2codepoint
 import re
-from prov.model import ProvBundle, ProvRecord, ProvExceptionCannotUnifyAttribute, graph, ProvEntity
-import prov.model.graph
+from prov.model import ProvBundle, ProvRecord, ProvExceptionCannotUnifyAttribute, ProvEntity
+# import prov.model.graph
 import os
 import numpy as np
 import nibabel as nib
