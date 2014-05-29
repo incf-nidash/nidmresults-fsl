@@ -82,7 +82,13 @@ class FSL_NIDM():
         if self.standard_space:
             standard_space_search = re.compile(r'.*set fmri\(alternateReference_yn\) (?P<isCustom>[\d]+).*')
             extracted_data = standard_space_search.search(designTxt) 
-            self.custom_standard = (extracted_data.group('isCustom') == "1");
+            if not extracted_data is None:
+                self.custom_standard = (extracted_data.group('isCustom') == "1");
+            else:
+                standard_space_search = re.compile(r'.*set fmri\(regstandard\) (?P<regstd>.+).*')
+                extracted_data = standard_space_search.search(designTxt) 
+                if not extracted_data is None:
+                    self.custom_standard = True;
         else:
             self.custom_standard = False;
 
