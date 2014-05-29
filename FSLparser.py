@@ -143,53 +143,105 @@ class FSL_NIDM():
 
     # Create excursion set, clusters and peaks entities
     def add_clusters_peaks(self, stat_num):
-        cluster_file = os.path.join(self.feat_dir, 'cluster_zstat'+stat_num+'.txt')
-
         visualisation = os.path.join(self.feat_dir, 'rendered_thresh_zstat'+stat_num+'.png')
 
         # Excursion set
-        zFileImg = cluster_file.replace('cluster_', 'thresh_').replace('.txt', '.nii.gz')
+        zFileImg = os.path.join(self.feat_dir, 'thresh_zstat'+stat_num+'.nii.gz')
         self.nidm.create_excursion_set(excursion_set_file=zFileImg, stat_num=stat_num, visualisation=visualisation)
 
-        # Clusters
-        self.zstatFile = cluster_file
-        cluster_table = np.loadtxt(cluster_file, skiprows=1, ndmin=2)
-           
-        cluster_std_file = cluster_file.replace('.txt', '_std.txt')
-        cluster_std_table = np.loadtxt(cluster_std_file, skiprows=1, ndmin=2)
+        # Cluster list (positions in voxels)
+        cluster_file = os.path.join(self.feat_dir, 'cluster_zstat'+stat_num+'.txt')
+        if not os.path.isfile(cluster_file):
+            cluster_file = None;
+        else:
+            cluster_table = np.loadtxt(cluster_file, skiprows=1, ndmin=2)
 
-        clusters_join_table = np.column_stack((cluster_table, cluster_std_table))
 
+        # Cluster list (positions in mm)
+        cluster_std_file = os.path.join(self.feat_dir, 'cluster_zstat'+stat_num+'_std.txt')
+        if not os.path.isfile(cluster_std_file):
+            cluster_std_file = None;
+            # cluster_std_table = np.zeros_like(cluster_table)*float('nan')
+        else:
+            cluster_std_table = np.loadtxt(cluster_std_file, skiprows=1, ndmin=2)
+        
+        # if not cluster_file:
+            # cluster_table = np.zeros_like(cluster_std_table)*float('nan')            
+
+        
+        
         # Peaks
-        peak_table = np.loadtxt(cluster_file.replace('cluster', 'lmax'), skiprows=1, ndmin=2)
+        peak_file = os.path.join(self.feat_dir, 'lmax_zstat'+stat_num+'.txt')
+        if not os.path.isfile(peak_file):
+            peak_file = None;
+        else:
+            peak_table = np.loadtxt(peak_file, skiprows=1, ndmin=2)
 
-        peak_std_table = np.loadtxt(cluster_std_file.replace('cluster', 'lmax'), skiprows=1, ndmin=2)
-        peaks_join_table = np.column_stack((peak_table, peak_std_table))
-
-        for cluster_row in clusters_join_table:               
-            self.nidm.create_cluster(id=int(cluster_row[0]), size=int(cluster_row[1]), pFWER=float(cluster_row[2]),
-                COG1=float(cluster_row[8]),COG2=float(cluster_row[9]),COG3=float(cluster_row[10]),
-                COG1_std=float(cluster_row[24]),COG2_std=float(cluster_row[25]),COG3_std=float(cluster_row[26]),
-                stat_num=stat_num)
+        peak_std_file = os.path.join(self.feat_dir, 'lmax_zstat'+stat_num+'_std.txt')
+        if not os.path.isfile(peak_std_file):
+            peak_std_file = None;
+            # peak_std_table = np.zeros_like(peak_table)*float('nan')       
+        else:
+            peak_std_table = np.loadtxt(peak_std_file, skiprows=1, ndmin=2)       
+        
+        if (cluster_file is not None) and (cluster_std_file is not None):
+            clusters_join_table = np.column_stack((cluster_table, cluster_std_table))
+            for cluster_row in clusters_join_table: 
+                self.nidm.create_cluster(id=int(cluster_row[0]), size=int(cluster_row[1]), pFWER=float(cluster_row[2]),
+                    x=float(cluster_row[8]),y=float(cluster_row[9]),z=float(cluster_row[10]),
+                    x_std=float(cluster_row[24]),y_std=float(cluster_row[25]),z_std=float(cluster_row[26]),
+                    stat_num=stat_num)
+        elif (cluster_file is not None):
+            for cluster_row in cluster_table: 
+                self.nidm.create_cluster(id=int(cluster_row[0]), size=int(cluster_row[1]), pFWER=float(cluster_row[2]),
+                    x=float(cluster_row[8]),y=float(cluster_row[9]),z=float(cluster_row[10]), stat_num=stat_num)
+        elif (cluster_std_file is not None):
+            for cluster_row in cluster_std_table: 
+                self.nidm.create_cluster(id=int(cluster_row[0]), size=int(cluster_row[1]), pFWER=float(cluster_row[2]),
+                    x_std=float(cluster_row[8]),y_std=float(cluster_row[9]),z_std=float(cluster_row[10]), stat_num=stat_num)
         
         prev_cluster = -1
-        for peak_row in peaks_join_table:    
-            cluster_id = int(peak_row[0])  
-            if cluster_id is not prev_cluster:
-                peakIndex = 1;
+        if (peak_file is not None) and (peak_std_file is not None):
+            peaks_join_table = np.column_stack((peak_table, peak_std_table))
+            for peak_row in peaks_join_table:    
+                cluster_id = int(peak_row[0])
 
-            self.nidm.create_peak(id=peakIndex, x=int(peak_row[2]), y=int(peak_row[3]), z=int(peak_row[4]), 
-                std_x=float(peak_row[7]), std_y=float(peak_row[8]), std_z=float(peak_row[9]),
-                equivZ=float(peak_row[1]), cluster_id=cluster_id, stat_num=stat_num)
-            prev_cluster = cluster_id
+                if not cluster_id == prev_cluster:
+                    peakIndex = 1;
 
-            peakIndex = peakIndex + 1
+                self.nidm.create_peak(id=int(peakIndex), x=int(peak_row[2]), y=int(peak_row[3]), z=int(peak_row[4]), 
+                    x_std=float(peak_row[7]), y_std=float(peak_row[8]), z_std=float(peak_row[9]),
+                    equivZ=float(peak_row[1]), cluster_id=cluster_id, stat_num=stat_num)
+                prev_cluster = cluster_id
+
+                peakIndex = peakIndex + 1
+        elif (peak_file is not None):
+            for peak_row in peak_table:    
+                cluster_id = int(peak_row[0])
+
+                if not cluster_id == prev_cluster:
+                    peakIndex = 1;
+
+                self.nidm.create_peak(id=int(peakIndex), x=int(peak_row[2]), y=int(peak_row[3]), z=int(peak_row[4]),equivZ=float(peak_row[1]), cluster_id=cluster_id, stat_num=stat_num)
+                prev_cluster = cluster_id
+
+                peakIndex = peakIndex + 1
+        elif (peak_std_file is not None):
+            for peak_row in peak_std_table:    
+                cluster_id = int(peak_row[0])
+
+                if not cluster_id == prev_cluster:
+                    peakIndex = 1;
+
+                self.nidm.create_peak(id=int(peakIndex), x_std=int(peak_row[2]), y_std=int(peak_row[3]), z_std=int(peak_row[4]), equivZ=float(peak_row[1]), cluster_id=cluster_id, stat_num=stat_num)
+                prev_cluster = cluster_id
+
+                peakIndex = peakIndex + 1
 
         
     # Create a graph as a provn and a json serialisations
     def save_prov_to_files(self):
         self.nidm.save_prov_to_files()
-
 
 '''HTML parser for FSL report files: extract the thresholding information
 
