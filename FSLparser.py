@@ -62,6 +62,10 @@ class FSL_NIDM():
     # Add model fitting, residuals map
     def add_model_fitting(self):
         residuals_file = os.path.join(self.feat_dir, 'stats', 'sigmasquareds.nii.gz')
+        # FIXME: Check if there is an alternative file to use here
+        if not os.path.isfile(residuals_file):
+            residuals_file = None;
+
         design_matrix_file = open(os.path.join(self.feat_dir, 'design.mat'), 'r')
         design_matrix = np.loadtxt(design_matrix_file, skiprows=5, ndmin=2)
 

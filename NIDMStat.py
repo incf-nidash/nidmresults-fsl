@@ -171,9 +171,10 @@ class NIDMStat():
 
     def create_model_fitting(self, residuals_file, design_matrix):
         # Copy residuals map in export directory
-        shutil.copy(residuals_file, self.export_dir)
-        path, residuals_filename = os.path.split(residuals_file)
-        residuals_file = os.path.join(self.export_dir,residuals_filename)  
+        if not residuals_file is None:
+            shutil.copy(residuals_file, self.export_dir)
+            path, residuals_filename = os.path.split(residuals_file)
+            residuals_file = os.path.join(self.export_dir,residuals_filename)  
 
         # Create "Model Parameter estimation" activity
         self.provBundle.activity(NIIRI['model_parameters_estimation_id'], other_attributes=( 
@@ -192,15 +193,19 @@ class NIDMStat():
                                 (NIDM['medianIntensity'], 0.0)))
         self.provBundle.used(NIIRI['model_parameters_estimation_id'], NIIRI['data_id'])
 
-        # Create "residuals map" entity
-        self.provBundle.entity(NIIRI['residual_mean_squares_map_id'], 
-            other_attributes=( (PROV['type'],NIDM['ResidualMeanSquaresMap'],), 
-                               (PROV['location'], Identifier("file://./stats/"+residuals_filename) ),
-                               (PROV['label'],"Residual Mean Squares Map" ),
-                               (NIDM['fileName'],residuals_filename ),
-                               (CRYPTO['sha'], self.get_sha_sum(residuals_file)),
-                               (NIDM['atCoordinateSpace'], self.create_coordinate_space(residuals_file))))
-        self.provBundle.wasGeneratedBy(NIIRI['residual_mean_squares_map_id'], NIIRI['model_parameters_estimation_id'])  
+        if not residuals_file is None:
+            # Create "residuals map" entity
+            self.provBundle.entity(NIIRI['residual_mean_squares_map_id'], 
+                other_attributes=( (PROV['type'],NIDM['ResidualMeanSquaresMap'],), 
+                                   (PROV['location'], Identifier("file://./stats/"+residuals_filename) ),
+                                   (PROV['label'],"Residual Mean Squares Map" ),
+                                   (NIDM['fileName'],residuals_filename ),
+                                   (CRYPTO['sha'], self.get_sha_sum(residuals_file)),
+                                   (NIDM['atCoordinateSpace'], self.create_coordinate_space(residuals_file))))
+            self.provBundle.wasGeneratedBy(NIIRI['residual_mean_squares_map_id'], NIIRI['model_parameters_estimation_id'])  
+        else:
+            # FIXME: Replace with log
+            print "No residual file"
         
         # Create cvs file containing design matrix
         design_matrix_csv = 'design_matrix.csv'
