@@ -151,7 +151,8 @@ niiri:contrast_id_1 a prov:Entity , nidm:TContrastWeights ;
 	nidm:contrastName "Generation"^^xsd:string .
 
 niiri:contrast_estimation_id_1 a prov:Activity , nidm:ContrastEstimation ;
-	rdfs:label "Contrast estimation: Generation" .
+	rdfs:label "Contrast estimation: Generation" ;
+	prov:used niiri:beta_map_id_1 .
 
 niiri:coordinate_space_id_7 a prov:Entity , nidm:CoordinateSpace ;
 	rdfs:label "Coordinate space 7" ;
@@ -362,7 +363,7 @@ niiri:coordinate_0004_1 a prov:Entity , prov:Location , nidm:Coordinate ;
 	nidm:coordinate2 "17"^^xsd:int ;
 	nidm:coordinate1 "41"^^xsd:int .
 
-niiri:peak_0004_1 a prov:Entity , nidm:PeakLevelStatistic ;
+niiri:peak_0004_1 a prov:Entity , fsl:ClusterMaximumStatistic , nidm:PeakLevelStatistic ;
 	rdfs:label "Peak 0004_1" ;
 	prov:atLocation niiri:coordinate_0004_1 ;
 	nidm:equivalentZStatistic "5.79"^^xsd:float ;
@@ -452,7 +453,7 @@ niiri:coordinate_0003_1 a prov:Entity , prov:Location , nidm:Coordinate ;
 	nidm:coordinate2 "41"^^xsd:int ;
 	nidm:coordinate1 "41"^^xsd:int .
 
-niiri:peak_0003_1 a prov:Entity , nidm:PeakLevelStatistic ;
+niiri:peak_0003_1 a prov:Entity , fsl:ClusterMaximumStatistic , nidm:PeakLevelStatistic ;
 	rdfs:label "Peak 0003_1" ;
 	prov:atLocation niiri:coordinate_0003_1 ;
 	nidm:equivalentZStatistic "5.61"^^xsd:float ;
@@ -542,7 +543,7 @@ niiri:coordinate_0002_1 a prov:Entity , prov:Location , nidm:Coordinate ;
 	nidm:coordinate2 "18"^^xsd:int ;
 	nidm:coordinate1 "47"^^xsd:int .
 
-niiri:peak_0002_1 a prov:Entity , nidm:PeakLevelStatistic ;
+niiri:peak_0002_1 a prov:Entity , fsl:ClusterMaximumStatistic , nidm:PeakLevelStatistic ;
 	rdfs:label "Peak 0002_1" ;
 	prov:atLocation niiri:coordinate_0002_1 ;
 	nidm:equivalentZStatistic "4.64"^^xsd:float ;
@@ -572,7 +573,7 @@ niiri:coordinate_0001_1 a prov:Entity , prov:Location , nidm:Coordinate ;
 	nidm:coordinate2 "38"^^xsd:int ;
 	nidm:coordinate1 "33"^^xsd:int .
 
-niiri:peak_0001_1 a prov:Entity , nidm:PeakLevelStatistic ;
+niiri:peak_0001_1 a prov:Entity , fsl:ClusterMaximumStatistic , nidm:PeakLevelStatistic ;
 	rdfs:label "Peak 0001_1" ;
 	prov:atLocation niiri:coordinate_0001_1 ;
 	nidm:equivalentZStatistic "4.61"^^xsd:float ;
