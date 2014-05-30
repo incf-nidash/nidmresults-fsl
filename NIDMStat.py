@@ -108,10 +108,12 @@ class NIDMStat():
         self.provBundle.entity(NIIRI['extent_threshold_id'], other_attributes=dict((k,v) for k,v in extent_thresh_all_fields.iteritems() if v is not None))
 
     def create_coordinate(self, coordinate_id, label_id, x=None, y=None, z=None, x_std=None, y_std=None, z_std=None):
-        allAttributes = {
-            PROV['type'] : PROV['Location'], 
-            PROV['type'] : NIDM['Coordinate'],
-            PROV['label'] : "Coordinate "+label_id,
+        # We can not have this in the dictionnary because we want to keep the duplicate prov:type attribute
+        typeAndLabelAttributes = [(PROV['type'],PROV['Location']),
+            (PROV['type'], NIDM['Coordinate']),
+            (PROV['label'], "Coordinate "+label_id)]
+
+        coordinateAttributes = {
             NIDM['coordinate1'] : x,
             NIDM['coordinate2'] : y,
             NIDM['coordinate3'] : z,
@@ -121,7 +123,7 @@ class NIDMStat():
             };
 
         self.provBundle.entity(coordinate_id, 
-            other_attributes=dict((k,v) for k,v in allAttributes.iteritems() if not v is None))
+            other_attributes=typeAndLabelAttributes+list(dict((k,v) for k,v in coordinateAttributes.iteritems() if not v is None).items()))
 
     def get_sha_sum(self, nifti_file):
         nifti_img = nib.load(nifti_file)
