@@ -215,7 +215,7 @@ class FSL_NIDM():
 
                 self.nidm.create_peak(id=int(peakIndex), x=int(peak_row[2]), y=int(peak_row[3]), z=int(peak_row[4]), 
                     x_std=float(peak_row[7]), y_std=float(peak_row[8]), z_std=float(peak_row[9]),
-                    equivZ=float(peak_row[1]), cluster_id=cluster_id, stat_num=stat_num)
+                    equivZ=float(peak_row[1]), cluster_id=cluster_id, stat_num=stat_num, max_peak=(peakIndex==1))
                 prev_cluster = cluster_id
 
                 peakIndex = peakIndex + 1
@@ -226,7 +226,7 @@ class FSL_NIDM():
                 if not cluster_id == prev_cluster:
                     peakIndex = 1;
 
-                self.nidm.create_peak(id=int(peakIndex), x=int(peak_row[2]), y=int(peak_row[3]), z=int(peak_row[4]),equivZ=float(peak_row[1]), cluster_id=cluster_id, stat_num=stat_num)
+                self.nidm.create_peak(id=int(peakIndex), x=int(peak_row[2]), y=int(peak_row[3]), z=int(peak_row[4]),equivZ=float(peak_row[1]), cluster_id=cluster_id, stat_num=stat_num, max_peak=(peakIndex==1))
                 prev_cluster = cluster_id
 
                 peakIndex = peakIndex + 1
@@ -237,7 +237,7 @@ class FSL_NIDM():
                 if not cluster_id == prev_cluster:
                     peakIndex = 1;
 
-                self.nidm.create_peak(id=int(peakIndex), x_std=int(peak_row[2]), y_std=int(peak_row[3]), z_std=int(peak_row[4]), equivZ=float(peak_row[1]), cluster_id=cluster_id, stat_num=stat_num)
+                self.nidm.create_peak(id=int(peakIndex), x_std=int(peak_row[2]), y_std=int(peak_row[3]), z_std=int(peak_row[4]), equivZ=float(peak_row[1]), cluster_id=cluster_id, stat_num=stat_num, max_peak=(peakIndex==1))
                 prev_cluster = cluster_id
 
                 peakIndex = peakIndex + 1

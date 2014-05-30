@@ -151,7 +151,7 @@ class NIDMStat():
                      (PROV['location'] , NIIRI['COG_coordinate_000'+str(cluster_id)]))   )
         self.provBundle.wasDerivedFrom(NIIRI['center_of_gravity_'+str(cluster_id)], NIIRI['cluster_000'+str(cluster_id)])
 
-    def create_peak(self, id, cluster_id, equivZ, stat_num, *args, **kwargs):
+    def create_peak(self, id, cluster_id, equivZ, stat_num, max_peak, *args, **kwargs):
         peakIndex = id
         clusterIndex = cluster_id
         stat_num = stat_num
@@ -164,11 +164,16 @@ class NIDMStat():
 
         self.create_coordinate(NIIRI['coordinate_'+str(peakUniqueId)], str(peakUniqueId), **kwargs)
 
-        self.provBundle.entity(NIIRI['peak_'+str(peakUniqueId)], other_attributes=( 
+        other_attributes = [ 
             (PROV['type'] , NIDM['PeakLevelStatistic']), 
             (PROV['label'] , "Peak "+str(peakUniqueId)), 
             (NIDM['equivalentZStatistic'], equivZ), 
-            (PROV['location'] , NIIRI['coordinate_'+str(peakUniqueId)]))         )
+            (PROV['location'] , NIIRI['coordinate_'+str(peakUniqueId)])]
+
+        if max_peak:
+            other_attributes.insert(0, (PROV['type'], FSL['ClusterMaximumStatistic']))
+
+        self.provBundle.entity(NIIRI['peak_'+str(peakUniqueId)], other_attributes=other_attributes)
         self.provBundle.wasDerivedFrom(NIIRI['peak_'+str(peakUniqueId)], NIIRI['cluster_000'+str(cluster_id)])
 
     def create_model_fitting(self, residuals_file, design_matrix):
