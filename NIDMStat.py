@@ -259,6 +259,14 @@ class NIDMStat():
             (PROV['type'], NIDM['ContrastEstimation']),
             (PROV['label'], "Contrast estimation: "+contrast_name)))
 
+        # Find which betas were used to compute the contrast
+        contrastWeights = contrastWeights.replace(' ', '').replace('[', '').replace(']', '').split(',')
+        peIndex = 1
+        for betaIndex in contrastWeights:
+            if int(betaIndex) == 1:
+                self.provBundle.used(NIIRI['contrast_estimation_id_'+contrast_num], NIIRI['beta_map_id_'+str(peIndex)])
+            peIndex += 1;
+
         # Copy contrast map in export directory
         shutil.copy(cope_file, self.export_dir)
         path, cope_filename = os.path.split(cope_file)
