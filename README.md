@@ -7,8 +7,3 @@ Export of FSL statistical results using the <b>N</b>euro<b>I</b>maging <b>D</b>a
 - [nibabel](http://nipy.org/nibabel/)
 - [numpy](http://www.numpy.org/)
 
-#### To do:
-- [ ] Can we retreive FSL software version (and not feat version) from a feat directory?
-- [ ] Test with F-contrasts
-- [ ] Test with different configurations of thresholding
-
