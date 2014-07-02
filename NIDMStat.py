@@ -137,8 +137,8 @@ class NIDMStat():
         cluster_id = clusterIndex
 
         self.provBundle.entity(NIIRI['cluster_000'+str(cluster_id)], other_attributes=( 
-                             (PROV['type'] , NIDM['ClusterLevelStatistic']), 
-                             (PROV['label'], "Cluster Level Statistic: 000"+str(cluster_id)),
+                             (PROV['type'] , NIDM['Cluster']), 
+                             (PROV['label'], "Cluster: 000"+str(cluster_id)),
                              (NIDM['clusterSizeInVoxels'], size),
                              (NIDM['pValueFWER'], pFWER )))
         self.provBundle.wasDerivedFrom(NIIRI['cluster_000'+str(cluster_id)], NIIRI['excursion_set_id_'+str(stat_num)])
@@ -165,7 +165,7 @@ class NIDMStat():
         self.create_coordinate(NIIRI['coordinate_'+str(peakUniqueId)], str(peakUniqueId), **kwargs)
 
         other_attributes = [ 
-            (PROV['type'] , NIDM['PeakLevelStatistic']), 
+            (PROV['type'] , NIDM['Peak']), 
             (PROV['label'] , "Peak "+str(peakUniqueId)), 
             (NIDM['equivalentZStatistic'], equivZ), 
             (PROV['location'] , NIIRI['coordinate_'+str(peakUniqueId)])]
