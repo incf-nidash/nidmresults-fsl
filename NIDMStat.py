@@ -372,8 +372,9 @@ class NIDMStat():
         # In FSL we have a single thresholding (extent, height) applied to all contrasts 
         # FIXME: Deal with two-tailed inference?
         self.provBundle.activity(NIIRI['inference_id_'+contrast_num], 
-            other_attributes=( (PROV['type'], NIDM['InferenceOneTailed']), 
-                               (PROV['label'] , "Inference: "+contrast_name)))
+            other_attributes=( (PROV['type'], NIDM['Inference']), 
+                               (PROV['label'] , "Inference: "+contrast_name)
+                               (NIDM['alternativeHypothesis'] , NIDM['OneTailedTest'])))
         self.provBundle.used(NIIRI['inference_id_'+contrast_num], NIIRI['height_threshold_id'])
         self.provBundle.used(NIIRI['inference_id_'+contrast_num], NIIRI['extent_threshold_id'])
         self.provBundle.used(NIIRI['inference_id_'+contrast_num], NIIRI['z_statistic_map_id_'+contrast_num])
