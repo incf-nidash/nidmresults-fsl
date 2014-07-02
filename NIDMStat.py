@@ -329,11 +329,12 @@ class NIDMStat():
         path, z_stat_filename = os.path.split(z_stat_file)
         z_stat_file = os.path.join(self.export_dir,z_stat_filename)       
 
-        # Create "Z-Statistical Map" entity
-        self.provBundle.entity(NIIRI['z_statistical_map_id_'+contrast_num ],
-            other_attributes=(  (PROV['type'], FSL['ZStatisticalMap']), 
-                                (PROV['label'], "Z-statistical Map: "+contrast_name) ,
+        # Create "Z-Statistic Map" entity
+        self.provBundle.entity(NIIRI['z_statistic_map_id_'+contrast_num ],
+            other_attributes=(  (PROV['type'], NIDM['StatisticMap']), 
+                                (PROV['label'], "Z-statistic Map: "+contrast_name) ,
                                 (PROV['location'], Identifier("file://./stats/"+z_stat_filename)),
+                                (NIDM['statisticType'], NIDM['ZStatistic']), 
                                 (NIDM['contrastName'], contrast_name),
                                 (NIDM['fileName'], z_stat_filename),
                                 (CRYPTO['sha'], self.get_sha_sum(z_stat_file)),
@@ -345,12 +346,13 @@ class NIDMStat():
         path, stat_filename = os.path.split(stat_file)
         stat_file = os.path.join(self.export_dir,stat_filename)     
 
-        # Create "Statistical Map" entity
+        # Create "Statistic Map" entity
         # FIXME: Deal with other than t-contrast maps: dof
-        self.provBundle.entity(NIIRI['statistical_map_id_'+contrast_num ],
-            other_attributes=(  (PROV['type'], NIDM['TStatisticalMap']), 
-                                (PROV['label'], "Statistical Map: "+contrast_name) ,
+        self.provBundle.entity(NIIRI['statistic_map_id_'+contrast_num ],
+            other_attributes=(  (PROV['type'], NIDM['StatisticMap']), 
+                                (PROV['label'], "Statistic Map: "+contrast_name) ,
                                 (PROV['location'], Identifier("file://./stats/"+stat_filename)),
+                                (NIDM['statisticType'], NIDM['TStatistic']), 
                                 (NIDM['fileName'], stat_filename),
                                 (NIDM['contrastName'], contrast_name),
                                 (NIDM['errorDegreesOfFreedom'], dof),
@@ -359,9 +361,9 @@ class NIDMStat():
                                 (NIDM['atCoordinateSpace'], self.create_coordinate_space(stat_file)),
                                 ) )
         
-        self.provBundle.wasGeneratedBy(NIIRI['statistical_map_id_'+contrast_num], NIIRI['contrast_estimation_id_'+contrast_num])
+        self.provBundle.wasGeneratedBy(NIIRI['statistic_map_id_'+contrast_num], NIIRI['contrast_estimation_id_'+contrast_num])
                
-        self.provBundle.wasGeneratedBy(NIIRI['z_statistical_map_id_'+contrast_num], NIIRI['contrast_estimation_id_'+contrast_num])
+        self.provBundle.wasGeneratedBy(NIIRI['z_statistic_map_id_'+contrast_num], NIIRI['contrast_estimation_id_'+contrast_num])
         self.provBundle.used(NIIRI['contrast_estimation_id_'+contrast_num], NIIRI['residual_mean_squares_map_id'])
         self.provBundle.used(NIIRI['contrast_estimation_id_'+contrast_num], NIIRI['design_matrix_id'])
         self.provBundle.used(NIIRI['contrast_estimation_id_'+contrast_num], NIIRI['contrast_id_'+contrast_num])
@@ -374,7 +376,7 @@ class NIDMStat():
                                (PROV['label'] , "Inference: "+contrast_name)))
         self.provBundle.used(NIIRI['inference_id_'+contrast_num], NIIRI['height_threshold_id'])
         self.provBundle.used(NIIRI['inference_id_'+contrast_num], NIIRI['extent_threshold_id'])
-        self.provBundle.used(NIIRI['inference_id_'+contrast_num], NIIRI['z_statistical_map_id_'+contrast_num])
+        self.provBundle.used(NIIRI['inference_id_'+contrast_num], NIIRI['z_statistic_map_id_'+contrast_num])
 
         self.provBundle.wasAssociatedWith(NIIRI['inference_id_'+contrast_num], NIIRI['software_id'])
 
