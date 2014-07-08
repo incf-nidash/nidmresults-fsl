@@ -393,7 +393,7 @@ class NIDMStat():
         # FIXME: Deal with two-tailed inference?
         self.provBundle.activity(NIIRI['inference_id_'+contrast_num], 
             other_attributes=( (PROV['type'], NIDM['Inference']), 
-                               (PROV['label'] , "Inference: "+contrast_name)
+                               (PROV['label'] , "Inference: "+contrast_name),
                                (NIDM['alternativeHypothesis'] , NIDM['OneTailedTest'])))
         self.provBundle.used(NIIRI['inference_id_'+contrast_num], NIIRI['height_threshold_id'])
         self.provBundle.used(NIIRI['inference_id_'+contrast_num], NIIRI['extent_threshold_id'])
