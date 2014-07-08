@@ -207,7 +207,7 @@ class NIDMStat():
             # Create "residuals map" entity
             self.provBundle.entity(NIIRI['residual_mean_squares_map_id'], 
                 other_attributes=( (PROV['type'],NIDM['ResidualMeanSquaresMap'],), 
-                                   (PROV['location'], Identifier("file://./stats/"+residuals_filename) ),
+                                   (PROV['location'], Identifier("file://./"+residuals_filename) ),
                                    (PROV['label'],"Residual Mean Squares Map" ),
                                    (NIDM['originalFileName'],residuals_filename ),
                                    (CRYPTO['sha512'], self.get_sha_sum(residuals_file)),
@@ -229,7 +229,7 @@ class NIDMStat():
                                (NIDM['originalFileName'], grand_mean_filename),
                                (NIDM['atCoordinateSpace'], self.create_coordinate_space(grand_mean_file)),
                                (CRYPTO['sha512'], self.get_sha_sum(grand_mean_file)),
-                               (PROV['location'], Identifier("file://./"+grand_mean_file))))      
+                               (PROV['location'], Identifier("file://./"+grand_mean_filename))))      
         self.provBundle.wasGeneratedBy(NIIRI['grand_mean_map_id'], NIIRI['model_parameters_estimation_id'],)
         
         # Create cvs file containing design matrix
@@ -297,7 +297,7 @@ class NIDMStat():
         self.provBundle.entity('niiri:'+'contrast_map_id_'+contrast_num, other_attributes=( 
             (PROV['type'], NIDM['ContrastMap']), 
             (NIDM['atCoordinateSpace'], self.create_coordinate_space(cope_file)),
-            (PROV['location'], Identifier("file://./stats/"+cope_filename)),
+            (PROV['location'], Identifier("file://./"+cope_filename)),
             (NIDM['originalFileName'], cope_filename),
             (NIDM['contrastName'], contrast_name),
             (CRYPTO['sha512'], self.get_sha_sum(cope_file)),
@@ -315,7 +315,7 @@ class NIDMStat():
         self.provBundle.entity('niiri:'+'contrast_variance_map_id_'+contrast_num, other_attributes=( 
             (PROV['type'], FSL['VarCope']), 
             (NIDM['atCoordinateSpace'], self.create_coordinate_space(var_cope_file)),
-            (PROV['location'], Identifier("file://./stats/"+var_cope_filename)),
+            (PROV['location'], Identifier("file://./"+var_cope_filename)),
             (CRYPTO['sha512'], self.get_sha_sum(var_cope_file)),
             (NIDM['originalFileName'], var_cope_filename),
             (PROV['label'], "Contrast Variance Map "+contrast_num)))
@@ -334,7 +334,7 @@ class NIDMStat():
         self.provBundle.entity('niiri:'+'contrast_standard_error_map_id_'+contrast_num, other_attributes=( 
             (PROV['type'], NIDM['ContrastStandardErrorMap']), 
             (NIDM['atCoordinateSpace'], self.create_coordinate_space(standard_error_file)),
-            (PROV['location'], Identifier("file://./stats/"+filename)),
+            (PROV['location'], Identifier("file://./"+filename)),
             (CRYPTO['sha512'], self.get_sha_sum(standard_error_file)),
             (NIDM['originalFileName'], filename),
             (PROV['label'], "Contrast Standard Error Map")))
@@ -353,7 +353,7 @@ class NIDMStat():
         self.provBundle.entity(NIIRI['z_statistic_map_id_'+contrast_num ],
             other_attributes=(  (PROV['type'], NIDM['StatisticMap']), 
                                 (PROV['label'], "Z-Statistic Map: "+contrast_name) ,
-                                (PROV['location'], Identifier("file://./stats/"+z_stat_filename)),
+                                (PROV['location'], Identifier("file://./"+z_stat_filename)),
                                 (NIDM['statisticType'], FSL['ZStatistic']), 
                                 (NIDM['contrastName'], contrast_name),
                                 (NIDM['originalFileName'], z_stat_filename),
@@ -371,7 +371,7 @@ class NIDMStat():
         self.provBundle.entity(NIIRI['statistic_map_id_'+contrast_num ],
             other_attributes=(  (PROV['type'], NIDM['StatisticMap']), 
                                 (PROV['label'], "Statistic Map: "+contrast_name) ,
-                                (PROV['location'], Identifier("file://./stats/"+stat_filename)),
+                                (PROV['location'], Identifier("file://./"+stat_filename)),
                                 (NIDM['statisticType'], NIDM['TStatistic']), 
                                 (NIDM['originalFileName'], stat_filename),
                                 (NIDM['contrastName'], contrast_name),
