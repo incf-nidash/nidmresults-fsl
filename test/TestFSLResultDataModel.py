@@ -14,10 +14,10 @@ from rdflib.graph import Graph
 from rdflib import Graph, plugin, Namespace
 from rdflib.parser import Parser
 from rdflib.serializer import Serializer
-from nidm.test.TestResultDataModel import TestResultDataModel
+
+from TestResultDataModel import TestResultDataModel
 
 import logging
-
 logger = logging.getLogger(__name__)
 
 '''Tests based on the analysis of single-subject fmri fluency data as described at http://fsl.fmrib.ox.ac.uk/fslcourse/lectures/practicals/feat1/index.html but with only *1 contrast specified: Generation*
@@ -189,7 +189,6 @@ class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
 #         print "kjsdhkjshdffj2222"
 #         unittest.main()
 
-# if __name__ == '__main__':
-#     print "kjsdhkjshdffj"
-#     unittest.main()
+if __name__ == '__main__':
+    unittest.main()
 
