@@ -446,7 +446,7 @@ class NIDMStat():
         
         # Crate "Mask map" entity
         self.provBundle.entity(NIIRI['search_space_id'], other_attributes=( 
-                (PROV['label'], "Search Space"), 
+                (PROV['label'], "Search Space Map"), 
                 (PROV['type'], NIDM['SearchSpaceMap']), 
                 (PROV['location'], Identifier("file://./"+search_space_filename)),
                 (NIDM['originalFileName'], search_space_filename),
