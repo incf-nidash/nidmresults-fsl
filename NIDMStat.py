@@ -200,8 +200,7 @@ class NIDMStat():
                                 (PROV['type'],PROV['Collection']),
                                 (PROV['label'],"Data"),
                                 (NIDM['grandMeanScaling'], True),
-                                (NIDM['targetIntensity'], 10000.0),
-                                (NIDM['medianIntensity'], 0.0)))
+                                (NIDM['targetIntensity'], 10000.0))
         self.provBundle.used(NIIRI['model_parameters_estimation_id'], NIIRI['data_id'])
 
         if not residuals_file is None:
