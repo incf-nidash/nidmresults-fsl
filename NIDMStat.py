@@ -142,7 +142,7 @@ class NIDMStat():
 
         self.provBundle.entity(NIIRI['cluster_000'+str(cluster_id)], other_attributes=( 
                              (PROV['type'] , NIDM['Cluster']), 
-                             (PROV['label'], "Cluster: 000"+str(cluster_id)),
+                             (PROV['label'], "Cluster 000"+str(cluster_id)),
                              (NIDM['clusterSizeInVoxels'], size),
                              (NIDM['pValueFWER'], pFWER )))
         self.provBundle.wasDerivedFrom(NIIRI['cluster_000'+str(cluster_id)], NIIRI['excursion_set_id_'+str(stat_num)])
@@ -353,7 +353,7 @@ class NIDMStat():
         # Create "Z-Statistic Map" entity
         self.provBundle.entity(NIIRI['z_statistic_map_id_'+contrast_num ],
             other_attributes=(  (PROV['type'], NIDM['StatisticMap']), 
-                                (PROV['label'], "Z-statistic Map: "+contrast_name) ,
+                                (PROV['label'], "Z-Statistic Map: "+contrast_name) ,
                                 (PROV['location'], Identifier("file://./stats/"+z_stat_filename)),
                                 (NIDM['statisticType'], FSL['ZStatistic']), 
                                 (NIDM['contrastName'], contrast_name),
