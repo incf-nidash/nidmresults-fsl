@@ -354,7 +354,7 @@ class NIDMStat():
             other_attributes=(  (PROV['type'], NIDM['StatisticMap']), 
                                 (PROV['label'], "Z-statistic Map: "+contrast_name) ,
                                 (PROV['location'], Identifier("file://./stats/"+z_stat_filename)),
-                                (NIDM['statisticType'], NIDM['ZStatistic']), 
+                                (NIDM['statisticType'], FSL['ZStatistic']), 
                                 (NIDM['contrastName'], contrast_name),
                                 (NIDM['originalFileName'], z_stat_filename),
                                 (CRYPTO['sha'], self.get_sha_sum(z_stat_file)),
