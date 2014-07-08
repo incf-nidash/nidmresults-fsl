@@ -427,7 +427,7 @@ class NIDMStat():
             NIDM['numberOfDimensions']: numDim,
             NIDM['voxelToWorldMapping']: '%s'%', '.join(str(thresImg.get_qform()).strip('()').replace('. ', '').split()).replace('[,', '[').replace('\n', ''),
             # FIXME: How to get the coordinate system? default for FSL?
-            NIDM['coordinateSystem']: coordinateSystem,           
+            NIDM['worldCoordinateSystem']: coordinateSystem,           
             # FIXME: this gives mm, sec => what is wrong: FSL file, nibabel, other?
             # NIDM['voxelUnits']: '[%s]'%str(thresImgHdr.get_xyzt_units()).strip('()'),
             NIDM['voxelUnits']: "['mm', 'mm', 'mm']",
