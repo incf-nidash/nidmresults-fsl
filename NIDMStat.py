@@ -127,6 +127,10 @@ class NIDMStat():
 
     def get_sha_sum(self, nifti_file):
         nifti_img = nib.load(nifti_file)
+        data = nifti_img.get_data()
+        # Fix needed as in https://github.com/pymc-devs/pymc/issues/327
+        if not data.flags["C_CONTIGUOUS"]:
+          data = np.ascontiguousarray(data)
         return hashlib.sha512(data).hexdigest()
 
     def create_cluster(self, stat_num, id, size, pFWER, *args, **kwargs):
