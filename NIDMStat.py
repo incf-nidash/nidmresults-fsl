@@ -200,7 +200,7 @@ class NIDMStat():
                                 (PROV['type'],PROV['Collection']),
                                 (PROV['label'],"Data"),
                                 (NIDM['grandMeanScaling'], True),
-                                (NIDM['targetIntensity'], 10000.0))
+                                (NIDM['targetIntensity'], 10000.0)))
         self.provBundle.used(NIIRI['model_parameters_estimation_id'], NIIRI['data_id'])
 
         if not residuals_file is None:
@@ -270,8 +270,8 @@ class NIDMStat():
         # FIXME: Deal with F weights
         self.provBundle.entity(NIIRI['contrast_id_'+contrast_num], 
             other_attributes=( (PROV['type'], NIDM['ContrastWeights']), 
-                               (NIDM['statisticType'], NIDM['TStatistic'],
-                               (PROV['label'], "Contrast: "+contrast_name), 
+                               (NIDM['statisticType'], NIDM['TStatistic']),
+                               (PROV['label'], "Contrast Weights: "+contrast_name), 
                                (NIDM['contrastName'], contrast_name),
                                (PROV['value'], contrastWeights)))
 
