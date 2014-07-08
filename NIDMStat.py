@@ -258,7 +258,7 @@ class NIDMStat():
             other_attributes=( (PROV['type'], NIDM['BetaMap']), 
                                # (PROV['location'], Identifier("file://./"+pe_filename)),
                                (NIDM['originalFileName'], pe_filename), 
-                               # (NIDM['atCoordinateSpace'], self.create_coordinate_space(pe_file)),
+                               (NIDM['atCoordinateSpace'], self.create_coordinate_space(pe_file)),
                                # (CRYPTO['sha512'], self.get_sha_sum(pe_file)),
                                (PROV['label'], "Parameter estimate "+str(pe_num))))
         
