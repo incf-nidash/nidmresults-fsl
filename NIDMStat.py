@@ -114,12 +114,12 @@ class NIDMStat():
             (PROV['label'], "Coordinate "+label_id)]
 
         coordinateAttributes = {
-            NIDM['coordinate1'] : x,
-            NIDM['coordinate2'] : y,
-            NIDM['coordinate3'] : z,
-            NIDM['coordinate1InUnits'] : x_std,
-            NIDM['coordinate2InUnits'] : y_std,
-            NIDM['coordinate3InUnits'] : z_std
+            FSL['coordinate1InVoxels'] : x,
+            FSL['coordinate2InVoxels'] : y,
+            FSL['coordinate3InVoxels'] : z,
+            NIDM['coordinate1'] : x_std,
+            NIDM['coordinate2'] : y_std,
+            NIDM['coordinate3'] : z_std
             };
 
         self.provBundle.entity(coordinate_id, 
