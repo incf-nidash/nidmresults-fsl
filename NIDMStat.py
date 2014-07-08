@@ -206,7 +206,7 @@ class NIDMStat():
                 other_attributes=( (PROV['type'],NIDM['ResidualMeanSquaresMap'],), 
                                    (PROV['location'], Identifier("file://./stats/"+residuals_filename) ),
                                    (PROV['label'],"Residual Mean Squares Map" ),
-                                   (NIDM['fileName'],residuals_filename ),
+                                   (NIDM['originalFileName'],residuals_filename ),
                                    (CRYPTO['sha'], self.get_sha_sum(residuals_file)),
                                    (NIDM['atCoordinateSpace'], self.create_coordinate_space(residuals_file))))
             self.provBundle.wasGeneratedBy(NIIRI['residual_mean_squares_map_id'], NIIRI['model_parameters_estimation_id'])  
@@ -222,7 +222,7 @@ class NIDMStat():
         self.provBundle.entity(NIIRI['design_matrix_id'], 
             other_attributes=( (PROV['type'],NIDM['DesignMatrix']), 
                                (PROV['label'],"Design Matrix"), 
-                               (NIDM['fileName'],design_matrix_csv ),
+                               (NIDM['originalFileName'],design_matrix_csv ),
                                (PROV['location'], Identifier("file://./"+design_matrix_csv))))       
         self.provBundle.used(NIIRI['model_parameters_estimation_id'], NIIRI['design_matrix_id'])
 
@@ -237,7 +237,7 @@ class NIDMStat():
         self.provBundle.entity(NIIRI['beta_map_id_'+str(pe_num)], 
             other_attributes=( (PROV['type'], NIDM['BetaMap']), 
                                (PROV['location'], Identifier("file://./"+pe_filename)),
-                               (NIDM['fileName'], pe_filename), 
+                               (NIDM['originalFileName'], pe_filename), 
                                (NIDM['atCoordinateSpace'], self.create_coordinate_space(pe_file)),
                                (CRYPTO['sha'], self.get_sha_sum(pe_file)),
                                (PROV['label'], "Parameter estimate "+str(pe_num))))
@@ -278,7 +278,7 @@ class NIDMStat():
             (PROV['type'], NIDM['ContrastMap']), 
             (NIDM['atCoordinateSpace'], self.create_coordinate_space(cope_file)),
             (PROV['location'], Identifier("file://./stats/"+cope_filename)),
-            (NIDM['fileName'], cope_filename),
+            (NIDM['originalFileName'], cope_filename),
             (NIDM['contrastName'], contrast_name),
             (CRYPTO['sha'], self.get_sha_sum(cope_file)),
             (PROV['label'], "Contrast Map: "+contrast_name)))
@@ -297,7 +297,7 @@ class NIDMStat():
             (NIDM['atCoordinateSpace'], self.create_coordinate_space(var_cope_file)),
             (PROV['location'], Identifier("file://./stats/"+var_cope_filename)),
             (CRYPTO['sha'], self.get_sha_sum(var_cope_file)),
-            (NIDM['fileName'], var_cope_filename),
+            (NIDM['originalFileName'], var_cope_filename),
             (PROV['label'], "Contrast Variance Map "+contrast_num)))
         
         self.provBundle.wasGeneratedBy(NIIRI['contrast_variance_map_id_'+contrast_num], NIIRI['contrast_estimation_id_'+contrast_num])
@@ -316,7 +316,7 @@ class NIDMStat():
             (NIDM['atCoordinateSpace'], self.create_coordinate_space(standard_error_file)),
             (PROV['location'], Identifier("file://./stats/"+filename)),
             (CRYPTO['sha'], self.get_sha_sum(standard_error_file)),
-            (NIDM['fileName'], filename),
+            (NIDM['originalFileName'], filename),
             (PROV['label'], "Contrast Standard Error Map")))
         
         self.provBundle.wasDerivedFrom(NIIRI['contrast_standard_error_map_id_'+contrast_num], NIIRI['contrast_variance_map_id_'+contrast_num])
@@ -336,7 +336,7 @@ class NIDMStat():
                                 (PROV['location'], Identifier("file://./stats/"+z_stat_filename)),
                                 (NIDM['statisticType'], NIDM['ZStatistic']), 
                                 (NIDM['contrastName'], contrast_name),
-                                (NIDM['fileName'], z_stat_filename),
+                                (NIDM['originalFileName'], z_stat_filename),
                                 (CRYPTO['sha'], self.get_sha_sum(z_stat_file)),
                                 (NIDM['atCoordinateSpace'], self.create_coordinate_space(z_stat_file)),
                                 ) )
@@ -353,7 +353,7 @@ class NIDMStat():
                                 (PROV['label'], "Statistic Map: "+contrast_name) ,
                                 (PROV['location'], Identifier("file://./stats/"+stat_filename)),
                                 (NIDM['statisticType'], NIDM['TStatistic']), 
-                                (NIDM['fileName'], stat_filename),
+                                (NIDM['originalFileName'], stat_filename),
                                 (NIDM['contrastName'], contrast_name),
                                 (NIDM['errorDegreesOfFreedom'], dof),
                                 (NIDM['effectDegreesOfFreedom'], 1.0),
@@ -429,7 +429,7 @@ class NIDMStat():
                 (PROV['label'], "Search Space"), 
                 (PROV['type'], NIDM['SearchSpaceMap']), 
                 (PROV['location'], Identifier("file://./"+search_space_filename)),
-                (NIDM['fileName'], search_space_filename),
+                (NIDM['originalFileName'], search_space_filename),
                 (NIDM['atCoordinateSpace'], self.create_coordinate_space(search_space_file)),
                 (NIDM['searchVolumeInVoxels'], search_volume),
                 (CRYPTO['sha'], self.get_sha_sum(search_space_file)),
@@ -452,7 +452,7 @@ class NIDMStat():
         self.provBundle.entity(NIIRI['excursion_set_id_'+str(stat_num)], other_attributes=( 
             (PROV['type'], NIDM['ExcursionSet']), 
             (PROV['location'], Identifier("file://./"+excursion_set_filename)),
-            (NIDM['fileName'], excursion_set_filename),
+            (NIDM['originalFileName'], excursion_set_filename),
             (NIDM['atCoordinateSpace'], self.create_coordinate_space(excursion_set_file)),
             (PROV['label'], "Excursion Set"),
             (NIDM['visualisation'], Identifier("file://./"+visu_filename)),
