@@ -127,7 +127,7 @@ class NIDMStat():
 
     def get_sha_sum(self, nifti_file):
         nifti_img = nib.load(nifti_file)
-        return hashlib.sha224(nifti_img.get_data()).hexdigest()
+        return hashlib.sha512(data).hexdigest()
 
     def create_cluster(self, stat_num, id, size, pFWER, *args, **kwargs):
         clusterIndex = id
