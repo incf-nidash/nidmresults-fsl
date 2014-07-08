@@ -249,17 +249,17 @@ class NIDMStat():
     # Generate prov for contrast map
     def create_parameter_estimate(self, pe_file, pe_num):
         # Copy parameter estimate map in export directory
-        shutil.copy(pe_file, self.export_dir)
+        # shutil.copy(pe_file, self.export_dir)
         path, pe_filename = os.path.split(pe_file)
-        pe_file = os.path.join(self.export_dir,pe_filename)       
+        # pe_file = os.path.join(self.export_dir,pe_filename)       
 
         # Parameter estimate entity
         self.provBundle.entity(NIIRI['beta_map_id_'+str(pe_num)], 
             other_attributes=( (PROV['type'], NIDM['BetaMap']), 
-                               (PROV['location'], Identifier("file://./"+pe_filename)),
+                               # (PROV['location'], Identifier("file://./"+pe_filename)),
                                (NIDM['originalFileName'], pe_filename), 
-                               (NIDM['atCoordinateSpace'], self.create_coordinate_space(pe_file)),
-                               (CRYPTO['sha'], self.get_sha_sum(pe_file)),
+                               # (NIDM['atCoordinateSpace'], self.create_coordinate_space(pe_file)),
+                               # (CRYPTO['sha'], self.get_sha_sum(pe_file)),
                                (PROV['label'], "Parameter estimate "+str(pe_num))))
         
         self.provBundle.wasGeneratedBy(NIIRI['beta_map_id_'+str(pe_num)], NIIRI['model_parameters_estimation_id'])  
