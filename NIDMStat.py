@@ -267,9 +267,11 @@ class NIDMStat():
     def create_contrast_map(self, cope_file, var_cope_file, stat_file, z_stat_file, contrast_name, contrast_num, dof, contrastWeights):
         # Contrast id entity
         # FIXME: Get contrast weights
+        # FIXME: Deal with F weights
         self.provBundle.entity(NIIRI['contrast_id_'+contrast_num], 
-            other_attributes=( (PROV['type'], NIDM['TContrastWeights']), 
-                               (PROV['label'], "T Contrast: "+contrast_name), 
+            other_attributes=( (PROV['type'], NIDM['ContrastWeights']), 
+                               (NIDM['statisticType'], NIDM['TStatistic'],
+                               (PROV['label'], "Contrast: "+contrast_name), 
                                (NIDM['contrastName'], contrast_name),
                                (PROV['value'], contrastWeights)))
 
