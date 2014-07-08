@@ -423,7 +423,7 @@ class NIDMStat():
 
         mydict = { 
             PROV['type']: NIDM['CoordinateSpace'], 
-            NIDM['dimensions']: str(thresImg.shape).replace('(', '[').replace(')', ']'),
+            NIDM['dimensionsInVoxels']: str(thresImg.shape).replace('(', '[').replace(')', ']'),
             NIDM['numberOfDimensions']: numDim,
             NIDM['voxelToWorldMapping']: '%s'%', '.join(str(thresImg.get_qform()).strip('()').replace('. ', '').split()).replace('[,', '[').replace('\n', ''),
             # FIXME: How to get the coordinate system? default for FSL?
