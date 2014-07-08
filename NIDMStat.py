@@ -211,7 +211,7 @@ class NIDMStat():
                                    (PROV['location'], Identifier("file://./stats/"+residuals_filename) ),
                                    (PROV['label'],"Residual Mean Squares Map" ),
                                    (NIDM['originalFileName'],residuals_filename ),
-                                   (CRYPTO['sha'], self.get_sha_sum(residuals_file)),
+                                   (CRYPTO['sha512'], self.get_sha_sum(residuals_file)),
                                    (NIDM['atCoordinateSpace'], self.create_coordinate_space(residuals_file))))
             self.provBundle.wasGeneratedBy(NIIRI['residual_mean_squares_map_id'], NIIRI['model_parameters_estimation_id'])  
         else:
@@ -230,7 +230,7 @@ class NIDMStat():
                                    (PROV['label'],"Grand Mean Map"), 
                                    (NIDM['originalFileName'], grand_mean_filename),
                                    (NIDM['atCoordinateSpace'], self.create_coordinate_space(grand_mean_file)),
-                                   (CRYPTO['sha'], self.get_sha_sum(grand_mean_file)),
+                                   (CRYPTO['sha512'], self.get_sha_sum(grand_mean_file)),
                                    (PROV['location'], Identifier("file://./"+grand_mean_file))))      
             self.provBundle.wasGeneratedBy(NIIRI['grand_mean_map_id'], NIIRI['model_parameters_estimation_id'],)
         
@@ -259,7 +259,7 @@ class NIDMStat():
                                # (PROV['location'], Identifier("file://./"+pe_filename)),
                                (NIDM['originalFileName'], pe_filename), 
                                # (NIDM['atCoordinateSpace'], self.create_coordinate_space(pe_file)),
-                               # (CRYPTO['sha'], self.get_sha_sum(pe_file)),
+                               # (CRYPTO['sha512'], self.get_sha_sum(pe_file)),
                                (PROV['label'], "Parameter estimate "+str(pe_num))))
         
         self.provBundle.wasGeneratedBy(NIIRI['beta_map_id_'+str(pe_num)], NIIRI['model_parameters_estimation_id'])  
@@ -300,7 +300,7 @@ class NIDMStat():
             (PROV['location'], Identifier("file://./stats/"+cope_filename)),
             (NIDM['originalFileName'], cope_filename),
             (NIDM['contrastName'], contrast_name),
-            (CRYPTO['sha'], self.get_sha_sum(cope_file)),
+            (CRYPTO['sha512'], self.get_sha_sum(cope_file)),
             (PROV['label'], "Contrast Map: "+contrast_name)))
         
         self.provBundle.wasGeneratedBy(NIIRI['contrast_map_id_'+contrast_num], NIIRI['contrast_estimation_id_'+contrast_num])
@@ -316,7 +316,7 @@ class NIDMStat():
             (PROV['type'], FSL['VarCope']), 
             (NIDM['atCoordinateSpace'], self.create_coordinate_space(var_cope_file)),
             (PROV['location'], Identifier("file://./stats/"+var_cope_filename)),
-            (CRYPTO['sha'], self.get_sha_sum(var_cope_file)),
+            (CRYPTO['sha512'], self.get_sha_sum(var_cope_file)),
             (NIDM['originalFileName'], var_cope_filename),
             (PROV['label'], "Contrast Variance Map "+contrast_num)))
         
@@ -335,7 +335,7 @@ class NIDMStat():
             (PROV['type'], NIDM['ContrastStandardErrorMap']), 
             (NIDM['atCoordinateSpace'], self.create_coordinate_space(standard_error_file)),
             (PROV['location'], Identifier("file://./stats/"+filename)),
-            (CRYPTO['sha'], self.get_sha_sum(standard_error_file)),
+            (CRYPTO['sha512'], self.get_sha_sum(standard_error_file)),
             (NIDM['originalFileName'], filename),
             (PROV['label'], "Contrast Standard Error Map")))
         
@@ -357,7 +357,7 @@ class NIDMStat():
                                 (NIDM['statisticType'], FSL['ZStatistic']), 
                                 (NIDM['contrastName'], contrast_name),
                                 (NIDM['originalFileName'], z_stat_filename),
-                                (CRYPTO['sha'], self.get_sha_sum(z_stat_file)),
+                                (CRYPTO['sha512'], self.get_sha_sum(z_stat_file)),
                                 (NIDM['atCoordinateSpace'], self.create_coordinate_space(z_stat_file)),
                                 ) )
 
@@ -377,7 +377,7 @@ class NIDMStat():
                                 (NIDM['contrastName'], contrast_name),
                                 (NIDM['errorDegreesOfFreedom'], dof),
                                 (NIDM['effectDegreesOfFreedom'], 1.0),
-                                (CRYPTO['sha'], self.get_sha_sum(stat_file)),
+                                (CRYPTO['sha512'], self.get_sha_sum(stat_file)),
                                 (NIDM['atCoordinateSpace'], self.create_coordinate_space(stat_file)),
                                 ) )
         
@@ -452,7 +452,7 @@ class NIDMStat():
                 (NIDM['originalFileName'], search_space_filename),
                 (NIDM['atCoordinateSpace'], self.create_coordinate_space(search_space_file)),
                 (NIDM['searchVolumeInVoxels'], search_volume),
-                (CRYPTO['sha'], self.get_sha_sum(search_space_file)),
+                (CRYPTO['sha512'], self.get_sha_sum(search_space_file)),
                 (FSL['reselSizeInVoxels'], resel_size_in_voxels),
                 (FSL['dlh'], dlh)))
         
@@ -476,7 +476,7 @@ class NIDMStat():
             (NIDM['atCoordinateSpace'], self.create_coordinate_space(excursion_set_file)),
             (PROV['label'], "Excursion Set"),
             (NIDM['visualisation'], Identifier("file://./"+visu_filename)),
-            (CRYPTO['sha'], self.get_sha_sum(excursion_set_file)),
+            (CRYPTO['sha512'], self.get_sha_sum(excursion_set_file)),
             ))
         self.provBundle.wasGeneratedBy(NIIRI['excursion_set_id_'+str(stat_num)], NIIRI['inference_id_'+str(stat_num)])
 
