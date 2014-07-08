@@ -66,10 +66,15 @@ class FSL_NIDM():
         if not os.path.isfile(residuals_file):
             residuals_file = None;
 
+        gand_mean_file = os.path.join(self.feat_dir, 'stats', 'mean_func.nii.gz')
+        # FIXME: Check if there is an alternative file to use here
+        if not os.path.isfile(gand_mean_file):
+            gand_mean_file = None;
+
         design_matrix_file = open(os.path.join(self.feat_dir, 'design.mat'), 'r')
         design_matrix = np.loadtxt(design_matrix_file, skiprows=5, ndmin=2)
 
-        self.nidm.create_model_fitting(residuals_file, design_matrix)
+        self.nidm.create_model_fitting(residuals_file, gand_mean_file, design_matrix)
 
     # For a parameter estimate, create the parameter estimate map emtity
     def add_parameter_estimate(self, pe_file, pe_num):

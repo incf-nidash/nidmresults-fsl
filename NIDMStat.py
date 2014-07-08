@@ -176,7 +176,7 @@ class NIDMStat():
         self.provBundle.entity(NIIRI['peak_'+str(peakUniqueId)], other_attributes=other_attributes)
         self.provBundle.wasDerivedFrom(NIIRI['peak_'+str(peakUniqueId)], NIIRI['cluster_000'+str(cluster_id)])
 
-    def create_model_fitting(self, residuals_file, design_matrix):
+    def create_model_fitting(self, residuals_file, grand_mean_file, design_matrix):
         # Copy residuals map in export directory
         if not residuals_file is None:
             shutil.copy(residuals_file, self.export_dir)
@@ -213,6 +213,22 @@ class NIDMStat():
         else:
             # FIXME: Replace with log
             print "No residual file"
+
+        # Grand Mean Map entity
+        if not grand_mean_file is None:
+            shutil.copy(grand_mean_file, self.export_dir)
+            path, grand_mean_filename = os.path.split(grand_mean_file)
+            grand_mean_file = os.path.join(self.export_dir,grand_mean_filename)  
+
+            # TODO: nidm:maskedMedian "115"^^xsd:int ;
+            self.provBundle.entity(NIIRI['grand_mean_map_id'], 
+                other_attributes=( (PROV['type'],NIDM['GrandMeanMap']), 
+                                   (PROV['label'],"Grand Mean Map"), 
+                                   (NIDM['originalFileName'], grand_mean_filename),
+                                   (NIDM['atCoordinateSpace'], self.create_coordinate_space(grand_mean_file)),
+                                   (CRYPTO['sha'], self.get_sha_sum(grand_mean_file)),
+                                   (PROV['location'], Identifier("file://./"+grand_mean_file))))      
+            self.provBundle.wasGeneratedBy(NIIRI['grand_mean_map_id'], NIIRI['model_parameters_estimation_id'],)
         
         # Create cvs file containing design matrix
         design_matrix_csv = 'design_matrix.csv'
