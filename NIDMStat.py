@@ -218,20 +218,19 @@ class NIDMStat():
             print "No residual file"
 
         # Grand Mean Map entity
-        if not grand_mean_file is None:
-            shutil.copy(grand_mean_file, self.export_dir)
-            path, grand_mean_filename = os.path.split(grand_mean_file)
-            grand_mean_file = os.path.join(self.export_dir,grand_mean_filename)  
+        shutil.copy(grand_mean_file, self.export_dir)
+        path, grand_mean_filename = os.path.split(grand_mean_file)
+        grand_mean_file = os.path.join(self.export_dir,grand_mean_filename)  
 
-            # TODO: nidm:maskedMedian "115"^^xsd:int ;
-            self.provBundle.entity(NIIRI['grand_mean_map_id'], 
-                other_attributes=( (PROV['type'],NIDM['GrandMeanMap']), 
-                                   (PROV['label'],"Grand Mean Map"), 
-                                   (NIDM['originalFileName'], grand_mean_filename),
-                                   (NIDM['atCoordinateSpace'], self.create_coordinate_space(grand_mean_file)),
-                                   (CRYPTO['sha512'], self.get_sha_sum(grand_mean_file)),
-                                   (PROV['location'], Identifier("file://./"+grand_mean_file))))      
-            self.provBundle.wasGeneratedBy(NIIRI['grand_mean_map_id'], NIIRI['model_parameters_estimation_id'],)
+        # TODO: nidm:maskedMedian "115"^^xsd:int ;
+        self.provBundle.entity(NIIRI['grand_mean_map_id'], 
+            other_attributes=( (PROV['type'],NIDM['GrandMeanMap']), 
+                               (PROV['label'],"Grand Mean Map"), 
+                               (NIDM['originalFileName'], grand_mean_filename),
+                               (NIDM['atCoordinateSpace'], self.create_coordinate_space(grand_mean_file)),
+                               (CRYPTO['sha512'], self.get_sha_sum(grand_mean_file)),
+                               (PROV['location'], Identifier("file://./"+grand_mean_file))))      
+        self.provBundle.wasGeneratedBy(NIIRI['grand_mean_map_id'], NIIRI['model_parameters_estimation_id'],)
         
         # Create cvs file containing design matrix
         design_matrix_csv = 'design_matrix.csv'
