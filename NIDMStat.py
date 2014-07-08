@@ -58,7 +58,7 @@ class NIDMStat():
     def create_software(self, feat_version):
         # Add software agent: FSL
         self.provBundle.agent(NIIRI['software_id'], other_attributes=( 
-            (PROV['type'], NIDM['Fsl']), 
+            (PROV['type'], NIDM['FSL']), 
             (PROV['type'], PROV['SoftwareAgent']),
             (PROV['label'],'FSL'),
             # FIXME find FSL software version
