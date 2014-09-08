@@ -7,7 +7,7 @@
 from HTMLParser import HTMLParser
 from htmlentitydefs import name2codepoint
 import re
-from prov.model import ProvBundle, ProvRecord, ProvExceptionCannotUnifyAttribute, ProvEntity
+from prov.model import ProvBundle, ProvRecord, ProvEntity
 # import prov.model.graph
 import os
 import numpy as np

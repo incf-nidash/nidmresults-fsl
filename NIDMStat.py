@@ -4,7 +4,7 @@
 @copyright: University of Warwick 2013-2014
 '''
 
-from prov.model import ProvBundle, ProvDocument, Namespace, ProvRecord, ProvExceptionCannotUnifyAttribute, ProvEntity, Identifier
+from prov.model import ProvBundle, ProvDocument, Namespace, ProvRecord, ProvEntity, Identifier
 from prov.model import PROV
 import os
 import numpy as np
@@ -15,7 +15,7 @@ import shutil
 
 NIDM = Namespace('nidm', "http://www.incf.org/ns/nidash/nidm#")
 NIIRI = Namespace("niiri", "http://iri.nidash.org/")
-CRYPTO = Namespace("crypto", "http://www.w3.org/2000/10/swap/crypto#")
+CRYPTO = Namespace("crypto", "http://id.loc.gov/vocabulary/preservation/cryptographicHashFunctions#")
 FSL = Namespace("fsl", "http://www.incf.org/ns/nidash/fsl#")
 
 ''' Create a NIDM export file and copy related nifti files
