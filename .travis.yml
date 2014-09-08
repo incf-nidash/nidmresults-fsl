@@ -5,5 +5,5 @@ python:
 install: pip install -r requirements.txt
 # command to run tests, e.g. python setup.py test
 script:  python TestFSLResultDataModel.py
-# Create subtree nidm from main nidm repository
-before_install: git subtree add --prefix nidm https://github.com/incf-nidash/nidm.git master --squash
+# Update subtree nidm from main nidm repository
+before_install: git subtree pull --prefix nidm https://github.com/incf-nidash/ni-dm.git master --squash
