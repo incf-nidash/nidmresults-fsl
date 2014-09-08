@@ -1,0 +1,9 @@
+language: python
+python:
+  - "2.7"
+# command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
+install: pip install -r requirements.txt
+# command to run tests, e.g. python setup.py test
+script:  python test/TestFSLResultDataModel.py
+# Update subtree nidm from main nidm repository
+before_install: git subtree pull --prefix nidm https://github.com/incf-nidash/ni-dm.git master --squash
