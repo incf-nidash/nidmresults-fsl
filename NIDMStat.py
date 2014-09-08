@@ -17,6 +17,7 @@ NIDM = Namespace('nidm', "http://www.incf.org/ns/nidash/nidm#")
 NIIRI = Namespace("niiri", "http://iri.nidash.org/")
 CRYPTO = Namespace("crypto", "http://id.loc.gov/vocabulary/preservation/cryptographicHashFunctions#")
 FSL = Namespace("fsl", "http://www.incf.org/ns/nidash/fsl#")
+DCT = Namespace("dct", "http://purl.org/dc/terms/")
 
 ''' Create a NIDM export file and copy related nifti files
 '''
@@ -417,7 +418,7 @@ class NIDMStat():
             coordinateSystem = NIDM['SubjectSpace'];
         else:
             if not self.custom_standard:
-                coordinateSystem = NIDM['IcbmMni152NonLinear6thGenerationSpace'];
+                coordinateSystem = NIDM['IcbmMni152NonLinear6thGenerationCoordinateSystem'];
             else:
                 coordinateSystem = NIDM['StandarizedSpace'];
 
@@ -451,7 +452,7 @@ class NIDMStat():
                 (PROV['location'], Identifier("file://./"+search_space_filename)),
                 (NIDM['originalFileName'], search_space_filename),
                 (NIDM['atCoordinateSpace'], self.create_coordinate_space(search_space_file)),
-                (NIDM['searchVolumeInVoxels'], search_volume),
+                (FSL['searchVolumeInVoxels'], search_volume),
                 (CRYPTO['sha512'], self.get_sha_sum(search_space_file)),
                 (FSL['reselSizeInVoxels'], resel_size_in_voxels),
                 (FSL['dlh'], dlh)))
@@ -475,8 +476,15 @@ class NIDMStat():
             (NIDM['originalFileName'], excursion_set_filename),
             (NIDM['atCoordinateSpace'], self.create_coordinate_space(excursion_set_file)),
             (PROV['label'], "Excursion Set"),
-            (NIDM['visualisation'], Identifier("file://./"+visu_filename)),
+            (NIDM['visualisation'], NIIRI['excursion_set_png_id'+str(stat_num)]),
             (CRYPTO['sha512'], self.get_sha_sum(excursion_set_file)),
+            ))
+
+        # Create "png visualisation of Excursion set" entity
+        self.provBundle.entity(NIIRI['excursion_set_png_id'+str(stat_num)], other_attributes=( 
+            (PROV['type'], NIDM['Image']), 
+            (PROV['location'], Identifier("file://./"+visu_filename)),
+            (DCT['format'], "image/png"),
             ))
         self.provBundle.wasGeneratedBy(NIIRI['excursion_set_id_'+str(stat_num)], NIIRI['inference_id_'+str(stat_num)])
 
