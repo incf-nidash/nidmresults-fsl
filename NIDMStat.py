@@ -253,7 +253,7 @@ class NIDMStat():
 
         # Parameter estimate entity
         self.provBundle.entity(NIIRI['beta_map_id_'+str(pe_num)], 
-            other_attributes=( (PROV['type'], NIDM['BetaMap']), 
+            other_attributes=( (PROV['type'], NIDM['ParameterEstimateMap']), 
                                # (PROV['location'], Identifier("file://./"+pe_filename)),
                                (NIDM['originalFileName'], pe_filename), 
                                (NIDM['atCoordinateSpace'], self.create_coordinate_space(pe_file)),

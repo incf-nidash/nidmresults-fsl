@@ -102,7 +102,7 @@ niiri:coordinate_space_id_4 a prov:Entity , nidm:CoordinateSpace ;
 	nidm:voxelToWorldMapping "[[ -3.5, 0, 0, 108.5], [ 0, 3.5, 0, -108.5], [ 0, 0, 3.5, -52.5], [ 0, 0, 0, 1]]"^^xsd:string ;
 	nidm:numberOfDimensions "3"^^xsd:int .
 
-niiri:beta_map_id_1 a prov:Entity , nidm:BetaMap ;
+niiri:beta_map_id_1 a prov:Entity , nidm:ParameterEstimateMap ;
 	rdfs:label "Parameter estimate 1" ;
 	nidm:originalFileName "pe1.nii.gz"^^xsd:string ;
 	nidm:atCoordinateSpace niiri:coordinate_space_id_4 ;
@@ -117,7 +117,7 @@ niiri:coordinate_space_id_5 a prov:Entity , nidm:CoordinateSpace ;
 	nidm:voxelToWorldMapping "[[ -3.5, 0, 0, 108.5], [ 0, 3.5, 0, -108.5], [ 0, 0, 3.5, -52.5], [ 0, 0, 0, 1]]"^^xsd:string ;
 	nidm:numberOfDimensions "3"^^xsd:int .
 
-niiri:beta_map_id_2 a prov:Entity , nidm:BetaMap ;
+niiri:beta_map_id_2 a prov:Entity , nidm:ParameterEstimateMap ;
 	rdfs:label "Parameter estimate 2" ;
 	nidm:originalFileName "pe2.nii.gz"^^xsd:string ;
 	nidm:atCoordinateSpace niiri:coordinate_space_id_5 ;
@@ -132,7 +132,7 @@ niiri:coordinate_space_id_6 a prov:Entity , nidm:CoordinateSpace ;
 	nidm:voxelToWorldMapping "[[ -3.5, 0, 0, 108.5], [ 0, 3.5, 0, -108.5], [ 0, 0, 3.5, -52.5], [ 0, 0, 0, 1]]"^^xsd:string ;
 	nidm:numberOfDimensions "3"^^xsd:int .
 
-niiri:beta_map_id_3 a prov:Entity , nidm:BetaMap ;
+niiri:beta_map_id_3 a prov:Entity , nidm:ParameterEstimateMap ;
 	rdfs:label "Parameter estimate 3" ;
 	nidm:originalFileName "pe3.nii.gz"^^xsd:string ;
 	nidm:atCoordinateSpace niiri:coordinate_space_id_6 ;
@@ -147,7 +147,7 @@ niiri:coordinate_space_id_7 a prov:Entity , nidm:CoordinateSpace ;
 	nidm:voxelToWorldMapping "[[ -3.5, 0, 0, 108.5], [ 0, 3.5, 0, -108.5], [ 0, 0, 3.5, -52.5], [ 0, 0, 0, 1]]"^^xsd:string ;
 	nidm:numberOfDimensions "3"^^xsd:int .
 
-niiri:beta_map_id_4 a prov:Entity , nidm:BetaMap ;
+niiri:beta_map_id_4 a prov:Entity , nidm:ParameterEstimateMap ;
 	rdfs:label "Parameter estimate 4" ;
 	nidm:originalFileName "pe4.nii.gz"^^xsd:string ;
 	nidm:atCoordinateSpace niiri:coordinate_space_id_7 ;
