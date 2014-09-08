@@ -43,7 +43,8 @@ class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
 
         print "\n\n----> "+self.test_dir
         #  Turtle file obtained with FSL NI-DM export tool
-        self.fsl_export_ttl = os.path.join(self.test_dir, 'fsl_nidm.ttl');
+        fsl_export_provn = os.path.join(self.test_dir, 'FSL_example.provn');
+        self.fsl_export_ttl = get_turtle(fsl_export_provn)
         # fsl_export_json = os.path.join(self.test_dir, 'fsl', 'export', 'test01', 'fsl_nidm.json');
         # g.parse(data=testrdfjson, format="rdf-json")
         
