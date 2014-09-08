@@ -219,7 +219,8 @@ class FSL_NIDM():
                 if not cluster_id == prev_cluster:
                     peakIndex = 1;
 
-                self.nidm.create_peak(id=int(peakIndex), x=int(peak_row[2]), y=int(peak_row[3]), z=int(peak_row[4]), 
+                # Though peak coordinates in voxels are integer, we use a float type to comply with the rdfs:range
+                self.nidm.create_peak(id=int(peakIndex), x=float(peak_row[2]), y=float(peak_row[3]), z=float(peak_row[4]), 
                     x_std=float(peak_row[7]), y_std=float(peak_row[8]), z_std=float(peak_row[9]),
                     equivZ=float(peak_row[1]), cluster_id=cluster_id, stat_num=stat_num, max_peak=(peakIndex==1))
                 prev_cluster = cluster_id
