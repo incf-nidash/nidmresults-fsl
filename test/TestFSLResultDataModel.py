@@ -14,17 +14,23 @@ from rdflib.graph import Graph
 from rdflib import Graph, plugin, Namespace
 from rdflib.parser import Parser
 from rdflib.serializer import Serializer
+import shutil
+import sys
+
+RELPATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+# Add FSL NIDM export to python path
+sys.path.append(RELPATH)
 
 # Add nidm common testing code folder to python path
-import sys
-path = "./nidm/nidm/nidm-results/test"
+path = os.path.join(RELPATH, "nidm", "nidm", "nidm-results", "test")
 sys.path.append(path)
 
 from TestResultDataModel import TestResultDataModel
 from TestCommons import *
 from CheckConsistency import *
 
-RELPATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+from FSLparser import FSL_NIDM
 
 import logging
 logger = logging.getLogger(__name__)
@@ -35,13 +41,11 @@ class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
 
     def setUp(self):
         TestResultDataModel.setUp(self) 
-        self.ground_truth_dir = os.path.join(self.ground_truth_dir, 'fsl', 'example001')
-        print "\n\n----> "+self.ground_truth_dir
+        self.ground_truth_dir = os.path.join(os.path.dirname(os.path.dirname(self.ground_truth_dir)), 'nidm', 'nidm-results','fsl', 'example001')
 
         # Current module directory is used as test directory
         self.test_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'example001')
 
-        print "\n\n----> "+self.test_dir
         #  Turtle file obtained with FSL NI-DM export tool
         fsl_export_provn = os.path.join(self.test_dir, 'FSL_example.provn');
         self.fsl_export_ttl = get_turtle(fsl_export_provn)
@@ -55,6 +59,22 @@ class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
 
         # Retreive owl file for NIDM-Results
         self.owl_file = os.path.join(RELPATH, 'nidm', 'nidm', 'nidm-results', 'nidm-results.owl')
+
+        # Move in test dir (storage of prov file)
+        fsl_expe_dir = os.path.join(RELPATH, 'test', 'data', 'fmri.feat')
+        fsl_test_dir = os.path.join(RELPATH, 'test')
+
+        if os.path.isdir(fsl_expe_dir):
+            logging.debug("Computing NIDM FSL export")
+            test_export_dir = os.path.join(fsl_test_dir, 'example001')
+            # os.chdir(test_export_dir)
+
+            # Convert to NI-DM using FSL export tool
+            fslnidm = FSL_NIDM(feat_dir=fsl_expe_dir);
+            fslnidm.save_prov_to_files()
+
+            # Copy provn export to test directory
+            shutil.copy(os.path.join(fsl_expe_dir, 'nidm', 'nidm.provn'), os.path.join(test_export_dir, 'FSL_example.provn'))
 
     def test01_class_consistency_with_owl(self):
         my_exception = check_class_names(self.fslexport, "FSL example001", owl_file=self.owl_file)
@@ -92,7 +112,7 @@ class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
         gt = Graph()
         gt.parse(ground_truth_ttl, format='turtle')
 
-        print("Comparing "+ground_truth_ttl+" with "+self.fsl_export_ttl)
+        # print("Comparing "+ground_truth_ttl+" with "+self.fsl_export_ttl)
 
         self.compare_full_graphs(gt, self.fslexport)
 
@@ -222,9 +242,6 @@ class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
 
     #     if not self.successful_retreive(self.fslexport.query(query), 'ContrastMap and ContrastStandardErrorMap'):
     #         raise Exception(self.my_execption)
-#     def runTests(self):
-#         print "kjsdhkjshdffj2222"
-#         unittest.main()
 
 if __name__ == '__main__':
     unittest.main()
