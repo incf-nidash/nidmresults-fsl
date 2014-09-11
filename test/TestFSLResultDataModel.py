@@ -28,6 +28,8 @@ NIDM_DIR = os.path.join(RELPATH, "nidm")
 # directory will be accessed directly
 if not os.path.isdir(NIDM_DIR):
     NIDM_DIR = os.path.join(RELPATH, "..", "nidm")
+    # The FSL export to NIDM will only be run locally (for now)
+    from FSLparser import FSL_NIDM
 
 NIDM_RESULTS_DIR = os.path.join(NIDM_DIR, "nidm", "nidm-results")
 
@@ -37,8 +39,6 @@ sys.path.append(path)
 from TestResultDataModel import TestResultDataModel
 from TestCommons import *
 from CheckConsistency import *
-
-from FSLparser import FSL_NIDM
 
 import logging
 logger = logging.getLogger(__name__)
