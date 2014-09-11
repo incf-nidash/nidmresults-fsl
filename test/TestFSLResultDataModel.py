@@ -23,7 +23,15 @@ RELPATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(RELPATH)
 
 # Add nidm common testing code folder to python path
-path = os.path.join(RELPATH, "nidm", "nidm", "nidm-results", "test")
+NIDM_DIR = os.path.join(RELPATH, "nidm")
+# In TravisCI the nidm repository will be created as a subtree, however locally the nidm
+# directory will be accessed directly
+if not os.path.isdir(NIDM_DIR):
+    NIDM_DIR = os.path.join(RELPATH, "..", "nidm")
+
+NIDM_RESULTS_DIR = os.path.join(NIDM_DIR, "nidm", "nidm-results")
+
+path = os.path.join(NIDM_RESULTS_DIR, "test")
 sys.path.append(path)
 
 from TestResultDataModel import TestResultDataModel
@@ -41,7 +49,7 @@ class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
 
     def setUp(self):
         TestResultDataModel.setUp(self) 
-        self.ground_truth_dir = os.path.join(os.path.dirname(os.path.dirname(self.ground_truth_dir)), 'nidm', 'nidm-results','fsl', 'example001')
+        self.ground_truth_dir = os.path.join(NIDM_RESULTS_DIR,'fsl', 'example001')
 
         # Current module directory is used as test directory
         self.test_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'example001')
@@ -58,7 +66,7 @@ class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
         self.fslexport.parse(self.fsl_export_ttl, format='turtle')
 
         # Retreive owl file for NIDM-Results
-        self.owl_file = os.path.join(RELPATH, 'nidm', 'nidm', 'nidm-results', 'nidm-results.owl')
+        self.owl_file = os.path.join(NIDM_RESULTS_DIR, 'nidm-results.owl')
 
         # Move in test dir (storage of prov file)
         fsl_expe_dir = os.path.join(RELPATH, 'test', 'data', 'fmri.feat')
