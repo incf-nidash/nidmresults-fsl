@@ -26,6 +26,7 @@ sys.path.append(RELPATH)
 NIDM_DIR = os.path.join(RELPATH, "nidm")
 # In TravisCI the nidm repository will be created as a subtree, however locally the nidm
 # directory will be accessed directly
+logging.debug(NIDM_DIR)
 if not os.path.isdir(NIDM_DIR):
     NIDM_DIR = os.path.join(RELPATH, "..", "nidm")
     # The FSL export to NIDM will only be run locally (for now)
