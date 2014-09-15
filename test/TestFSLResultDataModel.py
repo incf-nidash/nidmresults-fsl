@@ -17,6 +17,9 @@ from rdflib.serializer import Serializer
 import shutil
 import sys
 
+import logging
+logger = logging.getLogger(__name__)
+
 RELPATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Add FSL NIDM export to python path
@@ -40,9 +43,6 @@ sys.path.append(path)
 from TestResultDataModel import TestResultDataModel
 from TestCommons import *
 from CheckConsistency import *
-
-import logging
-logger = logging.getLogger(__name__)
 
 '''Tests based on the analysis of single-subject fmri fluency data as described at http://fsl.fmrib.ox.ac.uk/fslcourse/lectures/practicals/feat1/index.html but with only *1 contrast specified: Generation*
 '''
