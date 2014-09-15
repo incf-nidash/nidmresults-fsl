@@ -181,14 +181,11 @@ class NIDMStat():
         self.provBundle.entity(NIIRI['peak_'+str(peakUniqueId)], other_attributes=other_attributes)
         self.provBundle.wasDerivedFrom(NIIRI['peak_'+str(peakUniqueId)], NIIRI['cluster_000'+str(cluster_id)])
 
-    def create_model_fitting(self, residuals_file, grand_mean_file, design_matrix):
+    def create_model_fitting(self, residuals_original_file, grand_mean_original_file, design_matrix):
         # Copy residuals map in export directory
-        if not residuals_file is None:
-            original_file = residuals_file
+        if not residuals_original_file is None:
             residuals_file = os.path.join(self.export_dir, 'ResidualMeanSquares.nii.gz')
-            shutil.copy(original_file, residuals_file)
-            path, residuals_filename = os.path.split(residuals_file)
-            residuals_file = os.path.join(self.export_dir,residuals_filename)  
+            residuals_original_filename, residuals_filename = self.copy_nifti(residuals_original_file, residuals_file)
 
         # Create "Model Parameter estimation" activity
         self.provBundle.activity(NIIRI['model_parameters_estimation_id'], other_attributes=( 
@@ -213,7 +210,8 @@ class NIDMStat():
                                    (DCT['format'], NIDM['Nifti1Gzip']), 
                                    (PROV['location'], Identifier("file://./"+residuals_filename) ),
                                    (PROV['label'],"Residual Mean Squares Map" ),
-                                   (NIDM['originalFileName'],residuals_filename ),
+                                   (NIDM['filename'],residuals_original_filename ),
+                                   (NIDM['filename'],residuals_filename ),
                                    (CRYPTO['sha512'], self.get_sha_sum(residuals_file)),
                                    (NIDM['inCoordinateSpace'], self.create_coordinate_space(residuals_file))))
             self.provBundle.wasGeneratedBy(NIIRI['residual_mean_squares_map_id'], NIIRI['model_parameters_estimation_id'])  
@@ -222,18 +220,16 @@ class NIDMStat():
             print "No residual file"
 
         # Grand Mean Map entity
-        original_file = grand_mean_file
         grand_mean_file = os.path.join(self.export_dir, 'GrandMean.nii.gz')
-        shutil.copy(original_file, grand_mean_file)
-        path, grand_mean_filename = os.path.split(grand_mean_file)
-        grand_mean_file = os.path.join(self.export_dir,grand_mean_filename)  
+        grand_mean_original_filename, grand_mean_filename = self.copy_nifti(grand_mean_original_file, grand_mean_file)
 
         # TODO: nidm:maskedMedian "115"^^xsd:int ;
         self.provBundle.entity(NIIRI['grand_mean_map_id'], 
             other_attributes=( (PROV['type'],NIDM['GrandMeanMap']), 
                                (DCT['format'], NIDM['Nifti1Gzip']), 
                                (PROV['label'],"Grand Mean Map"), 
-                               (NIDM['originalFileName'], grand_mean_filename),
+                               (NIDM['filename'], grand_mean_filename),
+                               (NIDM['filename'], grand_mean_original_filename),
                                (NIDM['inCoordinateSpace'], self.create_coordinate_space(grand_mean_file)),
                                (CRYPTO['sha512'], self.get_sha_sum(grand_mean_file)),
                                (PROV['location'], Identifier("file://./"+grand_mean_filename))))      
@@ -247,9 +243,16 @@ class NIDMStat():
         self.provBundle.entity(NIIRI['design_matrix_id'], 
             other_attributes=( (PROV['type'],NIDM['DesignMatrix']), 
                                (PROV['label'],"Design Matrix"), 
-                               # (NIDM['originalFileName'],design_matrix_csv ),
+                               # (NIDM['filename'],design_matrix_csv ),
                                (PROV['location'], Identifier("file://./"+design_matrix_csv))))       
         self.provBundle.used(NIIRI['model_parameters_estimation_id'], NIIRI['design_matrix_id'])
+
+    def copy_nifti(self, original_file, new_file):
+        shutil.copy(original_file, new_file)
+        path, new_filename = os.path.split(new_file)
+        path, original_filename = os.path.split(original_file)
+
+        return original_filename, new_filename 
 
     # Generate prov for contrast map
     def create_parameter_estimate(self, pe_file, pe_num):
@@ -263,7 +266,7 @@ class NIDMStat():
             other_attributes=( (PROV['type'], NIDM['ParameterEstimateMap']), 
                                # (DCT['format'], NIDM['Nifti1Gzip']), 
                                # (PROV['location'], Identifier("file://./"+pe_filename)),
-                               (NIDM['originalFileName'], pe_filename), 
+                               (NIDM['filename'], pe_filename), 
                                (NIDM['inCoordinateSpace'], self.create_coordinate_space(pe_file)),
                                # (CRYPTO['sha512'], self.get_sha_sum(pe_file)),
                                (PROV['label'], "Parameter estimate "+str(pe_num))))
@@ -271,7 +274,8 @@ class NIDMStat():
         self.provBundle.wasGeneratedBy(NIIRI['beta_map_id_'+str(pe_num)], NIIRI['model_parameters_estimation_id'])  
 
     # Generate prov for contrast map
-    def create_contrast_map(self, cope_file, var_cope_file, stat_file, z_stat_file, contrast_name, contrast_num, dof, contrastWeights):
+    def create_contrast_map(self, cope_original_file, var_cope_original_file, stat_original_file, 
+        z_stat_original_file, contrast_name, contrast_num, dof, contrastWeights):
         # Contrast id entity
         # FIXME: Get contrast weights
         # FIXME: Deal with F weights
@@ -296,11 +300,8 @@ class NIDMStat():
             peIndex += 1;
 
         # Copy contrast map in export directory
-        original_file = cope_file
         cope_file = os.path.join(self.export_dir, 'Contrast.nii.gz')
-        shutil.copy(original_file, cope_file)
-        path, cope_filename = os.path.split(cope_file)
-        cope_file = os.path.join(self.export_dir,cope_filename)  
+        cope_original_filename, cope_filename = self.copy_nifti(cope_original_file, cope_file)
 
         # Contrast Map entity
         path, filename = os.path.split(cope_file)
@@ -309,7 +310,8 @@ class NIDMStat():
             (DCT['format'], NIDM['Nifti1Gzip']), 
             (NIDM['inCoordinateSpace'], self.create_coordinate_space(cope_file)),
             (PROV['location'], Identifier("file://./"+cope_filename)),
-            (NIDM['originalFileName'], cope_filename),
+            (NIDM['filename'], cope_original_filename),
+            (NIDM['filename'], cope_filename),
             (NIDM['contrastName'], contrast_name),
             (CRYPTO['sha512'], self.get_sha_sum(cope_file)),
             (PROV['label'], "Contrast Map: "+contrast_name)))
@@ -318,9 +320,10 @@ class NIDMStat():
         self.provBundle.wasAssociatedWith(NIIRI['contrast_estimation_id_'+contrast_num], NIIRI['software_id'])
 
         # Copy contrast variance map in export directory
-        shutil.copy(var_cope_file, self.export_dir)
-        path, var_cope_filename = os.path.split(var_cope_file)
-        var_cope_file = os.path.join(self.export_dir,var_cope_filename)  
+        path, var_cope_filename = os.path.split(var_cope_original_file)
+        # FIXME: Use ContrastVariance.nii.gz?
+        var_cope_file = os.path.join(self.export_dir, var_cope_filename)
+        var_cope_original_filename, var_cope_filename = self.copy_nifti(var_cope_original_file, var_cope_file)
 
         # Contrast Variance Map entity
         self.provBundle.entity('niiri:'+'contrast_variance_map_id_'+contrast_num, other_attributes=( 
@@ -329,8 +332,9 @@ class NIDMStat():
             (NIDM['inCoordinateSpace'], self.create_coordinate_space(var_cope_file)),
             # (PROV['location'], Identifier("file://./"+var_cope_filename)),
             (CRYPTO['sha512'], self.get_sha_sum(var_cope_file)),
-            (NIDM['originalFileName'], var_cope_filename)))
+            (NIDM['filename'], var_cope_filename)))
             # (PROV['label'], "Contrast Variance Map "+contrast_num)))
+        self.provBundle.wasGeneratedBy(NIIRI['contrast_variance_map_id_'+contrast_num], NIIRI['contrast_estimation_id_'+contrast_num])
         
 
         # Create standard error map from contrast variance map
@@ -338,7 +342,7 @@ class NIDMStat():
         contrast_variance = var_cope_img.get_data()
 
         standard_error_img = nib.Nifti1Image(np.sqrt(contrast_variance), var_cope_img.get_qform())
-        standard_error_file = var_cope_file.replace('var', 'sqrt_var')
+        standard_error_file = os.path.join(self.export_dir, "ContrastStandardError.nii.gz")
         nib.save(standard_error_img, standard_error_file)
 
         path, filename = os.path.split(standard_error_file)
@@ -348,21 +352,17 @@ class NIDMStat():
             (NIDM['inCoordinateSpace'], self.create_coordinate_space(standard_error_file)),
             (PROV['location'], Identifier("file://./"+filename)),
             (CRYPTO['sha512'], self.get_sha_sum(standard_error_file)),
-            # (NIDM['originalFileName'], filename),
+            (NIDM['filename'], filename),
             (PROV['label'], "Contrast Standard Error Map")))
         
-        self.provBundle.wasGeneratedBy(NIIRI['contrast_standard_error_map_id_'+contrast_num], NIIRI['contrast_estimation_id_'+contrast_num])
         self.provBundle.wasDerivedFrom(NIIRI['contrast_standard_error_map_id_'+contrast_num], NIIRI['contrast_variance_map_id_'+contrast_num])
 
         
         # FIXME: Remove TODOs
 
         # Copy Z-Statistical map in export directory
-        original_file = z_stat_file
         z_stat_file = os.path.join(self.export_dir, 'ZStatistic.nii.gz')
-        shutil.copy(original_file, z_stat_file)
-        path, z_stat_filename = os.path.split(z_stat_file)
-        z_stat_file = os.path.join(self.export_dir,z_stat_filename)       
+        z_stat_original_filename, z_stat_filename = self.copy_nifti(z_stat_original_file, z_stat_file)
 
         # Create "Z-Statistic Map" entity
         self.provBundle.entity(NIIRI['z_statistic_map_id_'+contrast_num ],
@@ -372,17 +372,15 @@ class NIDMStat():
                                 (PROV['location'], Identifier("file://./"+z_stat_filename)),
                                 (NIDM['statisticType'], NIDM['ZStatistic']), 
                                 (NIDM['contrastName'], contrast_name),
-                                (NIDM['originalFileName'], z_stat_filename),
+                                (NIDM['filename'], z_stat_original_filename),
+                                (NIDM['filename'], z_stat_filename),
                                 (CRYPTO['sha512'], self.get_sha_sum(z_stat_file)),
                                 (NIDM['inCoordinateSpace'], self.create_coordinate_space(z_stat_file)),
                                 ) )
 
         # Copy Statistical map in export directory
-        original_file = stat_file
         stat_file = os.path.join(self.export_dir, 'TStatistic.nii.gz')
-        shutil.copy(original_file, stat_file)
-        path, stat_filename = os.path.split(stat_file)
-        stat_file = os.path.join(self.export_dir,stat_filename)     
+        stat_original_filename, stat_filename = self.copy_nifti(stat_original_file, stat_file)       
 
         # Create "Statistic Map" entity
         # FIXME: Deal with other than t-contrast maps: dof + statisticType
@@ -392,7 +390,7 @@ class NIDMStat():
                                 (PROV['label'], "Statistic Map: "+contrast_name) ,
                                 (PROV['location'], Identifier("file://./"+stat_filename)),
                                 (NIDM['statisticType'], NIDM['TStatistic']), 
-                                (NIDM['originalFileName'], stat_filename),
+                                (NIDM['filename'], stat_filename),
                                 (NIDM['contrastName'], contrast_name),
                                 (NIDM['errorDegreesOfFreedom'], dof),
                                 (NIDM['effectDegreesOfFreedom'], 1.0),
@@ -459,11 +457,9 @@ class NIDMStat():
     # Generate prov for search space entity generated by the inference activity
     def create_search_space(self, search_space_file, search_volume, resel_size_in_voxels, dlh):
         # Copy "Mask map" in export directory
-        original_search_space_file = search_space_file
+        search_space_original_file = search_space_file
         search_space_file = os.path.join(self.export_dir, 'SearchSpace.nii.gz')
-        shutil.copy(original_search_space_file, search_space_file)
-        path, search_space_filename = os.path.split(search_space_file)
-        search_space_file = os.path.join(self.export_dir,search_space_filename)   
+        search_space_original_filename, search_space_filename = self.copy_nifti(search_space_original_file, search_space_file)
         
         # Crate "Mask map" entity
         self.provBundle.entity(NIIRI['search_space_id'], other_attributes=( 
@@ -471,7 +467,8 @@ class NIDMStat():
                 (DCT['format'], NIDM['Nifti1Gzip']), 
                 (PROV['type'], NIDM['SearchSpaceMap']), 
                 (PROV['location'], Identifier("file://./"+search_space_filename)),
-                (NIDM['originalFileName'], search_space_filename),
+                (NIDM['filename'], search_space_original_filename),
+                (NIDM['filename'], search_space_filename),
                 (NIDM['inCoordinateSpace'], self.create_coordinate_space(search_space_file)),
                 (FSL['searchVolumeInVoxels'], search_volume),
                 (CRYPTO['sha512'], self.get_sha_sum(search_space_file)),
@@ -482,11 +479,9 @@ class NIDMStat():
 
     def create_excursion_set(self, excursion_set_file, stat_num, visualisation):
         # Copy "Excursion set map" in export directory
-        original_excursion_set_file = excursion_set_file
+        excursion_set_original_file = excursion_set_file
         excursion_set_file = os.path.join(self.export_dir, 'ExcursionSet.nii.gz')
-        shutil.copy(original_excursion_set_file, excursion_set_file)
-        path, excursion_set_filename = os.path.split(excursion_set_file)
-        excursion_set_file = os.path.join(self.export_dir,excursion_set_filename)   
+        excursion_set_original_filename, excursion_set_filename = self.copy_nifti(excursion_set_original_file, excursion_set_file)
 
         # Copy visualisation of excursion set in export directory
         shutil.copy(visualisation, self.export_dir)
@@ -497,7 +492,8 @@ class NIDMStat():
             (PROV['type'], NIDM['ExcursionSet']), 
             (DCT['format'], NIDM['Nifti1Gzip']), 
             (PROV['location'], Identifier("file://./"+excursion_set_filename)),
-            (NIDM['originalFileName'], excursion_set_filename),
+            (NIDM['filename'], excursion_set_original_filename),
+            (NIDM['filename'], excursion_set_filename),
             (NIDM['inCoordinateSpace'], self.create_coordinate_space(excursion_set_file)),
             (PROV['label'], "Excursion Set"),
             (NIDM['visualisation'], NIIRI['excursion_set_png_id_'+str(stat_num)]),
