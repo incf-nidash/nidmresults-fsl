@@ -12,7 +12,6 @@ import nibabel as nib
 import hashlib
 import shutil
 
-
 NIDM = Namespace('nidm', "http://www.incf.org/ns/nidash/nidm#")
 NIIRI = Namespace("niiri", "http://iri.nidash.org/")
 CRYPTO = Namespace("crypto", "http://id.loc.gov/vocabulary/preservation/cryptographicHashFunctions#")
@@ -72,13 +71,13 @@ class NIDMStat():
         thresh_desc = ""
         if not voxel_threshold is None:
             thresh_desc = "Z>"+str(voxel_threshold)
-            user_threshold_type = NIDM['zStatistic']
+            user_threshold_type = "Z-Statistic"
         elif not voxel_p_uncorr is None:
             thresh_desc = "p<"+str(voxel_p_uncorr)+" uncorr."
-            user_threshold_type = NIDM['pValueUncorrected']
+            user_threshold_type = "p-value uncorrected"
         elif not voxel_p_corr is None:
             thresh_desc = "p<"+str(voxel_p_corr)+" (GRF)"
-            user_threshold_type = NIDM['pValueFWER']
+            user_threshold_type = "p-value FWE"
 
         # FIXME: Do we want to calculate an uncorrected p equivalent to the Z thresh? 
         # FIXME: Do we want/Can we find a corrected p equivalent to the Z thresh? 
@@ -95,13 +94,13 @@ class NIDMStat():
         thresh_desc = ""
         if not extent is None:
             thresh_desc = "k>"+str(extent)
-            user_threshold_type = NIDM['clusterSizeInVoxels']
+            user_threshold_type = "Cluster-size in voxels"
         elif not extent_p_uncorr is None:
             thresh_desc = "p<"+str(extent_p_uncorr)+" uncorr."
-            user_threshold_type = NIDM['pValueUncorrected']
+            user_threshold_type = "p-value uncorrected"
         elif not extent_p_corr is None:
             thresh_desc = "p<"+str(extent_p_corr)+" corr."
-            user_threshold_type = NIDM['pValueFWER']
+            user_threshold_type = "p-value FWE"
         extent_thresh_all_fields = {
             PROV['type']: NIDM['ExtentThreshold'], PROV['label']: "Extent Threshold: "+thresh_desc, NIDM['clusterSizeInVoxels']: extent,
             NIDM['userSpecifiedThresholdType']: user_threshold_type, NIDM['pValueUncorrected']: extent_p_uncorr, NIDM['pValueFWER']: extent_p_corr
@@ -326,7 +325,10 @@ class NIDMStat():
         var_cope_original_filename, var_cope_filename = self.copy_nifti(var_cope_original_file, var_cope_file)
 
         # Contrast Variance Map entity
-        self.provBundle.entity('niiri:'+'contrast_variance_map_id_'+contrast_num, other_attributes=( 
+        # self.provBundle.entity('niiri:'+'contrast_variance_map_id_'+contrast_num, other_attributes=( 
+        contrast_var_id = 'niiri:'+hashlib.md5(self.get_sha_sum(var_cope_file)).hexdigest()
+        
+        self.provBundle.entity(contrast_var_id, other_attributes=( 
             (PROV['type'], NIDM['Map']), 
             # (DCT['format'], "image/nifti"), 
             (NIDM['inCoordinateSpace'], self.create_coordinate_space(var_cope_file)),
@@ -334,7 +336,6 @@ class NIDMStat():
             (CRYPTO['sha512'], self.get_sha_sum(var_cope_file)),
             (NIDM['filename'], var_cope_filename)))
             # (PROV['label'], "Contrast Variance Map "+contrast_num)))
-        self.provBundle.wasGeneratedBy(NIIRI['contrast_variance_map_id_'+contrast_num], NIIRI['contrast_estimation_id_'+contrast_num])
         
 
         # Create standard error map from contrast variance map
@@ -355,7 +356,8 @@ class NIDMStat():
             (NIDM['filename'], filename),
             (PROV['label'], "Contrast Standard Error Map")))
         
-        self.provBundle.wasDerivedFrom(NIIRI['contrast_standard_error_map_id_'+contrast_num], NIIRI['contrast_variance_map_id_'+contrast_num])
+        self.provBundle.wasDerivedFrom(NIIRI['contrast_standard_error_map_id_'+contrast_num], contrast_var_id)
+        self.provBundle.wasGeneratedBy(NIIRI['contrast_standard_error_map_id_'+contrast_num], NIIRI['contrast_estimation_id_'+contrast_num])
 
         
         # FIXME: Remove TODOs
