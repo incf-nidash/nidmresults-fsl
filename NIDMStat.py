@@ -236,7 +236,7 @@ class NIDMStat():
         self.provBundle.wasGeneratedBy(NIIRI['grand_mean_map_id'], NIIRI['model_parameters_estimation_id'],)
         
         # Create cvs file containing design matrix
-        design_matrix_csv = 'design_matrix.csv'
+        design_matrix_csv = 'DesignMatrix.csv'
         np.savetxt(os.path.join(self.export_dir, design_matrix_csv), np.asarray(design_matrix), delimiter=",")
 
         # Create "design matrix" entity
