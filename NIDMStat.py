@@ -207,7 +207,7 @@ class NIDMStat():
             # Create "residuals map" entity
             self.provBundle.entity(NIIRI['residual_mean_squares_map_id'], 
                 other_attributes=( (PROV['type'],NIDM['ResidualMeanSquaresMap'],), 
-                                   (DCT['format'], NIDM['Nifti1Gzip']), 
+                                   (DCT['format'], "image/nifti"), 
                                    (PROV['location'], Identifier("file://./"+residuals_filename) ),
                                    (PROV['label'],"Residual Mean Squares Map" ),
                                    (NIDM['filename'],residuals_original_filename ),
@@ -226,7 +226,7 @@ class NIDMStat():
         # TODO: nidm:maskedMedian "115"^^xsd:int ;
         self.provBundle.entity(NIIRI['grand_mean_map_id'], 
             other_attributes=( (PROV['type'],NIDM['GrandMeanMap']), 
-                               (DCT['format'], NIDM['Nifti1Gzip']), 
+                               (DCT['format'], "image/nifti"), 
                                (PROV['label'],"Grand Mean Map"), 
                                (NIDM['filename'], grand_mean_filename),
                                (NIDM['filename'], grand_mean_original_filename),
@@ -264,7 +264,7 @@ class NIDMStat():
         # Parameter estimate entity
         self.provBundle.entity(NIIRI['beta_map_id_'+str(pe_num)], 
             other_attributes=( (PROV['type'], NIDM['ParameterEstimateMap']), 
-                               # (DCT['format'], NIDM['Nifti1Gzip']), 
+                               # (DCT['format'], "image/nifti"), 
                                # (PROV['location'], Identifier("file://./"+pe_filename)),
                                (NIDM['filename'], pe_filename), 
                                (NIDM['inCoordinateSpace'], self.create_coordinate_space(pe_file)),
@@ -307,7 +307,7 @@ class NIDMStat():
         path, filename = os.path.split(cope_file)
         self.provBundle.entity('niiri:'+'contrast_map_id_'+contrast_num, other_attributes=( 
             (PROV['type'], NIDM['ContrastMap']), 
-            (DCT['format'], NIDM['Nifti1Gzip']), 
+            (DCT['format'], "image/nifti"), 
             (NIDM['inCoordinateSpace'], self.create_coordinate_space(cope_file)),
             (PROV['location'], Identifier("file://./"+cope_filename)),
             (NIDM['filename'], cope_original_filename),
@@ -328,7 +328,7 @@ class NIDMStat():
         # Contrast Variance Map entity
         self.provBundle.entity('niiri:'+'contrast_variance_map_id_'+contrast_num, other_attributes=( 
             (PROV['type'], NIDM['Map']), 
-            # (DCT['format'], NIDM['Nifti1Gzip']), 
+            # (DCT['format'], "image/nifti"), 
             (NIDM['inCoordinateSpace'], self.create_coordinate_space(var_cope_file)),
             # (PROV['location'], Identifier("file://./"+var_cope_filename)),
             (CRYPTO['sha512'], self.get_sha_sum(var_cope_file)),
@@ -348,7 +348,7 @@ class NIDMStat():
         path, filename = os.path.split(standard_error_file)
         self.provBundle.entity('niiri:'+'contrast_standard_error_map_id_'+contrast_num, other_attributes=( 
             (PROV['type'], NIDM['ContrastStandardErrorMap']), 
-            (DCT['format'], NIDM['Nifti1Gzip']), 
+            (DCT['format'], "image/nifti"), 
             (NIDM['inCoordinateSpace'], self.create_coordinate_space(standard_error_file)),
             (PROV['location'], Identifier("file://./"+filename)),
             (CRYPTO['sha512'], self.get_sha_sum(standard_error_file)),
@@ -367,7 +367,7 @@ class NIDMStat():
         # Create "Z-Statistic Map" entity
         self.provBundle.entity(NIIRI['z_statistic_map_id_'+contrast_num ],
             other_attributes=(  (PROV['type'], NIDM['StatisticMap']), 
-                                (DCT['format'], NIDM['Nifti1Gzip']), 
+                                (DCT['format'], "image/nifti"), 
                                 (PROV['label'], "Z-Statistic Map: "+contrast_name) ,
                                 (PROV['location'], Identifier("file://./"+z_stat_filename)),
                                 (NIDM['statisticType'], NIDM['ZStatistic']), 
@@ -386,7 +386,7 @@ class NIDMStat():
         # FIXME: Deal with other than t-contrast maps: dof + statisticType
         self.provBundle.entity(NIIRI['statistic_map_id_'+contrast_num ],
             other_attributes=(  (PROV['type'], NIDM['StatisticMap']), 
-                                (DCT['format'], NIDM['Nifti1Gzip']), 
+                                (DCT['format'], "image/nifti"), 
                                 (PROV['label'], "Statistic Map: "+contrast_name) ,
                                 (PROV['location'], Identifier("file://./"+stat_filename)),
                                 (NIDM['statisticType'], NIDM['TStatistic']), 
@@ -464,7 +464,7 @@ class NIDMStat():
         # Crate "Mask map" entity
         self.provBundle.entity(NIIRI['search_space_id'], other_attributes=( 
                 (PROV['label'], "Search Space Map"), 
-                (DCT['format'], NIDM['Nifti1Gzip']), 
+                (DCT['format'], "image/nifti"), 
                 (PROV['type'], NIDM['SearchSpaceMap']), 
                 (PROV['location'], Identifier("file://./"+search_space_filename)),
                 (NIDM['filename'], search_space_original_filename),
@@ -490,7 +490,7 @@ class NIDMStat():
         # Create "Excursion set" entity
         self.provBundle.entity(NIIRI['excursion_set_id_'+str(stat_num)], other_attributes=( 
             (PROV['type'], NIDM['ExcursionSet']), 
-            (DCT['format'], NIDM['Nifti1Gzip']), 
+            (DCT['format'], "image/nifti"), 
             (PROV['location'], Identifier("file://./"+excursion_set_filename)),
             (NIDM['filename'], excursion_set_original_filename),
             (NIDM['filename'], excursion_set_filename),
