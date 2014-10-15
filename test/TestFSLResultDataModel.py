@@ -36,6 +36,7 @@ if not os.path.isdir(NIDM_DIR):
     from FSLparser import FSL_NIDM
 
 NIDM_RESULTS_DIR = os.path.join(NIDM_DIR, "nidm", "nidm-results")
+TERM_RESULTS_DIR = os.path.join(NIDM_RESULTS_DIR, "terms")
 
 path = os.path.join(NIDM_RESULTS_DIR, "test")
 sys.path.append(path)
@@ -67,7 +68,7 @@ class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
         self.fslexport.parse(self.fsl_export_ttl, format='turtle')
 
         # Retreive owl file for NIDM-Results
-        self.owl_file = os.path.join(NIDM_RESULTS_DIR, 'nidm-results.owl')
+        self.owl_file = os.path.join(TERM_RESULTS_DIR, 'nidm-results.owl')
 
         # Move in test dir (storage of prov file)
         fsl_expe_dir = os.path.join(RELPATH, 'test', 'data', 'fmri.feat')
