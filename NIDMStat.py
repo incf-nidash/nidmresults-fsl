@@ -11,17 +11,11 @@ import numpy as np
 import nibabel as nib
 import hashlib
 import shutil
-
-NIDM = Namespace('nidm', "http://www.incf.org/ns/nidash/nidm#")
-NIIRI = Namespace("niiri", "http://iri.nidash.org/")
-CRYPTO = Namespace("crypto", "http://id.loc.gov/vocabulary/preservation/cryptographicHashFunctions#")
-FSL = Namespace("fsl", "http://www.incf.org/ns/nidash/fsl#")
-DCT = Namespace("dct", "http://purl.org/dc/terms/")
+from constants import *
 
 ''' Create a NIDM export file and copy related nifti files
 '''
 class NIDMStat():
-
     def __init__(self, *args, **kwargs):
         # FIXME: Merge coordinateSpace entities if identical?
         # FIXME: Use actual URIs instead
@@ -175,7 +169,8 @@ class NIDMStat():
         self.provBundle.entity(NIIRI['peak_'+str(peakUniqueId)], other_attributes=other_attributes)
         self.provBundle.wasDerivedFrom(NIIRI['peak_'+str(peakUniqueId)], NIIRI['cluster_000'+str(cluster_id)])
 
-    def create_model_fitting(self, residuals_original_file, grand_mean_original_file, mask_file, design_matrix):
+    def create_model_fitting(self, residuals_original_file, grand_mean_original_file, mask_file, design_matrix,
+        variance_homo, dependance, variance_spatial, dependance_spatial, error_distribution, estimation_meth):
         # Copy residuals map in export directory
         if not residuals_original_file is None:
             residuals_file = os.path.join(self.export_dir, 'ResidualMeanSquares.nii.gz')
@@ -183,7 +178,9 @@ class NIDMStat():
 
         # Create "Model Parameter estimation" activity
         self.provBundle.activity(NIIRI['model_parameters_estimation_id'], other_attributes=( 
-            (PROV['type'], NIDM['ModelParametersEstimation']),(PROV['label'], "Model Parameters Estimation")))
+            (PROV['type'], NIDM['ModelParametersEstimation']),
+            (NIDM['withEstimationMethod'], estimation_meth),
+            (PROV['label'], "Model Parameters Estimation")))
         self.provBundle.wasAssociatedWith(NIIRI['model_parameters_estimation_id'], NIIRI['software_id'])
 
         # Create "Data" entity
@@ -231,12 +228,22 @@ class NIDMStat():
         # Grand Mean Map entity
         grand_mean_file = os.path.join(self.export_dir, 'GrandMean.nii.gz')
         grand_mean_original_filename, grand_mean_filename = self.copy_nifti(grand_mean_original_file, grand_mean_file)
+        grand_mean_img = nib.load(grand_mean_file)
+        grand_mean_data = grand_mean_img.get_data()
+        grand_mean_data = np.ndarray.flatten(grand_mean_data)
 
-        # TODO: nidm:maskedMedian "115"^^xsd:int ;
+        mask_img = nib.load(mask_file)
+        mask_data = mask_img.get_data()
+        mask_data = np.ndarray.flatten(mask_data)
+
+        grand_mean_data_in_mask = grand_mean_data[mask_data > 0]
+        masked_median = np.median(np.array(grand_mean_data_in_mask, dtype=float))
+
         self.provBundle.entity(NIIRI['grand_mean_map_id'], 
             other_attributes=( (PROV['type'],NIDM['GrandMeanMap']), 
                                (DCT['format'], "image/nifti"), 
                                (PROV['label'],"Grand Mean Map"), 
+                               (NIDM['maskedMedian'], masked_median),
                                (NIDM['filename'], grand_mean_filename),
                                (NIDM['filename'], grand_mean_original_filename),
                                (NIDM['inCoordinateSpace'], self.create_coordinate_space(grand_mean_file)),
@@ -255,6 +262,16 @@ class NIDMStat():
                                # (NIDM['filename'],design_matrix_csv ),
                                (PROV['location'], Identifier("file://./"+design_matrix_csv))))       
         self.provBundle.used(NIIRI['model_parameters_estimation_id'], NIIRI['design_matrix_id'])
+
+        # Create "Error Model" entity
+        self.provBundle.entity(NIIRI['error_model_id'], 
+            other_attributes=( (PROV['type'],NIDM['ErrorModel']), 
+                               (NIDM['hasNoiseDistribution'], error_distribution), 
+                               (NIDM['errorVarianceHomogeneous'], variance_homo), 
+                               (NIDM['varianceSpatialModel'], variance_spatial), 
+                               (NIDM['hasErrorDependence'], dependance), 
+                               (NIDM['dependenceSpatialModel'], dependance_spatial)))  
+        self.provBundle.used(NIIRI['model_parameters_estimation_id'], NIIRI['error_model_id'])
 
     def copy_nifti(self, original_file, new_file):
         shutil.copy(original_file, new_file)
@@ -284,7 +301,8 @@ class NIDMStat():
 
     # Generate prov for contrast map
     def create_contrast_map(self, cope_original_file, var_cope_original_file, stat_original_file, 
-        z_stat_original_file, contrast_name, contrast_num, dof, contrastWeights):
+        z_stat_original_file, contrast_name, contrast_num, dof, contrastWeights, connectivity, 
+        peak_dist, num_peak, display_mask_original_file):
         # Contrast id entity
         # FIXME: Get contrast weights
         # FIXME: Deal with F weights
@@ -434,6 +452,40 @@ class NIDMStat():
 
         self.provBundle.wasGeneratedBy(NIIRI['search_space_id'], NIIRI['inference_id_'+contrast_num])
         # self.provBundle.wasGeneratedBy(NIIRI['stat_image_properties_id'], NIIRI['inference_id_'+contrast_num])
+
+        # Create "Cluster definition criteria" entity
+        voxel_connectivity = NIDM['connected'+str(connectivity)+'In3D']
+        
+        self.provBundle.entity(NIIRI['cluster_definition_criteria_id_'+contrast_num],
+            other_attributes=(  (PROV['type'], NIDM['ClusterDefinitionCriteria']), 
+                                (PROV['label'] , "Cluster Connectivity Criterion: "+str(connectivity)),
+                                (NIDM['hasConnectivityCriterion'], voxel_connectivity)))
+        self.provBundle.used(NIIRI['inference_id_'+contrast_num], NIIRI['cluster_definition_criteria_id_'+contrast_num])
+
+        # Create "Peak definition criteria" entity
+        self.provBundle.entity(NIIRI['peak_definition_criteria_id_'+contrast_num],
+            other_attributes=(  (PROV['type'], NIDM['PeakDefinitionCriteria']), 
+                                (PROV['label'] , "Peak Definition Criteria"),
+                                (NIDM['maxNumberOfPeaksPerCluster'], num_peak),
+                                (NIDM['minDistanceBetweenPeaks'], peak_dist)))
+        self.provBundle.used(NIIRI['inference_id_'+contrast_num], NIIRI['peak_definition_criteria_id_'+contrast_num])
+
+        # Create "Display Mask Map" entity
+        
+        # Copy Statistical map in export directory
+        display_mask_file = os.path.join(self.export_dir, 'DisplayMask.nii.gz')
+        display_mask_original_filename, display_mask_filename = self.copy_nifti(display_mask_original_file, display_mask_file)     
+
+        self.provBundle.entity(NIIRI['display_map_id_'+contrast_num],
+            other_attributes=(  (PROV['type'], NIDM['DisplayMaskMap']), 
+                                (PROV['label'] , "Display Mask Map"),
+                                (DCT['format'] , "image/nifti"),
+                                (NIDM['inCoordinateSpace'], self.create_coordinate_space(display_mask_file)),
+                                (NIDM['filename'], display_mask_original_filename),
+                                (NIDM['filename'], display_mask_filename),
+                                (PROV['location'], Identifier("file://./"+display_mask_filename)),
+                                (CRYPTO['sha512'], self.get_sha_sum(display_mask_file))))
+        self.provBundle.used(NIIRI['inference_id_'+contrast_num], NIIRI['display_map_id_'+contrast_num])
 
     # Generate prov for a coordinate space entity 
     def create_coordinate_space(self, niftiFile):

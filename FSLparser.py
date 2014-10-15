@@ -13,7 +13,7 @@ import os
 import numpy as np
 import nibabel as nib
 from NIDMStat import NIDMStat
-
+from constants import *
 
 ''' Parse an FSL result directory to extract the pieces information stored in NI-DM (for statistical results)
 '''
@@ -24,6 +24,8 @@ class FSL_NIDM():
         self.export_dir = os.path.join(self.feat_dir, 'nidm')
         
         self.design_file = os.path.join(self.feat_dir, 'design.fsf');
+        design_file_open = open(self.design_file, 'r')
+        self.design_txt = design_file_open.read()
         self.find_reference_space();
 
         self.nidm = NIDMStat(export_dir=self.export_dir, standard_space=self.standard_space, custom_standard=self.custom_standard);
@@ -57,7 +59,8 @@ class FSL_NIDM():
                     zstatnum = zstatnum.group()
                     statnum = zstatnum.replace('zstat', '')
                     self.add_contrast(statnum)
-                    self.add_clusters_peaks(statnum)        
+                    self.add_clusters_peaks(statnum)      
+
 
     # Add model fitting, residuals map
     def add_model_fitting(self):
@@ -77,7 +80,35 @@ class FSL_NIDM():
 
         mask_file = os.path.join(self.feat_dir, 'mask.nii.gz')
 
-        self.nidm.create_model_fitting(residuals_file, grand_mean_file, mask_file, design_matrix)
+        fmri_level_search = re.compile(r'.*set fmri\(level\) (?P<fmrilevel>\d+).*')
+        fmri_level_found = fmri_level_search.search(self.design_txt)
+        fmri_level = int(fmri_level_found.group('fmrilevel'))
+        first_level = (fmri_level == 1)
+
+        if first_level:
+            variance_homo = True
+            dependance = SERIALLY_CORR
+            variance_spatial = SPATIALLY_LOCAL
+            dependance_spatial = SPATIALLY_REGUL
+        else:
+            variance_homo = False
+            dependance = INDEPEDENT_CORR
+            variance_spatial = SPATIALLY_LOCAL
+            dependance_spatial = None
+
+        if dependance == INDEPEDENT_CORR:
+            if variance_homo:
+                estimation_method = ESTIMATION_OLS
+            else:
+                estimation_method = ESTIMATION_WLS
+        else:
+            estimation_method = ESTIMATION_GLS
+
+        error_distribution = GAUSSIAN_DISTRIBUTION
+
+        self.nidm.create_model_fitting(residuals_file, grand_mean_file, mask_file, design_matrix,
+            variance_homo, dependance, variance_spatial, dependance_spatial, error_distribution,
+            estimation_method)
 
     # For a parameter estimate, create the parameter estimate map emtity
     def add_parameter_estimate(self, pe_file, pe_num):
@@ -85,20 +116,18 @@ class FSL_NIDM():
 
     # Find reference space 
     def find_reference_space(self):
-        designFile = open(self.design_file, 'r')
-        designTxt = designFile.read()
         standard_space_search = re.compile(r'.*set fmri\(regstandard_yn\) (?P<isStandard>[\d]+).*')
-        extracted_data = standard_space_search.search(designTxt) 
+        extracted_data = standard_space_search.search(self.design_txt) 
         self.standard_space = bool(extracted_data.group('isStandard'))
 
         if self.standard_space:
             standard_space_search = re.compile(r'.*set fmri\(alternateReference_yn\) (?P<isCustom>[\d]+).*')
-            extracted_data = standard_space_search.search(designTxt) 
+            extracted_data = standard_space_search.search(self.design_txt) 
             if not extracted_data is None:
                 self.custom_standard = (extracted_data.group('isCustom') == "1");
             else:
                 standard_space_search = re.compile(r'.*set fmri\(regstandard\) (?P<regstd>.+).*')
-                extracted_data = standard_space_search.search(designTxt) 
+                extracted_data = standard_space_search.search(self.design_txt) 
                 if not extracted_data is None:
                     self.custom_standard = True;
         else:
@@ -113,20 +142,61 @@ class FSL_NIDM():
         z_stat_map_file = os.path.join(self.feat_dir, 'stats', 'zstat'+str(contrast_num)+'.nii.gz')
 
         # Get contrast name and contrast weights from design.fsf file
-        designFile = open(self.design_file, 'r')
-        designTxt = designFile.read()
         contrast_name_search = re.compile(r'.*set fmri\(conname_real\.'+contrast_num+'\) "(?P<contrastName>[\w\s><]+)".*')
-        extracted_data = contrast_name_search.search(designTxt) 
+        extracted_data = contrast_name_search.search(self.design_txt) 
 
         contrast_weight_search = re.compile(r'.*set fmri\(con_real'+contrast_num+'\.\d+\) (?P<contrastWeight>\d+)')
-        contrastWeights = str(re.findall(contrast_weight_search, designTxt)).replace("'", '')
+        contrastWeights = str(re.findall(contrast_weight_search, self.design_txt)).replace("'", '')
 
         # FIXME: to do only once (and not each time we load a new contrast)
         dofFile = open(os.path.join(self.feat_dir, 'stats', 'dof'), 'r')
         dof = float(dofFile.read())
 
+        # Find connectivity criterion
+        # FIXME: maybe not always "4"?
+        feat_post_log_file = open(os.path.join(self.feat_dir, 'logs', 'feat4_post'), 'r')
+        feat_post_log = feat_post_log_file.read()
+        connectivity_search = re.compile(r'.* --connectivity=(?P<connectivity>\d+)+ .*')
+        connectivity = int(connectivity_search.search(feat_post_log).group('connectivity'))
+
+        peak_dist_search = re.compile(r'.* --peakdist=(?P<peakdist>\d+)+ .*')
+        peak_dist_found = peak_dist_search.search(feat_post_log)
+        if peak_dist_found:
+            peak_dist = float(peak_dist_found.group('peakdist'))
+        else:
+            # If not specified, default value is zero (cf. http://fsl.fmrib.ox.ac.uk/fsl/fslwiki/Cluster)
+            peak_dist = 0.0
+
+        num_peak_search = re.compile(r'.* --num=(?P<numpeak>\d+)+ .*')
+        num_peak_found = num_peak_search.search(feat_post_log)
+        if num_peak_found:
+            num_peak = int(num_peak_found.group('numpeak'))
+        else:
+            num_peak_search = re.compile(r'.* -n=(?P<numpeak>\d+)+ .*')
+            num_peak_found = num_peak_search.search(feat_post_log)
+            if num_peak_found:
+                num_peak = int(num_peak_found.group('numpeak'))
+            else:
+                # If not specified, default value is inf? (cf. http://fsl.fmrib.ox.ac.uk/fsl/fslwiki/Cluster)
+                # Is it ok to say no limit with -1 (as for Inf we would need float...)
+                num_peak = -1
+
+
+        # # FIXME deal with the case in which we are contrast masking by more than one contrast
+        # contrast_masking_search = re.compile(r'.*set fmri\(conmask'+contrast_num+'_(?P<maskingconnum>\d+)\) (?P<domask>\d+).*')
+        # contrast_masking_found = contrast_masking_search.search(self.design_txt)
+        # do_contrast_masking = float(contrast_masking_found.group('domask'))
+        # if do_contrast_masking:
+        #     contrast_masking_num = contrast_masking_found.group('maskingconnum')
+        #     contrast_masking_file = 
+        # else:
+        #     contrast_masking_num = None
+        # FIXME: We need an example with more than one contrast to code contrast masking        
+        contrast_masking_file = self.maskFile
+
         self.nidm.create_contrast_map(contrast_file, varcontrast_file, stat_map_file, z_stat_map_file,
-            extracted_data.group('contrastName').strip(), contrast_num, dof, contrastWeights)
+            extracted_data.group('contrastName').strip(), contrast_num, dof, contrastWeights, 
+            connectivity, peak_dist, num_peak, contrast_masking_file)
 
     # Create the search space entity generated by an inference activity
     def add_search_space(self):
