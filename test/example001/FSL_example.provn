@@ -5,6 +5,8 @@ document
           prefix crypto <http://id.loc.gov/vocabulary/preservation/cryptographicHashFunctions#>
           prefix nidm <http://www.incf.org/ns/nidash/nidm#>
           
+          entity(niiri:fsl_results_id, [prov:type='prov:Bundle', nidm:objectModel='nidm:FSLResults', nidm:version="0.2.0", prov:label="FSL Results"])
+          wasGeneratedBy(niiri:fsl_results_id, -, 2014-10-16T15:01:18.719518)
           bundle niiri:fsl_results_id
             prefix niiri <http://iri.nidash.org/>
             prefix fsl <http://www.incf.org/ns/nidash/fsl#>

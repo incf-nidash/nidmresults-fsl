@@ -12,6 +12,7 @@ import nibabel as nib
 import hashlib
 import shutil
 from constants import *
+import datetime
 
 ''' Create a NIDM export file and copy related nifti files
 '''
@@ -38,6 +39,24 @@ class NIDMStat():
         self.provDocument.add_namespace(CRYPTO)
 
         self.provBundle = ProvBundle(identifier=NIIRI['fsl_results_id'])
+
+        # Create bundle entity
+        self.provDocument.entity(NIIRI['fsl_results_id'], 
+            other_attributes=( (PROV['type'], PROV['Bundle'],), 
+                               (PROV['label'],"FSL Results" ),
+                               (NIDM['objectModel'],NIDM['FSLResults']),
+                               (NIDM['version'],"0.2.0" ))
+            )
+
+        self.provDocument.wasGeneratedBy(NIIRI['fsl_results_id'], 
+            time=str(datetime.datetime.now().time()))
+
+        # entity(niiri:fsl_results_id,
+        # [prov:type = 'prov:Bundle',
+        # prov:label = "FSL Results",
+        # nidm:objectModel = 'nidm:FSLResults',
+        # nidm:version = "0.2.0"])
+        # wasGeneratedBy(niiri:fsl_results_id, -, 2014-05-19T10:30:00)
         
         self.standard_space = kwargs.pop('standard_space')
         self.custom_standard = kwargs.pop('custom_standard')
