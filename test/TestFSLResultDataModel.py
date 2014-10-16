@@ -19,6 +19,7 @@ import sys
 
 import logging
 logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.DEBUG)
 
 RELPATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -37,6 +38,7 @@ if not os.path.isdir(NIDM_DIR):
 
 NIDM_RESULTS_DIR = os.path.join(NIDM_DIR, "nidm", "nidm-results")
 TERM_RESULTS_DIR = os.path.join(NIDM_RESULTS_DIR, "terms")
+TEST_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'example001')
 
 path = os.path.join(NIDM_RESULTS_DIR, "test")
 sys.path.append(path)
@@ -48,20 +50,33 @@ from CheckConsistency import *
 '''Tests based on the analysis of single-subject fmri fluency data as described at http://fsl.fmrib.ox.ac.uk/fslcourse/lectures/practicals/feat1/index.html but with only *1 contrast specified: Generation*
 '''
 class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
+    
+
+    @classmethod
+    def setUpClass(cls):
+        # Once for all, convert provn to ttl
+
+        #  Turtle file obtained with FSL NI-DM export tool
+        fsl_export_provn = os.path.join(TEST_FOLDER, 'FSL_example.provn');
+
+        # Equivalent turtle file converted using the ProvStore API
+        fsl_export_ttl_url = get_turtle(fsl_export_provn)
+
+        # Local file to save the turtle export (and avoid multiple calls to ProvStore)
+        fsl_export_ttl = os.path.join(TEST_FOLDER, 'FSL_example.ttl');
+
+        ttl_url_open = urllib.urlopen(fsl_export_ttl_url)
+        logging.info("Writing in "+fsl_export_ttl)
+        ttl_file = open(fsl_export_ttl, "w")
+        ttl_file.write(ttl_url_open.read())
+        ttl_file.close()
+
 
     def setUp(self):
         TestResultDataModel.setUp(self) 
         self.ground_truth_dir = os.path.join(NIDM_RESULTS_DIR,'fsl', 'example001')
-
-        # Current module directory is used as test directory
-        self.test_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'example001')
-
-        #  Turtle file obtained with FSL NI-DM export tool
-        fsl_export_provn = os.path.join(self.test_dir, 'FSL_example.provn');
-        self.fsl_export_ttl = get_turtle(fsl_export_provn)
-        # fsl_export_json = os.path.join(self.test_dir, 'fsl', 'export', 'test01', 'fsl_nidm.json');
-        # g.parse(data=testrdfjson, format="rdf-json")
-        
+        self.fsl_export_ttl = os.path.join(TEST_FOLDER, 'FSL_example.ttl');
+       
         # RDF obtained by the FSL export 
         self.fslexport = Graph()
         # self.fsl_export_ttl = os.path.join(self.test_dir, 'fsl', 'export', 'test01', 'fsl_nidm.ttl');
@@ -77,9 +92,8 @@ class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
         if os.path.isdir(fsl_expe_dir):
             logging.debug("Computing NIDM FSL export")
             test_export_dir = os.path.join(fsl_test_dir, 'example001')
-            # os.chdir(test_export_dir)
 
-            # Convert to NI-DM using FSL export tool
+            # Export to NIDM using FSL export tool
             fslnidm = FSL_NIDM(feat_dir=fsl_expe_dir);
             fslnidm.save_prov_to_files()
 
@@ -122,12 +136,16 @@ class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
         gt = Graph()
         gt.parse(ground_truth_ttl, format='turtle')
 
-        # print("Comparing "+ground_truth_ttl+" with "+self.fsl_export_ttl)
-
         self.compare_full_graphs(gt, self.fslexport)
 
         if self.my_execption:
             raise Exception(self.my_execption)
+
+    @classmethod
+    def tearDownClass(cls):
+        # Delete temporarily written out ttl file
+        fsl_export_ttl = os.path.join(TEST_FOLDER, 'FSL_example.ttl');
+        os.remove(fsl_export_ttl)
 
     # '''Test02: Test availability of attributes needed to perform a meta-analysis as specified in use-case *1* at: http://wiki.incf.org/mediawiki/index.php/Queries'''
     # def test02_metaanalysis_usecase1(self):
