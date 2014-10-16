@@ -39,6 +39,7 @@ if not os.path.isdir(NIDM_DIR):
 NIDM_RESULTS_DIR = os.path.join(NIDM_DIR, "nidm", "nidm-results")
 TERM_RESULTS_DIR = os.path.join(NIDM_RESULTS_DIR, "terms")
 TEST_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'example001')
+DATA_DIR = os.path.join(RELPATH, 'test', 'data', 'fmri.feat')
 
 path = os.path.join(NIDM_RESULTS_DIR, "test")
 sys.path.append(path)
@@ -51,13 +52,25 @@ from CheckConsistency import *
 '''
 class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
     
-
     @classmethod
     def setUpClass(cls):
-        # Once for all, convert provn to ttl
-
+        # *** Once for all, run the export and convert provn to ttl
+        
         #  Turtle file obtained with FSL NI-DM export tool
         fsl_export_provn = os.path.join(TEST_FOLDER, 'FSL_example.provn');
+
+        # If test data is available (usually if the test is run locally) then 
+        # compute a fresh export
+        if os.path.isdir(DATA_DIR):
+            logging.debug("Computing NIDM FSL export")
+
+            # Export to NIDM using FSL export tool
+            fslnidm = FSL_NIDM(feat_dir=DATA_DIR);
+            fslnidm.save_prov_to_files()
+
+            # Copy provn export to test directory
+            shutil.copy(os.path.join(DATA_DIR, 'nidm', 'nidm.provn'), 
+                        os.path.join(fsl_export_provn))
 
         # Equivalent turtle file converted using the ProvStore API
         fsl_export_ttl_url = get_turtle(fsl_export_provn)
@@ -86,19 +99,7 @@ class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
         self.owl_file = os.path.join(TERM_RESULTS_DIR, 'nidm-results.owl')
 
         # Move in test dir (storage of prov file)
-        fsl_expe_dir = os.path.join(RELPATH, 'test', 'data', 'fmri.feat')
         fsl_test_dir = os.path.join(RELPATH, 'test')
-
-        if os.path.isdir(fsl_expe_dir):
-            logging.debug("Computing NIDM FSL export")
-            test_export_dir = os.path.join(fsl_test_dir, 'example001')
-
-            # Export to NIDM using FSL export tool
-            fslnidm = FSL_NIDM(feat_dir=fsl_expe_dir);
-            fslnidm.save_prov_to_files()
-
-            # Copy provn export to test directory
-            shutil.copy(os.path.join(fsl_expe_dir, 'nidm', 'nidm.provn'), os.path.join(test_export_dir, 'FSL_example.provn'))
 
     def test01_class_consistency_with_owl(self):
         my_exception = check_class_names(self.fslexport, "FSL example001", owl_file=self.owl_file)
