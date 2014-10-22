@@ -34,7 +34,7 @@ logging.debug(NIDM_DIR)
 if not os.path.isdir(NIDM_DIR):
     NIDM_DIR = os.path.join(RELPATH, "..", "nidm")
     # The FSL export to NIDM will only be run locally (for now)
-    from FSLparser import FSL_NIDM
+    from NIDMStat import NIDMStat
 
 NIDM_RESULTS_DIR = os.path.join(NIDM_DIR, "nidm", "nidm-results")
 TERM_RESULTS_DIR = os.path.join(NIDM_RESULTS_DIR, "terms")
@@ -65,8 +65,8 @@ class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
             logging.debug("Computing NIDM FSL export")
 
             # Export to NIDM using FSL export tool
-            fslnidm = FSL_NIDM(feat_dir=DATA_DIR);
-            fslnidm.save_prov_to_files()
+            # fslnidm = FSL_NIDM(feat_dir=DATA_DIR);
+            fslnidm = NIDMStat(software="FSL", version="0.2.0", results_artefacts=DATA_DIR)
 
             # Copy provn export to test directory
             shutil.copy(os.path.join(DATA_DIR, 'nidm', 'nidm.provn'), 
@@ -83,7 +83,6 @@ class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
         ttl_file = open(fsl_export_ttl, "w")
         ttl_file.write(ttl_url_open.read())
         ttl_file.close()
-
 
     def setUp(self):
         TestResultDataModel.setUp(self) 

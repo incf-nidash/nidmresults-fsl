@@ -12,31 +12,41 @@ from prov.model import ProvBundle, ProvRecord, ProvEntity
 import os
 import numpy as np
 import nibabel as nib
-from NIDMStat import NIDMStat
 from constants import *
+from To_NIDM import To_NIDM
 
-''' Parse an FSL result directory to extract the pieces information stored in NI-DM (for statistical results)
+''' Parse an FSL result directory to extract the pieces information stored in NIDM-Results
 '''
-class FSL_NIDM():
+class FSLparser(To_NIDM, object):
 
     def __init__(self, *args, **kwargs):
+        
         self.feat_dir = kwargs.pop('feat_dir')
+        
         self.export_dir = os.path.join(self.feat_dir, 'nidm')
         
-        self.design_file = os.path.join(self.feat_dir, 'design.fsf');
-        design_file_open = open(self.design_file, 'r')
+        design_file = os.path.join(self.feat_dir, 'design.fsf');
+        design_file_open = open(design_file, 'r')
         self.design_txt = design_file_open.read()
-        self.find_reference_space();
-
-        self.nidm = NIDMStat(export_dir=self.export_dir, standard_space=self.standard_space, custom_standard=self.custom_standard);
-
         
-        self.parse_feat_dir()
+        report_file = os.path.join(self.feat_dir, 'report_poststats.html')
+        self.reportParser = MyFSLReportParser();
+        file = open(report_file, 'r')
+        self.reportParser.feed(file.read());
 
-    # Main function: parse a feat directory and build the corresponding NI-DM graph
+        self.feat_version = self.reportParser.feat_version
+
+        super(FSLparser, self).__init__(*args, **kwargs)
+
+        # # self.nidm.create_thresholds(**reportParser.threshold)
+        # self.nidm.create_software(reportParser.feat_version)
+
+        # self.parse_feat_dir()
+
+    # Main function: parse a feat directory and build the corresponding NIDM graph
     def parse_feat_dir(self):
-        self.add_report_file(os.path.join(self.feat_dir, 'report_poststats.html'))
-        self.add_model_fitting()
+        # self.add_report_file(os.path.join(self.feat_dir, 'report_poststats.html'))
+        
         self.maskFile = os.path.join(self.feat_dir, 'mask.nii.gz')
         self.add_search_space()
 
@@ -59,27 +69,37 @@ class FSL_NIDM():
                     zstatnum = zstatnum.group()
                     statnum = zstatnum.replace('zstat', '')
                     self.add_contrast(statnum)
-                    self.add_clusters_peaks(statnum)      
+                    self.add_clusters_peaks(statnum)    
 
+    def find_threshold(self):
+        return self.reportParser.threshold
 
-    # Add model fitting, residuals map
-    def add_model_fitting(self):
+    def find_residuals_file(self):
         residuals_file = os.path.join(self.feat_dir, 'stats', 'sigmasquareds.nii.gz')
         # FIXME: Check if there is an alternative file to use here
         if not os.path.isfile(residuals_file):
             residuals_file = None;
+        return residuals_file
 
+    def find_grand_mean_file(self):
         grand_mean_file = os.path.join(self.feat_dir, 'mean_func.nii.gz')
 
         # FIXME: Check if there is an alternative file to use here
         if not os.path.isfile(grand_mean_file):
             grand_mean_file = None;
+        return grand_mean_file
 
+    def find_design_matrix(self):
         design_matrix_file = open(os.path.join(self.feat_dir, 'design.mat'), 'r')
         design_matrix = np.loadtxt(design_matrix_file, skiprows=5, ndmin=2)
+        return design_matrix
 
+    def find_mask_file(self):
         mask_file = os.path.join(self.feat_dir, 'mask.nii.gz')
+        return mask_file
 
+    # Add model fitting, residuals map
+    def find_noise_model(self):
         fmri_level_search = re.compile(r'.*set fmri\(level\) (?P<fmrilevel>\d+).*')
         fmri_level_found = fmri_level_search.search(self.design_txt)
         fmri_level = int(fmri_level_found.group('fmrilevel'))
@@ -96,42 +116,45 @@ class FSL_NIDM():
             variance_spatial = SPATIALLY_LOCAL
             dependance_spatial = None
 
-        if dependance == INDEPEDENT_CORR:
-            if variance_homo:
-                estimation_method = ESTIMATION_OLS
-            else:
-                estimation_method = ESTIMATION_WLS
-        else:
-            estimation_method = ESTIMATION_GLS
-
         error_distribution = GAUSSIAN_DISTRIBUTION
 
-        self.nidm.create_model_fitting(residuals_file, grand_mean_file, mask_file, design_matrix,
-            variance_homo, dependance, variance_spatial, dependance_spatial, error_distribution,
-            estimation_method)
+        return dict(error_distribution=error_distribution,
+            variance_homo=variance_homo, dependance=dependance,
+            variance_spatial=variance_spatial, dependance_spatial=dependance_spatial)
 
     # For a parameter estimate, create the parameter estimate map emtity
     def add_parameter_estimate(self, pe_file, pe_num):
         self.nidm.create_parameter_estimate(pe_file, pe_num)
 
     # Find reference space 
-    def find_reference_space(self):
+    def find_coordinate_system(self):
         standard_space_search = re.compile(r'.*set fmri\(regstandard_yn\) (?P<isStandard>[\d]+).*')
         extracted_data = standard_space_search.search(self.design_txt) 
-        self.standard_space = bool(extracted_data.group('isStandard'))
+        standard_space = bool(extracted_data.group('isStandard'))
 
-        if self.standard_space:
+        if standard_space:
             standard_space_search = re.compile(r'.*set fmri\(alternateReference_yn\) (?P<isCustom>[\d]+).*')
             extracted_data = standard_space_search.search(self.design_txt) 
             if not extracted_data is None:
-                self.custom_standard = (extracted_data.group('isCustom') == "1");
+                custom_standard = (extracted_data.group('isCustom') == "1");
             else:
                 standard_space_search = re.compile(r'.*set fmri\(regstandard\) (?P<regstd>.+).*')
                 extracted_data = standard_space_search.search(self.design_txt) 
                 if not extracted_data is None:
-                    self.custom_standard = True;
+                    custom_standard = True;
         else:
-            self.custom_standard = False;
+            custom_standard = False;
+
+        # As in https://github.com/ni-/ni-dm/issues/52 (not accepted yet)
+        if not standard_space:
+            coordinate_system = NIDM['SubjectSpace'];
+        else:
+            if not custom_standard:
+                coordinate_system = NIDM['IcbmMni152NonLinear6thGenerationCoordinateSystem'];
+            else:
+                coordinate_system = NIDM['StandarizedSpace'];
+
+        return coordinate_system
 
 
     # For a given contrast, create the contrast map, contrast variance map, contrast and statistical map emtities
@@ -208,21 +231,6 @@ class FSL_NIDM():
         smoothness = np.loadtxt(smoothnessFile, usecols=[1])
         self.nidm.create_search_space(search_space_file=search_space_file, search_volume=int(smoothness[1]), resel_size_in_voxels=float(smoothness[2]), dlh=float(smoothness[0]))
 
-    # Create the thresholding information for an inference activity (height threshold and extent threshold)
-    def add_report_file(self, report_file):
-        self.reportFile = report_file
-        parser = MyFSLReportParser();
-        file = open(report_file, 'r')
-        parser.feed(file.read());
-
-        self.nidm.create_thresholds( voxel_threshold=parser.get_voxel_thresh_value(), 
-            voxel_p_uncorr=parser.get_voxel_p_uncorr(), 
-            voxel_p_corr=parser.get_voxel_p_corr(), 
-            extent=parser.get_extent_value(),
-            extent_p_uncorr=parser.get_extent_p_uncorr(), 
-            extent_p_corr=parser.get_extent_p_corr())
-
-        self.nidm.create_software(parser.get_feat_version())
 
     # Create excursion set, clusters and peaks entities
     def add_clusters_peaks(self, stat_num):
@@ -323,10 +331,6 @@ class FSL_NIDM():
                 peakIndex = peakIndex + 1
 
         
-    # Create a graph as a provn and a json serialisations
-    def save_prov_to_files(self):
-        self.nidm.save_prov_to_files()
-
 '''HTML parser for FSL report files: extract the thresholding information
 
 '''
@@ -342,6 +346,7 @@ class MyFSLReportParser(HTMLParser):
         self.feat_version = ''
         self.pValue = []
         self.threshType = ''
+        self.threshold = dict()
 
     def handle_starttag(self, tag, attrs):
         if tag == "a":
@@ -360,16 +365,17 @@ class MyFSLReportParser(HTMLParser):
             # Look for p-value, type of thresholding and feat version in introductory text
             patternVoxelThresh = re.compile(r'.*Version (?P<featversion>\d+\.\d+),.* thresholded using (?P<threshtype>.*) thresholding .* P=(?P<pvalue>\d+\.\d+)')
 
+            voxel_threshold = None
+
             extracted_data = patternVoxelThresh.search(data) 
-            
             if extracted_data is not None:
                 self.feat_version = extracted_data.group('featversion')
-                self.voxel_thresh_value = None;
-                self.voxel_p_corr = float(extracted_data.group('pvalue'))
-                self.voxel_p_uncorr = None
-                self.extent_value = 0;
-                self.extent_p_corr = 1
-                self.extent_p_uncorr = 1
+                voxel_threshold = None;
+                voxel_p_corr = float(extracted_data.group('pvalue'))
+                voxel_p_uncorr = None
+                extent_value = 0;
+                extent_p_corr = 1
+                extent_p_uncorr = 1
                 # self.threshType = extracted_data.group('threshtype')
                 self.found_intro = True;
             else:
@@ -378,33 +384,20 @@ class MyFSLReportParser(HTMLParser):
 
                 if extracted_data is not None:
                     self.feat_version = extracted_data.group('featversion')
-                    self.voxel_thresh_value = float(extracted_data.group('zvalue'))
-                    self.voxel_p_corr = None
-                    self.voxel_p_uncorr = None
-                    self.extent_value = None;
-                    self.extent_p_corr = float(extracted_data.group('pvalue'));
-                    self.extent_p_uncorr = None
+                    voxel_threshold = float(extracted_data.group('zvalue'))
+                    voxel_p_corr = None
+                    voxel_p_uncorr = None
+                    extent_value = None;
+                    extent_p_corr = float(extracted_data.group('pvalue'));
+                    extent_p_uncorr = None
                     # self.threshType = extracted_data.group('threshtype')
                     self.found_intro = True;
-    def get_feat_version(self):
-        return self.feat_version
 
-    def get_voxel_thresh_value(self):
-        return self.voxel_thresh_value
+            if voxel_threshold:
+                self.threshold = dict(voxel_threshold=voxel_threshold,
+                    voxel_p_corr=voxel_p_corr, voxel_p_uncorr=voxel_p_uncorr, 
+                    extent=extent_value, extent_p_corr=extent_p_corr,
+                    extent_p_uncorr=extent_p_uncorr)
 
-    def get_voxel_p_corr(self):
-        return self.voxel_p_corr
-
-    def get_voxel_p_uncorr(self):
-        return self.voxel_p_uncorr
-
-    def get_extent_value(self):
-        return self.extent_value
-
-    def get_extent_p_corr(self):
-        return self.extent_p_corr
-
-    def get_extent_p_uncorr(self):
-        return self.extent_p_uncorr
 
 

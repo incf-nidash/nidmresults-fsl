@@ -13,18 +13,23 @@ import hashlib
 import shutil
 from constants import *
 import datetime
+from FSLparser import FSLparser
 
 ''' Create a NIDM export file and copy related nifti files
 '''
-class NIDMStat():
+class NIDMStat(object):
     def __init__(self, *args, **kwargs):
         # FIXME: Merge coordinateSpace entities if identical?
         # FIXME: Use actual URIs instead
+        results_artefacts = kwargs.pop('results_artefacts')
+        version = kwargs.pop('version')
+        self.software = kwargs.pop('software')
+
+        if self.software == "FSL":
+            self.results = FSLparser(feat_dir=results_artefacts)
 
         # Directory in which export will be stored
-        self.export_dir = kwargs.pop('export_dir')
-        if not os.path.exists(self.export_dir):
-            os.makedirs(self.export_dir)
+        self.create_export_dir(self.results.export_dir)
         # FIXME: Do something if export dir already exist
 
         # Keep track of the number of coordinateSpace entity already generated
@@ -32,45 +37,75 @@ class NIDMStat():
 
         # Create namespaces
         self.provDocument = ProvDocument();
+        self.add_namespaces()
+
+        self.create_bundle(version)
+        self.create_thresholds(**self.results.threshold)
+
+        self.create_model_fitting()
+
+        self.create_software()
+        
+        # self.standard_space = kwargs.pop('standard_space')
+        # self.custom_standard = kwargs.pop('custom_standard')
+       
+        # FIXME: Check one-tailed or two-tailed test and get test type from data
+
+        self.save_prov_to_files()
+
+    def create_export_dir(self, export_dir):
+        self.export_dir = export_dir
+        if not os.path.exists(self.export_dir):
+            os.makedirs(self.export_dir)
+
+    def add_namespaces(self):
         self.provDocument.add_namespace("neurolex", "http://neurolex.org/wiki/")
         self.provDocument.add_namespace(FSL)
         self.provDocument.add_namespace(NIDM)
         self.provDocument.add_namespace(NIIRI)
         self.provDocument.add_namespace(CRYPTO)
 
-        self.provBundle = ProvBundle(identifier=NIIRI['fsl_results_id'])
+    def create_bundle(self, version):
+        software_lc = self.software.lower()
+        software_uc = self.software.upper()
 
-        # Create bundle entity
-        self.provDocument.entity(NIIRI['fsl_results_id'], 
+        self.provBundle = ProvBundle(identifier=NIIRI[software_lc+'_results_id'])
+
+        self.provDocument.entity(NIIRI[software_lc+'_results_id'], 
             other_attributes=( (PROV['type'], PROV['Bundle'],), 
-                               (PROV['label'],"FSL Results" ),
-                               (NIDM['objectModel'],NIDM['FSLResults']),
-                               (NIDM['version'],"0.2.0" ))
+                               (PROV['label'],software_uc+" Results" ),
+                               (NIDM['objectModel'],NIDM[software_uc+'Results']),
+                               (NIDM['version'], version))
             )
 
-        self.provDocument.wasGeneratedBy(NIIRI['fsl_results_id'], 
+        self.provDocument.wasGeneratedBy(NIIRI[software_lc+'_results_id'], 
             time=str(datetime.datetime.now().time()))
-
-        # entity(niiri:fsl_results_id,
-        # [prov:type = 'prov:Bundle',
-        # prov:label = "FSL Results",
-        # nidm:objectModel = 'nidm:FSLResults',
-        # nidm:version = "0.2.0"])
-        # wasGeneratedBy(niiri:fsl_results_id, -, 2014-05-19T10:30:00)
-        
-        self.standard_space = kwargs.pop('standard_space')
-        self.custom_standard = kwargs.pop('custom_standard')
-       
-        # FIXME: Check one-tailed or two-tailed test and get test type from data
                       
-    def create_software(self, feat_version):
-        # Add software agent: FSL
-        self.provBundle.agent(NIIRI['software_id'], other_attributes=( 
-            (PROV['type'], NIDM['FSL']), 
+    def create_software(self):
+        additional_attr = ()
+        if self.software == "FSL":
+            additional_attr = ((FSL['featVersion'], self.results.feat_version) )
+
+mydict = { 
+            PROV['type']: NIDM['CoordinateSpace'], 
+
+        common_attributes = {}
+            (PROV['type'], NIDM[self.software]), 
             (PROV['type'], PROV['SoftwareAgent']),
-            (PROV['label'],'FSL'),
-            # FIXME find FSL software version
-            (FSL['featVersion'], feat_version) ))
+            (PROV['label'],self.software))
+
+        # Add software agent: FSL
+        print common_attributes
+        print additional_attr
+        print type(common_attributes)
+        print type(additional_attr)
+        
+        self.provBundle.agent(NIIRI['software_id'], other_attributes=common_attributes+additional_attr)
+
+
+            # ,
+            # # FIXME find FSL software version
+            # (FSL['featVersion'], feat_version) ))
         
     def create_thresholds(self, *args, **kwargs):
         voxel_threshold = kwargs.pop('voxel_threshold')
@@ -188,8 +223,14 @@ class NIDMStat():
         self.provBundle.entity(NIIRI['peak_'+str(peakUniqueId)], other_attributes=other_attributes)
         self.provBundle.wasDerivedFrom(NIIRI['peak_'+str(peakUniqueId)], NIIRI['cluster_000'+str(cluster_id)])
 
-    def create_model_fitting(self, residuals_original_file, grand_mean_original_file, mask_file, design_matrix,
-        variance_homo, dependance, variance_spatial, dependance_spatial, error_distribution, estimation_meth):
+    def create_model_fitting(self):
+        grand_mean_original_file = self.results.grand_mean_file
+        residuals_original_file = self.results.residuals_file
+        mask_file = self.results.mask_file
+        design_matrix = self.results.design_matrix
+        noise_model = self.results.noise_model
+        estimation_method = self.results.estimation_method
+
         # Copy residuals map in export directory
         if not residuals_original_file is None:
             residuals_file = os.path.join(self.export_dir, 'ResidualMeanSquares.nii.gz')
@@ -198,7 +239,7 @@ class NIDMStat():
         # Create "Model Parameter estimation" activity
         self.provBundle.activity(NIIRI['model_parameters_estimation_id'], other_attributes=( 
             (PROV['type'], NIDM['ModelParametersEstimation']),
-            (NIDM['withEstimationMethod'], estimation_meth),
+            (NIDM['withEstimationMethod'], estimation_method),
             (PROV['label'], "Model Parameters Estimation")))
         self.provBundle.wasAssociatedWith(NIIRI['model_parameters_estimation_id'], NIIRI['software_id'])
 
@@ -285,11 +326,11 @@ class NIDMStat():
         # Create "Error Model" entity
         self.provBundle.entity(NIIRI['error_model_id'], 
             other_attributes=( (PROV['type'],NIDM['ErrorModel']), 
-                               (NIDM['hasNoiseDistribution'], error_distribution), 
-                               (NIDM['errorVarianceHomogeneous'], variance_homo), 
-                               (NIDM['varianceSpatialModel'], variance_spatial), 
-                               (NIDM['hasErrorDependence'], dependance), 
-                               (NIDM['dependenceSpatialModel'], dependance_spatial)))  
+                               (NIDM['hasNoiseDistribution'], noise_model['error_distribution']), 
+                               (NIDM['errorVarianceHomogeneous'], noise_model['variance_homo']), 
+                               (NIDM['varianceSpatialModel'], noise_model['variance_spatial']), 
+                               (NIDM['hasErrorDependence'], noise_model['dependance']), 
+                               (NIDM['dependenceSpatialModel'], noise_model['dependance_spatial'])))  
         self.provBundle.used(NIIRI['model_parameters_estimation_id'], NIIRI['error_model_id'])
 
     def copy_nifti(self, original_file, new_file):
@@ -514,14 +555,7 @@ class NIDMStat():
 
         numDim = len(thresImg.shape)
 
-        # As in https://github.com/ni-/ni-dm/issues/52 (not accepted yet)
-        if not self.standard_space:
-            coordinateSystem = NIDM['SubjectSpace'];
-        else:
-            if not self.custom_standard:
-                coordinateSystem = NIDM['IcbmMni152NonLinear6thGenerationCoordinateSystem'];
-            else:
-                coordinateSystem = NIDM['StandarizedSpace'];
+        coordinateSystem = self.results.coordinate_system
 
         mydict = { 
             PROV['type']: NIDM['CoordinateSpace'], 
