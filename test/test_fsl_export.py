@@ -10,7 +10,6 @@ from subprocess import call
 import re
 import rdflib
 from rdflib.graph import Graph
-
 from rdflib import Graph, plugin, Namespace
 from rdflib.parser import Parser
 from rdflib.serializer import Serializer
@@ -32,9 +31,9 @@ NIDM_DIR = os.path.join(RELPATH, "nidm")
 # directory will be accessed directly
 logging.debug(NIDM_DIR)
 if not os.path.isdir(NIDM_DIR):
-    NIDM_DIR = os.path.join(RELPATH, "..", "nidm")
+    NIDM_DIR = os.path.join(os.path.dirname(RELPATH), "nidm")
     # The FSL export to NIDM will only be run locally (for now)
-    from NIDMStat import NIDMStat
+    from fsl_nidm_exporter.fsl_nidm_exporter import FSLtoNIDMExporter
 
 NIDM_RESULTS_DIR = os.path.join(NIDM_DIR, "nidm", "nidm-results")
 TERM_RESULTS_DIR = os.path.join(NIDM_RESULTS_DIR, "terms")
@@ -43,6 +42,7 @@ DATA_DIR = os.path.join(RELPATH, 'test', 'data', 'fmri.feat')
 
 path = os.path.join(NIDM_RESULTS_DIR, "test")
 sys.path.append(path)
+
 
 from TestResultDataModel import TestResultDataModel
 from TestCommons import *
@@ -66,7 +66,9 @@ class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
 
             # Export to NIDM using FSL export tool
             # fslnidm = FSL_NIDM(feat_dir=DATA_DIR);
-            fslnidm = NIDMStat(software="FSL", version="0.2.0", results_artefacts=DATA_DIR)
+            fslnidm = FSLtoNIDMExporter(feat_dir=DATA_DIR, version="0.2.0")
+            fslnidm.parse()
+            fslnidm.export()
 
             # Copy provn export to test directory
             shutil.copy(os.path.join(DATA_DIR, 'nidm', 'nidm.provn'), 
@@ -89,6 +91,7 @@ class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
         self.ground_truth_dir = os.path.join(NIDM_RESULTS_DIR,'fsl', 'example001')
         self.fsl_export_ttl = os.path.join(TEST_FOLDER, 'FSL_example.ttl');
        
+
         # RDF obtained by the FSL export 
         self.fslexport = Graph()
         # self.fsl_export_ttl = os.path.join(self.test_dir, 'fsl', 'export', 'test01', 'fsl_nidm.ttl');
@@ -131,6 +134,9 @@ class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
     def test03_ex1_auditory_singlesub_full_graph(self):
         ground_truth_provn = os.path.join(self.ground_truth_dir, 'fsl_nidm.provn');
         ground_truth_ttl = get_turtle(ground_truth_provn)
+
+        logging.info("Ground truth provn: "+ground_truth_provn)
+        logging.info("Ground truth ttl: "+ground_truth_ttl)
 
         # RDF obtained by the ground truth export
         gt = Graph()
