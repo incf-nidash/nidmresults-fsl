@@ -5,6 +5,7 @@
 '''
 
 from prov.model import Namespace
+from prov.model import PROV
 
 NIDM = Namespace('nidm', "http://www.incf.org/ns/nidash/nidm#")
 NIIRI = Namespace("niiri", "http://iri.nidash.org/")
