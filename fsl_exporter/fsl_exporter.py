@@ -9,12 +9,12 @@ specification.
 import re
 import os
 import numpy as np
-from nidm_exporter.nidm_exporter import NIDMExporter
-from nidm_exporter.objects.constants import *
-from nidm_exporter.objects.modelfitting import *
-from nidm_exporter.objects.contrast import *
-from nidm_exporter.objects.inference import *
-from fslobjects import *
+from exporter.exporter import NIDMExporter
+from exporter.objects.constants import *
+from exporter.objects.modelfitting import *
+from exporter.objects.contrast import *
+from exporter.objects.inference import *
+from objects.fsl_objects import *
 
 class FSLtoNIDMExporter(NIDMExporter, object):
     """ 

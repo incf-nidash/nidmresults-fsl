@@ -1,5 +1,5 @@
-from nidm_exporter.objects.generic import NIDMObject
-from nidm_exporter.objects.constants import *
+from exporter.objects.generic import NIDMObject
+from exporter.objects.constants import *
 
 # NIDM objects in FSL namespace or having FSL-specific attributes
 
