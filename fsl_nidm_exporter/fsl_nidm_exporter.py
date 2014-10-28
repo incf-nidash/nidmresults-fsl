@@ -414,13 +414,6 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
 
 
-        
-
-    def find_threshold(self):
-        return self.reportParser.threshold
-
-
-
 
     def find_mask_file(self):
         mask_file = os.path.join(self.feat_dir, 'mask.nii.gz')
