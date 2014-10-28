@@ -34,24 +34,25 @@ class NIDMExporter():
 
         # Object of type Software describing the neuroimaging software package 
         # used for the analysis
-        self.software = self.find_software()
+        self.software = self._find_software()
 
         # List of objects of type ModelFitting describing the model fitting 
         # step in NIDM-Results (main activity: Model Parameters Estimation)
-        self.model_fittings = self.find_model_fitting()
+        self.model_fittings = self._find_model_fitting()
 
-        # Dictionary of (key, value) pairs where key is the identifier of a 
-        # ModelParametersEstimation object and value is an object of type 
-        # Contrast describing the contrast estimation step in NIDM-Results 
-        # (main activity: Contrast Estimation)
-        self.contrasts = self.find_contrasts()
+        # Dictionary of (key, value) pairs where where key is a tuple 
+        # containing the identifier of a ModelParametersEstimation object and a 
+        # tuple of identifiers of ParameterEstimateMap objects and value is an 
+        # object of type Contrast describing the contrast estimation step in 
+        # NIDM-Results (main activity: Contrast Estimation)
+        self.contrasts = self._find_contrasts()
 
         # Inference activity and entities
         # Dictionary of (key, value) pairs where key is the identifier of a 
         # ContrastEstimation object and value is an object of type Inference
         # describing the inference step in NIDM-Results (main activity: 
         # Inference)
-        self.inferences = self.find_inferences()
+        self.inferences = self._find_inferences()
                 
         # Initialise prov document
         self.doc = ProvDocument();
@@ -135,7 +136,7 @@ class NIDMExporter():
 
     def _create_bundle(self, version):
         """ 
-        Initialise NIDM-Results bundle
+        Initialise NIDM-Results bundle.
         """
         software_lc = self.software.name.lower()
         software_uc = self.software.name.upper()
@@ -155,7 +156,8 @@ class NIDMExporter():
 
     def _get_model_parameters_estimations(self, error_model):
         """
-        Infer model estimation method from the 'error_model'
+        Infer model estimation method from the 'error_model'. Return an object
+        of type ModelParametersEstimation.
         """
         if error_model.dependance == INDEPEDENT_CORR:
             if error_model.variance_homo:
@@ -171,7 +173,7 @@ class NIDMExporter():
 
     def save_prov_to_files(self, showattributes=False):
         """
-        Export to nidm.provn file
+        Write-out provn serialisation to nidm.provn.
         """
         self.doc.add_bundle(self.bundle)
         provn_fid = open(os.path.join(self.export_dir, 'nidm.provn'), 'w');
