@@ -75,7 +75,7 @@ class ContrastMap(NIDMObject):
         self.coord_space = CoordinateSpace(coordinate_system, coordinate_space_id, self.file)
 
     def export(self):
-        self.coord_space.export()
+        self.p.update(self.coord_space.export())
 
         # Copy contrast map in export directory
         cope_file = os.path.join(self.export_dir, 'Contrast.nii.gz')
@@ -104,10 +104,10 @@ class ContrastStdErrMap(NIDMObject):
         self.is_variance = is_variance
         self.coord_space = CoordinateSpace(coordinate_system, coordinate_space_id, filename)
         if is_variance:
-            self.var_coord_space = CoordinateSpace(coordinate_system, coordinate_space_id, filename)
+            self.var_coord_space = CoordinateSpace(coordinate_system, coordinate_space_id+1, filename)
 
     def export(self):
-        self.coord_space.export()
+        self.p.update(self.coord_space.export())
 
         standard_error_file = os.path.join(self.export_dir, "ContrastStandardError.nii.gz")
         if self.is_variance:
@@ -170,7 +170,7 @@ class StatisticMap(NIDMObject):
         self.dof = dof
 
     def export(self):
-        self.coord_space.export()
+        self.p.update(self.coord_space.export())
 
         # Copy Statistical map in export directory
         stat_file = os.path.join(self.export_dir, self.stat_type+'Statistic.nii.gz')
@@ -189,12 +189,13 @@ class StatisticMap(NIDMObject):
                                         (NIDM['filename'], stat_filename),
                                         (NIDM['filename'], stat_original_filename),
                                         (NIDM['contrastName'], self.name),
-                                        (NIDM['effectDegreesOfFreedom'], 1.0),
                                         (CRYPTO['sha512'], self.get_sha_sum(stat_file)),
                                         (NIDM['inCoordinateSpace'], self.coord_space.id)]
 
         if not self.stat_type == 'Z':
             attributes.insert(0, (NIDM['errorDegreesOfFreedom'], self.dof))
+            # Check if we should have effectDegreesOfFreedom with z-stat?
+            attributes.insert(0, (NIDM['effectDegreesOfFreedom'], 1.0))
 
         # Create "Statistic Map" entity
         # FIXME: Deal with other than t-contrast maps: dof + statisticType
@@ -222,19 +223,16 @@ class StatisticMap(NIDMObject):
 #                             ) )
 
 class ContrastEstimation(NIDMObject):
-    def __init__(self, contrast_num, contrast_name, software_id):
+    def __init__(self, contrast_num, contrast_name):
         super(ContrastEstimation, self).__init__()
         self.num = contrast_num
         self.name = contrast_name
         self.id = NIIRI['contrast_estimation_id_'+self.num]
-        self.software_id = software_id
 
     def export(self):
         self.p.activity(self.id, other_attributes=( 
             (PROV['type'], NIDM['ContrastEstimation']),
             (PROV['label'], "Contrast estimation: "+self.name)))
-
-        self.p.wasAssociatedWith(self.id, self.software_id)
 
         return self.p
 
