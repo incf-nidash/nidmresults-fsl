@@ -1,3 +1,11 @@
+"""
+Generic objects supporting the classes defined in NIDM-Results.
+
+Specification: http://nidm.nidash.org/specs/nidm-results.html
+
+@author: Camille Maumet <c.m.j.maumet@warwick.ac.uk>
+@copyright: University of Warwick 2013-2014
+"""
 from prov.model import ProvBundle
 import numpy as np
 import os
@@ -7,6 +15,10 @@ import shutil
 import hashlib
 
 class NIDMObject(object):
+    """
+    Generic class, parent of all objects describing a NIDM entity, activity 
+    or agent 
+    """
     def __init__(self, export_dir=None, coordinate_space_id=None):
         self.export_dir = export_dir
         self.coordinate_space_id = coordinate_space_id
@@ -29,8 +41,10 @@ class NIDMObject(object):
         return hashlib.sha512(data).hexdigest()
 
 
-# Generate prov for a coordinate space entity 
 class CoordinateSpace(NIDMObject):
+    """
+    Object representing a CoordinateSpace entity.
+    """
     def __init__(self, coordinate_system, coordinate_space_id, nifti_file):
         super(CoordinateSpace, self).__init__()
         self.coordinate_system = coordinate_system
@@ -39,23 +53,29 @@ class CoordinateSpace(NIDMObject):
         self.id = NIIRI['coordinate_space_id_'+str(coordinate_space_id)]
 
     def export(self):
+        """
+        Create prov entities and activities.
+        """
         thresImg = nib.load(self.nifti_file)
         thresImgHdr = thresImg.get_header()
 
         numDim = len(thresImg.shape)
 
-        mydict = { 
+        dimension = str(thresImg.shape).replace('(', '[').replace(')', ']')
+        voxel_to_world = '%s'%', '.join(str(thresImg.get_qform())\
+            .strip('()').replace('. ', '').split()).replace('[,', '[')\
+            .replace('\n', '')
+        voxel_size = '[%s]'%', '.join(map(str, thresImgHdr['pixdim'][1:(numDim+1)]))
+
+        self.p.entity(self.id, other_attributes={ 
             PROV['type']: NIDM['CoordinateSpace'], 
-            NIDM['dimensionsInVoxels']: str(thresImg.shape).replace('(', '[').replace(')', ']'),
+            NIDM['dimensionsInVoxels']: dimension,
             NIDM['numberOfDimensions']: numDim,
-            NIDM['voxelToWorldMapping']: '%s'%', '.join(str(thresImg.get_qform()).strip('()').replace('. ', '').split()).replace('[,', '[').replace('\n', ''),
+            NIDM['voxelToWorldMapping']: voxel_to_world,
             NIDM['inWorldCoordinateSystem']: self.coordinate_system,           
             # FIXME: this gives mm, sec => what is wrong: FSL file, nibabel, other?
             # NIDM['voxelUnits']: '[%s]'%str(thresImgHdr.get_xyzt_units()).strip('()'),
             NIDM['voxelUnits']: "['mm', 'mm', 'mm']",
-            NIDM['voxelSize']: '[%s]'%', '.join(map(str, thresImgHdr['pixdim'][1:(numDim+1)])),
-            PROV['label']: "Coordinate space "+str(self.id_num)}
-        self.p.entity(self.id, other_attributes=mydict)
+            NIDM['voxelSize']: voxel_size,
+            PROV['label']: "Coordinate space "+str(self.id_num)})
         return self.p
-
-
