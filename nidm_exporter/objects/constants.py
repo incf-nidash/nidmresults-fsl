@@ -1,8 +1,9 @@
-'''Python implementation of NI-DM (for statistical results) - constants
+"""
+Definition of constants.
 
 @author: Camille Maumet <c.m.j.maumet@warwick.ac.uk>
 @copyright: University of Warwick 2013-2014
-'''
+"""
 
 from prov.model import Namespace
 from prov.model import PROV
@@ -22,7 +23,7 @@ COMPOUND_SYMMETRY_CORR = NIDM['CompoundSymmetricError']
 ARBITRARILY_CORR = NIDM['ArbitriralyCorrelatedError']
 
 CORRELATION_ENUM = { 
-	INDEPEDENT_CORR,
+    INDEPEDENT_CORR,
     SERIALLY_CORR,
     COMPOUND_SYMMETRY_CORR,
     ARBITRARILY_CORR
@@ -33,9 +34,9 @@ SPATIALLY_LOCAL = NIDM['SpatiallyLocal']
 SPATIALLY_REGUL = NIDM['SpatiallyRegularized']
 
 SPATIAL_DEPENDENCY_ENUM = {
-	SPATIALLY_GLOBAL, 
-	SPATIALLY_LOCAL,
-	SPATIALLY_REGUL
+    SPATIALLY_GLOBAL, 
+    SPATIALLY_LOCAL,
+    SPATIALLY_REGUL
 }
 
 ESTIMATION_OLS = NIDM['OrdinaryLeastSquares']

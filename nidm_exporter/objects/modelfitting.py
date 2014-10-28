@@ -1,3 +1,12 @@
+"""
+Objects describing the Model Parameters Estimation activity, its inputs and 
+outputs as specified in NIDM-Results.
+
+Specification: http://nidm.nidash.org/specs/nidm-results.html
+
+@author: Camille Maumet <c.m.j.maumet@warwick.ac.uk>
+@copyright: University of Warwick 2013-2014
+"""
 from prov.model import Identifier
 import numpy as np
 import os
@@ -6,19 +15,27 @@ import nibabel as nib
 from generic import *
 
 class ModelFitting(NIDMObject):
-    def __init__(self, activity, design_matrix, data, error_model, parameter_estimates, rms_map, mask_map, 
-        grand_mean_map):
+    """
+    Object representing a Model fitting step: including a 
+    ModelParametersEstimation activity, its inputs and outputs.
+    """
+
+    def __init__(self, activity, design_matrix, data, error_model, 
+        param_estimates, rms_map, mask_map, grand_mean_map):
         super(ModelFitting, self).__init__()
         self.activity = activity
         self.design_matrix = design_matrix
         self.data = data
         self.error_model = error_model
-        self.param_estimates = parameter_estimates
+        self.param_estimates = param_estimates
         self.rms_map = rms_map
         self.mask_map = mask_map
         self.grand_mean_map = grand_mean_map
 
     def export(self):
+        """
+        Create prov entities and activities.
+        """
         # Model Parameters Estimation activity
         self.p.update(self.activity.export())
 
@@ -55,25 +72,38 @@ class ModelFitting(NIDMObject):
 
 
 class DesignMatrix(NIDMObject):
+    """
+    Object representing a DesignMatrix entity.
+    """ 
+
     def __init__(self, matrix, export_dir):
         super(DesignMatrix, self).__init__(export_dir=export_dir)
         self.matrix = matrix
         self.id = NIIRI['design_matrix_id']
 
-    def export(self):      
+    def export(self):     
+        """
+        Create prov entities and activities.
+        """ 
         # Create cvs file containing design matrix
         design_matrix_csv = 'DesignMatrix.csv'
-        np.savetxt(os.path.join(self.export_dir, design_matrix_csv), np.asarray(self.matrix), delimiter=",")
+        np.savetxt(os.path.join(self.export_dir, design_matrix_csv), 
+            np.asarray(self.matrix), delimiter=",")
 
         # Create "design matrix" entity
         self.p.entity(self.id, 
             other_attributes=( (PROV['type'],NIDM['DesignMatrix']), 
                                (PROV['label'],"Design Matrix"), 
                                # (NIDM['filename'],design_matrix_csv ),
-                               (PROV['location'], Identifier("file://./"+design_matrix_csv))))       
+                               (PROV['location'], 
+                                Identifier("file://./"+design_matrix_csv))))       
         return self.p
 
 class Data(NIDMObject):
+    """
+    Object representing a Data entity.
+    """ 
+
     def __init__(self, export_dir):
         super(Data, self).__init__()
         self.grand_mean_sc = True
@@ -81,6 +111,9 @@ class Data(NIDMObject):
         self.id = NIIRI['data_id']
 
     def export(self):
+        """
+        Create prov entities and activities.
+        """
     # Create "Data" entity
         # FIXME: grand mean scaling?
         # FIXME: medianIntensity
@@ -89,11 +122,16 @@ class Data(NIDMObject):
                                 (PROV['type'],PROV['Collection']),
                                 (PROV['label'],"Data"),
                                 (NIDM['grandMeanScaling'], self.grand_mean_sc),
-                                (NIDM['targetIntensity'], self.target_intensity)))
+                                (NIDM['targetIntensity'], 
+                                    self.target_intensity)))
         return self.p
 
 
 class ErrorModel(NIDMObject):
+    """
+    Object representing an ErrorModel entity.
+    """ 
+
     def __init__(self, error_distribution, variance_homo, variance_spatial, 
         dependance, dependance_spatial):
         super(ErrorModel, self).__init__()
@@ -105,18 +143,29 @@ class ErrorModel(NIDMObject):
         self.id = NIIRI['error_model_id']
 
     def export(self):
+        """
+        Create prov entities and activities.
+        """
                 # Create "Error Model" entity
         self.p.entity(self.id, 
             other_attributes=( (PROV['type'],NIDM['ErrorModel']), 
-                               (NIDM['hasNoiseDistribution'], self.error_distribution), 
-                               (NIDM['errorVarianceHomogeneous'], self.variance_homo), 
-                               (NIDM['varianceSpatialModel'], self.variance_spatial), 
+                               (NIDM['hasNoiseDistribution'], 
+                                    self.error_distribution), 
+                               (NIDM['errorVarianceHomogeneous'], 
+                                    self.variance_homo), 
+                               (NIDM['varianceSpatialModel'], 
+                                    self.variance_spatial), 
                                (NIDM['hasErrorDependence'], self.dependance), 
-                               (NIDM['dependenceSpatialModel'], self.dependance_spatial)))  
+                               (NIDM['dependenceSpatialModel'], 
+                                    self.dependance_spatial)))  
 
         return self.p
 
 class ModelParametersEstimation(NIDMObject):
+    """
+    Object representing an ModelParametersEstimation activity.
+    """ 
+
     def __init__(self, estimation_method, software_id):
         super(ModelParametersEstimation, self).__init__()
         self.estimation_method = estimation_method
@@ -124,6 +173,9 @@ class ModelParametersEstimation(NIDMObject):
         self.id = NIIRI['model_parameters_estimation_id']
 
     def export(self):
+        """
+        Create prov entities and activities.
+        """
         # Create "Model Parameter estimation" activity
         self.p.activity(self.id, other_attributes=( 
             (PROV['type'], NIDM['ModelParametersEstimation']),
@@ -133,16 +185,25 @@ class ModelParametersEstimation(NIDMObject):
         return self.p
 
 class ParameterEstimateMap(NIDMObject):
-    def __init__(self, filename, pe_num, coordinate_space_id, coordinate_system):
+    """
+    Object representing an ParameterEstimateMap entity.
+    """ 
+
+    def __init__(self, filename, pe_num, coordinate_space_id, 
+        coordinate_system):
         super(ParameterEstimateMap, self).__init__()
         self.file = filename
         # Column index in the corresponding design matrix
         self.num = pe_num
-        self.coord_space = CoordinateSpace(coordinate_system, coordinate_space_id, filename)
+        self.coord_space = CoordinateSpace(coordinate_system, 
+            coordinate_space_id, filename)
         self.id = NIIRI['beta_map_id_'+str(self.num)]
 
     # Generate prov for contrast map
     def export(self):
+        """
+        Create prov entities and activities.
+        """
         self.p.update(self.coord_space.export())
 
         # Copy parameter estimate map in export directory
@@ -158,48 +219,69 @@ class ParameterEstimateMap(NIDMObject):
                                (NIDM['filename'], pe_filename), 
                                (NIDM['inCoordinateSpace'], self.coord_space.id),
                                # (CRYPTO['sha512'], self.get_sha_sum(pe_file)),
-                               (PROV['label'], "Parameter estimate "+str(self.num))))
+                               (PROV['label'], 
+                                    "Parameter estimate "+str(self.num))))
         
         return self.p
 
 
 class ResidualMeanSquares(NIDMObject):
+    """
+    Object representing an ResidualMeanSquares entity.
+    """ 
+
     def __init__(self, export_dir, residual_file, coordinate_system, coordinate_space_id):
         super(ResidualMeanSquares, self).__init__(export_dir)
         self.file = residual_file
-        self.coord_space = CoordinateSpace(coordinate_system, coordinate_space_id, residual_file)
+        self.coord_space = CoordinateSpace(coordinate_system, 
+            coordinate_space_id, residual_file)
         self.id = NIIRI['residual_mean_squares_map_id']
 
     def export(self):
+        """
+        Create prov entities and activities.
+        """
         # Create coordinate space export
         self.p.update(self.coord_space.export())
 
         # Copy residuals map in export directory
         residuals_file = os.path.join(self.export_dir, 'ResidualMeanSquares.nii.gz')
-        residuals_original_filename, residuals_filename = self.copy_nifti(self.file, residuals_file)
+        residuals_original_filename, residuals_filename = self.copy_nifti(
+            self.file, residuals_file)
     
         # Create "residuals map" entity
         self.p.entity(self.id, 
             other_attributes=( (PROV['type'],NIDM['ResidualMeanSquaresMap'],), 
                                (DCT['format'], "image/nifti"), 
-                               (PROV['location'], Identifier("file://./"+residuals_filename) ),
+                               (PROV['location'], 
+                                Identifier("file://./"+residuals_filename) ),
                                (PROV['label'],"Residual Mean Squares Map" ),
                                (NIDM['filename'],residuals_original_filename ),
                                (NIDM['filename'],residuals_filename ),
-                               (CRYPTO['sha512'], self.get_sha_sum(residuals_file)),
+                               (CRYPTO['sha512'], 
+                                self.get_sha_sum(residuals_file)),
                                (NIDM['inCoordinateSpace'], self.coord_space.id)))
     
         return self.p        
 
 
 class MaskMap(NIDMObject):
-    def __init__(self, export_dir, mask_file, coordinate_system, coordinate_space_id):
+    """
+    Object representing an MaskMap entity.
+    """ 
+
+    def __init__(self, export_dir, mask_file, coordinate_system, 
+        coordinate_space_id):
         super(MaskMap, self).__init__(export_dir)
         self.file = mask_file
-        self.coord_space = CoordinateSpace(coordinate_system, coordinate_space_id, mask_file)
+        self.coord_space = CoordinateSpace(coordinate_system, 
+            coordinate_space_id, mask_file)
         self.id = NIIRI['mask_id_1']
 
     def export(self):
+        """
+        Create prov entities and activities.
+        """
         # Create coordinate space export
         self.p.update(self.coord_space.export())
 
@@ -207,11 +289,13 @@ class MaskMap(NIDMObject):
         original_mask_file = self.file
         mask_file = os.path.join(self.export_dir, 'Mask.nii.gz')
 
-        original_mask_filename, mask_filename = self.copy_nifti(original_mask_file, mask_file)
+        original_mask_filename, mask_filename = self.copy_nifti(
+            original_mask_file, mask_file)
         self.p.entity(self.id, 
             other_attributes=( (PROV['type'],NIDM['MaskMap'],), 
                                (DCT['format'], "image/nifti"), 
-                               (PROV['location'], Identifier("file://./"+mask_filename) ),
+                               (PROV['location'], 
+                                Identifier("file://./"+mask_filename) ),
                                (PROV['label'],"Mask" ),
                                (NIDM['filename'],original_mask_filename ),
                                (NIDM['filename'],mask_filename ),
@@ -221,20 +305,30 @@ class MaskMap(NIDMObject):
         return self.p
 
 class GrandMeanMap(NIDMObject):
-    def __init__(self, filename, mask_file, coordinate_system, coordinate_space_id, export_dir):
+    """
+    Object representing an GrandMeanMap entity.
+    """ 
+
+    def __init__(self, filename, mask_file, coordinate_system, 
+        coordinate_space_id, export_dir):
         super(GrandMeanMap, self).__init__(export_dir)
         self.id = NIIRI['grand_mean_map_id']
         self.file = filename
         self.mask_file = mask_file # needed to compute masked median
-        self.coord_space = CoordinateSpace(coordinate_system, coordinate_space_id, self.file)
+        self.coord_space = CoordinateSpace(coordinate_system, 
+            coordinate_space_id, self.file)
 
     def export(self):
+        """
+        Create prov entities and activities.
+        """
         # Coordinate space entity
         self.p.update(self.coord_space.export())
 
         # Grand Mean Map entity
         grand_mean_file = os.path.join(self.export_dir, 'GrandMean.nii.gz')
-        grand_mean_original_filename, grand_mean_filename = self.copy_nifti(self.file, grand_mean_file)
+        grand_mean_original_filename, grand_mean_filename = self.copy_nifti(
+            self.file, grand_mean_file)
         grand_mean_img = nib.load(grand_mean_file)
         grand_mean_data = grand_mean_img.get_data()
         grand_mean_data = np.ndarray.flatten(grand_mean_data)
@@ -252,10 +346,12 @@ class GrandMeanMap(NIDMObject):
                                (PROV['label'],"Grand Mean Map"), 
                                (NIDM['maskedMedian'], masked_median),
                                (NIDM['filename'], grand_mean_filename),
-                               (NIDM['filename'], grand_mean_original_filename),
+                               (NIDM['filename'], 
+                                    grand_mean_original_filename),
                                (NIDM['inCoordinateSpace'], self.coord_space.id),
-                               (CRYPTO['sha512'], self.get_sha_sum(grand_mean_file)),
-                               (PROV['location'], Identifier("file://./"+grand_mean_filename))))      
+                               (CRYPTO['sha512'], 
+                                    self.get_sha_sum(grand_mean_file)),
+                               (PROV['location'], 
+                                Identifier("file://./"+grand_mean_filename))))      
 
         return self.p
-
