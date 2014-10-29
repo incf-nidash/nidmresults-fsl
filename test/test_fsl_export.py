@@ -77,7 +77,10 @@ class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
         # Equivalent turtle file converted using the ProvStore API
         # Local file to save the turtle export (and avoid multiple calls to ProvStore)
         fsl_export_ttl = os.path.join(TEST_FOLDER, 'FSL_example.ttl');
-        get_turtle(fsl_export_provn, fsl_export_ttl)
+        fsl_export_ttl_url = get_turtle(fsl_export_provn)
+        ttl_fid = open(fsl_export_ttl, 'w')
+        ttl_fid.write(urllib2.urlopen(fsl_export_ttl_url).read())
+        ttl_fid.close()
 
     def setUp(self):
         TestResultDataModel.setUp(self) 
@@ -128,7 +131,7 @@ class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
         ttl file (generated manually) are identical
         """
         ground_truth_provn = os.path.join(self.ground_truth_dir, 'fsl_nidm.provn');
-        ground_truth_ttl = get_turtle(ground_truth_provn, None)
+        ground_truth_ttl = get_turtle(ground_truth_provn)
 
         logging.info("Ground truth provn: "+ground_truth_provn)
         logging.info("Ground truth ttl: "+ground_truth_ttl)
