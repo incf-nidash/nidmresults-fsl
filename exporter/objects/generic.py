@@ -6,7 +6,7 @@ Specification: http://nidm.nidash.org/specs/nidm-results.html
 @author: Camille Maumet <c.m.j.maumet@warwick.ac.uk>
 @copyright: University of Warwick 2013-2014
 """
-from prov.model import ProvBundle
+from prov.model import ProvBundle, Identifier
 import numpy as np
 import os
 from constants import *
@@ -78,4 +78,30 @@ class CoordinateSpace(NIDMObject):
             NIDM['voxelUnits']: "['mm', 'mm', 'mm']",
             NIDM['voxelSize']: voxel_size,
             PROV['label']: "Coordinate space "+str(self.id_num)})
+        return self.p
+
+class Image(NIDMObject):
+    """
+    Object representing an Image entity.
+    """
+    def __init__(self, export_dir, image_file):
+        super(Image, self).__init__(export_dir)
+        self.file = image_file
+        self.id = NIIRI['design_matrix_png_id']
+
+    def export(self):
+        """
+        Create prov entity.
+        """
+        # FIXME: replace by another name
+        new_file = os.path.join(self.export_dir, "DesignMatrix.png")
+        orig_filename, filename = self.copy_nifti(self.file, new_file)
+
+        self.p.entity(self.id, other_attributes={ 
+            PROV['type']: NIDM['Image'],
+            PROV['atLocation']: Identifier("file://./"+filename),
+            NIDM['filename']: orig_filename,
+            NIDM['filename']: filename,
+            DCT['format']: "image/png",
+            })
         return self.p
