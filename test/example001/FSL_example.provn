@@ -12,7 +12,7 @@ document
             prefix nidm <http://www.incf.org/ns/nidash/nidm#>
             prefix crypto <http://id.loc.gov/vocabulary/preservation/cryptographicHashFunctions#>
             
-            agent(niiri:software_id, [prov:type='nidm:FSL', prov:type='prov:SoftwareAgent', prov:label="FSL", fsl:featVersion="6.00"])
+            agent(niiri:software_id, [prov:type='nidm:FSL', prov:type='prov:SoftwareAgent', nidm:softwareVersion="fsl-5_0_x", prov:label="FSL", fsl:featVersion="6.00"])
             activity(niiri:model_parameters_estimation_id, -, -, [prov:type='nidm:ModelParametersEstimation', nidm:withEstimationMethod='nidm:GeneralizedLeastSquares', prov:label="Model Parameters Estimation"])
             entity(niiri:design_matrix_id, [prov:type='nidm:DesignMatrix', prov:location="file://./DesignMatrix.csv" %% xsd:anyURI, prov:label="Design Matrix"])
             used(niiri:model_parameters_estimation_id, niiri:design_matrix_id, -)
