@@ -324,8 +324,10 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         design_mat_file = os.path.join(self.feat_dir, 'design.mat')
         design_mat_fid = open(design_mat_file, 'r')
         design_mat_values = np.loadtxt(design_mat_fid, skiprows=5, ndmin=2)
+        design_mat_image = os.path.join(self.feat_dir, 'design.png')
 
-        design_matrix = DesignMatrix(design_mat_values, self.export_dir)
+        design_matrix = DesignMatrix(design_mat_values, design_mat_image,
+            self.export_dir)
         return design_matrix
 
     def _get_data(self):
@@ -537,7 +539,9 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         search_space = SearchSpace(search_space_file=search_space_file, 
             search_volume=int(smoothness[1]),
             resel_size_in_voxels=float(smoothness[2]), 
-            dlh=float(smoothness[0]), coordinate_system=self.coordinate_system, 
+            dlh=float(smoothness[0]), 
+            random_field_stationarity=True,
+            coordinate_system=self.coordinate_system, 
             coordinate_space_id=self.coordinate_space_id,
             export_dir=self.export_dir)
         self.coordinate_space_id += 1
@@ -664,7 +668,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 x_std = float(cluster_row[24])
                 y_std = float(cluster_row[25])
                 z_std = float(cluster_row[26])
-                clusters.append(Cluster(cluster_id=cluster_id, size=size, 
+                clusters.append(Cluster(cluster_num=cluster_id, size=size, 
                     pFWER=pFWER, peaks=peaks[cluster_id], x=x, y=y, z=z,
                     x_std=x_std, y_std=y_std, z_std=z_std))
 
@@ -679,7 +683,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 x_std = None
                 y_std = None
                 z_std = None
-                clusters.append(Cluster(cluster_id=cluster_id, size=size, 
+                clusters.append(Cluster(cluster_num=cluster_id, size=size, 
                     pFWER=pFWER, peaks=peaks[cluster_id], x=x, y=y, z=z,
                     x_std=x_std,y_std=y_std,z_std=z_std))
         elif (cluster_std_file is not None):
@@ -693,7 +697,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 x = None
                 y = None
                 z = None
-                clusters.append(Cluster(cluster_id=cluster_id, size=size, 
+                clusters.append(Cluster(cluster_num=cluster_id, size=size, 
                     pFWER=pFWER, peaks=peaks[cluster_id], x=x, y=y, z=z,
                     x_std=x_std,y_std=y_std,z_std=z_std))
 

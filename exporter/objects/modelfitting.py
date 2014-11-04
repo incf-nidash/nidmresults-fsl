@@ -76,15 +76,19 @@ class DesignMatrix(NIDMObject):
     Object representing a DesignMatrix entity.
     """ 
 
-    def __init__(self, matrix, export_dir):
+    def __init__(self, matrix, image_file, export_dir):
         super(DesignMatrix, self).__init__(export_dir=export_dir)
         self.matrix = matrix
         self.id = NIIRI['design_matrix_id']
+        self.image = Image(export_dir, image_file)
 
     def export(self):     
         """
         Create prov entities and activities.
         """ 
+        # Export visualisation of the design matrix
+        self.p.update(self.image.export())
+
         # Create cvs file containing design matrix
         design_matrix_csv = 'DesignMatrix.csv'
         np.savetxt(os.path.join(self.export_dir, design_matrix_csv), 
@@ -94,7 +98,9 @@ class DesignMatrix(NIDMObject):
         self.p.entity(self.id, 
             other_attributes=( (PROV['type'],NIDM['DesignMatrix']), 
                                (PROV['label'],"Design Matrix"), 
-                               # (NIDM['filename'],design_matrix_csv ),
+                               (DCT['format'], "text/csv"),
+                               (NIDM['filename'], "DesignMatrix.csv"),
+                               (NIDM['visualisation'], self.image.id),
                                (PROV['location'], 
                                 Identifier("file://./"+design_matrix_csv))))       
         return self.p
