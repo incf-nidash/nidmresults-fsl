@@ -93,15 +93,17 @@ class Image(NIDMObject):
         """
         Create prov entity.
         """
-        # FIXME: replace by another name
-        new_file = os.path.join(self.export_dir, "DesignMatrix.png")
-        orig_filename, filename = self.copy_nifti(self.file, new_file)
+        if self.file is not None:
+            # FIXME: replace by another name
+            new_file = os.path.join(self.export_dir, "DesignMatrix.png")
+            orig_filename, filename = self.copy_nifti(self.file, new_file)
 
-        self.p.entity(self.id, other_attributes={ 
-            PROV['type']: NIDM['Image'],
-            PROV['atLocation']: Identifier("file://./"+filename),
-            NIDM['filename']: orig_filename,
-            NIDM['filename']: filename,
-            DCT['format']: "image/png",
-            })
+            self.p.entity(self.id, other_attributes={ 
+                PROV['type']: NIDM['Image'],
+                PROV['atLocation']: Identifier("file://./"+filename),
+                NIDM['filename']: orig_filename,
+                NIDM['filename']: filename,
+                DCT['format']: "image/png",
+                })
+            
         return self.p

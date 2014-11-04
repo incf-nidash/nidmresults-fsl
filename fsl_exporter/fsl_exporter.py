@@ -335,7 +335,9 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         Parse FSL result directory to retreive information about the data. 
         Return an object of type Data. 
         """
-        data = Data(self.export_dir)
+        grand_mean_scaling = True
+        target_intensity = 10000.0
+        data = Data(grand_mean_scaling, target_intensity)
         return data
 
     def _get_error_model(self):

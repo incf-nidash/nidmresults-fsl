@@ -110,10 +110,10 @@ class Data(NIDMObject):
     Object representing a Data entity.
     """ 
 
-    def __init__(self, export_dir):
+    def __init__(self, grand_mean_scaling, target):
         super(Data, self).__init__()
-        self.grand_mean_sc = True
-        self.target_intensity = 10000.0
+        self.grand_mean_sc = grand_mean_scaling
+        self.target_intensity = target
         self.id = NIIRI['data_id']
 
     def export(self):
