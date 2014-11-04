@@ -170,6 +170,7 @@ class ContrastStdErrMap(NIDMObject):
             self.p.entity(contrast_var_id, other_attributes=( 
                 (PROV['type'], FSL['ContrastVarianceMap']), 
                 (NIDM['inCoordinateSpace'], self.var_coord_space.id),
+                (DCT['format'], "image/nifti"),
                 (CRYPTO['sha512'], self.get_sha_sum(self.file)),
                 (NIDM['filename'], var_cope_filename)))
             
