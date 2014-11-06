@@ -1,59 +1,102 @@
 #!/usr/bin/env python
-'''Test of NI-DM FSL export tool
+"""
+Test of NIDM FSL export tool
+
 
 @author: Camille Maumet <c.m.j.maumet@warwick.ac.uk>
-@copyright: University of Warwick 2014
-'''
+@copyright: University of Warwick 2013-2014
+"""
 import unittest
 import os
-from subprocess import call
-import re
-import rdflib
 from rdflib.graph import Graph
+import shutil
+import sys
 
-from rdflib import Graph, plugin, Namespace
-from rdflib.parser import Parser
-from rdflib.serializer import Serializer
+import logging
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.DEBUG)
+
+RELPATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+# Add FSL NIDM export to python path
+sys.path.append(RELPATH)
 
 # Add nidm common testing code folder to python path
-import sys
-path = "./nidm/nidm/nidm-results/test"
+NIDM_DIR = os.path.join(RELPATH, "nidm")
+# In TravisCI the nidm repository will be created as a subtree, however locally the nidm
+# directory will be accessed directly
+logging.debug(NIDM_DIR)
+if not os.path.isdir(NIDM_DIR):
+    NIDM_DIR = os.path.join(os.path.dirname(RELPATH), "nidm")
+    # The FSL export to NIDM will only be run locally (for now)
+    from fsl_exporter.fsl_exporter import FSLtoNIDMExporter
+
+NIDM_RESULTS_DIR = os.path.join(NIDM_DIR, "nidm", "nidm-results")
+TERM_RESULTS_DIR = os.path.join(NIDM_RESULTS_DIR, "terms")
+TEST_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'example001')
+DATA_DIR = os.path.join(RELPATH, 'test', 'data', 'fmri.feat')
+
+path = os.path.join(NIDM_RESULTS_DIR, "test")
 sys.path.append(path)
+
 
 from TestResultDataModel import TestResultDataModel
 from TestCommons import *
 from CheckConsistency import *
 
-RELPATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-import logging
-logger = logging.getLogger(__name__)
-
-'''Tests based on the analysis of single-subject fmri fluency data as described at http://fsl.fmrib.ox.ac.uk/fslcourse/lectures/practicals/feat1/index.html but with only *1 contrast specified: Generation*
-'''
 class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
+    """
+    Tests based on the analysis of single-subject fmri fluency data as 
+    described at 
+    http://fsl.fmrib.ox.ac.uk/fslcourse/lectures/practicals/feat1/index.html 
+    but with only *1 contrast: Generation*
+    """
+    
+    @classmethod
+    def setUpClass(cls):
+        # *** Once for all, run the export and convert provn to ttl
+        
+        #  Turtle file obtained with FSL NI-DM export tool
+        fsl_export_provn = os.path.join(TEST_FOLDER, 'FSL_example.provn');
+
+        # If test data is available (usually if the test is run locally) then 
+        # compute a fresh export
+        if os.path.isdir(DATA_DIR):
+            logging.debug("Computing NIDM FSL export")
+
+            # Export to NIDM using FSL export tool
+            # fslnidm = FSL_NIDM(feat_dir=DATA_DIR);
+            fslnidm = FSLtoNIDMExporter(feat_dir=DATA_DIR, version="0.2.0")
+            fslnidm.parse()
+            fslnidm.export()
+
+            # Copy provn export to test directory
+            shutil.copy(os.path.join(DATA_DIR, 'nidm', 'nidm.provn'), 
+                        os.path.join(fsl_export_provn))
+
+        # Equivalent turtle file converted using the ProvStore API
+        # Local file to save the turtle export (and avoid multiple calls to ProvStore)
+        fsl_export_ttl = os.path.join(TEST_FOLDER, 'FSL_example.ttl');
+        fsl_export_ttl_url = get_turtle(fsl_export_provn)
+        ttl_fid = open(fsl_export_ttl, 'w')
+        ttl_fid.write(urllib2.urlopen(fsl_export_ttl_url).read())
+        ttl_fid.close()
 
     def setUp(self):
         TestResultDataModel.setUp(self) 
-        self.ground_truth_dir = os.path.join(self.ground_truth_dir, 'fsl', 'example001')
-        print "\n\n----> "+self.ground_truth_dir
+        self.ground_truth_dir = os.path.join(NIDM_RESULTS_DIR,'fsl', 'example001')
+        self.fsl_export_ttl = os.path.join(TEST_FOLDER, 'FSL_example.ttl');
 
-        # Current module directory is used as test directory
-        self.test_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'example001')
-
-        print "\n\n----> "+self.test_dir
-        #  Turtle file obtained with FSL NI-DM export tool
-        self.fsl_export_ttl = os.path.join(self.test_dir, 'fsl_nidm.ttl');
-        # fsl_export_json = os.path.join(self.test_dir, 'fsl', 'export', 'test01', 'fsl_nidm.json');
-        # g.parse(data=testrdfjson, format="rdf-json")
-        
         # RDF obtained by the FSL export 
         self.fslexport = Graph()
         # self.fsl_export_ttl = os.path.join(self.test_dir, 'fsl', 'export', 'test01', 'fsl_nidm.ttl');
         self.fslexport.parse(self.fsl_export_ttl, format='turtle')
 
         # Retreive owl file for NIDM-Results
-        self.owl_file = os.path.join(RELPATH, 'nidm', 'nidm', 'nidm-results', 'nidm-results.owl')
+        self.owl_file = os.path.join(TERM_RESULTS_DIR, 'nidm-results.owl')
+
+        # Move in test dir (storage of prov file)
+        # fsl_test_dir = os.path.join(RELPATH, 'test')
 
     def test01_class_consistency_with_owl(self):
         my_exception = check_class_names(self.fslexport, "FSL example001", owl_file=self.owl_file)
@@ -81,22 +124,29 @@ class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
             raise Exception(error_msg)
 
 
-    '''Test03: Comparing that the ttl file generated by FSL and the expected ttl file (generated manually) are identical'''
     # FIXME: If terms PR is accepted then these tests should be moved to TestResultDataModel.py
     def test03_ex1_auditory_singlesub_full_graph(self):
-        ground_truth_provn = os.path.join(self.ground_truth_dir, 'fsl_nidm.provn');
-        ground_truth_ttl = get_turtle(ground_truth_provn)
+        """
+        Test03: Comparing that the ttl file generated by FSL and the expected 
+        ttl file (generated manually) are identical
+        """
+        ground_truth_ttl = os.path.join(self.ground_truth_dir, 'fsl_nidm.ttl');
+        logging.info("Ground truth ttl: "+ground_truth_ttl)
 
         # RDF obtained by the ground truth export
         gt = Graph()
         gt.parse(ground_truth_ttl, format='turtle')
 
-        print("Comparing "+ground_truth_ttl+" with "+self.fsl_export_ttl)
-
         self.compare_full_graphs(gt, self.fslexport)
 
         if self.my_execption:
             raise Exception(self.my_execption)
+
+    @classmethod
+    def tearDownClass(cls):
+        # Delete temporarily written out ttl file
+        fsl_export_ttl = os.path.join(TEST_FOLDER, 'FSL_example.ttl');
+        os.remove(fsl_export_ttl)
 
     # '''Test02: Test availability of attributes needed to perform a meta-analysis as specified in use-case *1* at: http://wiki.incf.org/mediawiki/index.php/Queries'''
     # def test02_metaanalysis_usecase1(self):
@@ -221,9 +271,6 @@ class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
 
     #     if not self.successful_retreive(self.fslexport.query(query), 'ContrastMap and ContrastStandardErrorMap'):
     #         raise Exception(self.my_execption)
-#     def runTests(self):
-#         print "kjsdhkjshdffj2222"
-#         unittest.main()
 
 if __name__ == '__main__':
     unittest.main()
