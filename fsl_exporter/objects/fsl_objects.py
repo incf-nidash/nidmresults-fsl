@@ -56,5 +56,4 @@ class Software(NIDMObject):
                             (NIDM['softwareVersion'],self.version),
                             (FSL['featVersion'], self.feat_version)))
 
-
         return self.p

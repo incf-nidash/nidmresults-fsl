@@ -4,7 +4,7 @@ document
           prefix nidm <http://www.incf.org/ns/nidash/nidm#>
           
           entity(niiri:fsl_results_id, [prov:type='prov:Bundle', nidm:objectModel='nidm:FSLResults', nidm:version="0.2.0", prov:label="FSL Results"])
-          wasGeneratedBy(niiri:fsl_results_id, -, 2014-11-06T15:44:06.181959)
+          wasGeneratedBy(niiri:fsl_results_id, -, 2014-11-06T16:09:15.958270)
           bundle niiri:fsl_results_id
             prefix niiri <http://iri.nidash.org/>
             prefix fsl <http://www.incf.org/ns/nidash/fsl#>

@@ -347,9 +347,9 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         """
         fmri_level_re = r'.*set fmri\(level\) (?P<info>\d+).*'
         fmri_level = int(self._search_in_fsf(fmri_level_re))
-        first_level = (fmri_level == 1)
+        self.first_level = (fmri_level == 1)
 
-        if first_level:
+        if self.first_level:
             variance_homo = True
             dependance = SERIALLY_CORR
             variance_spatial = SPATIALLY_LOCAL
@@ -370,15 +370,36 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         Parse FSL result directory to retreive information about the residual 
         mean squares map. Return an object of type ResidualMeanSquares. 
         """
-        residuals_file = os.path.join(self.feat_dir, 
-            'stats', 'sigmasquareds.nii.gz')
-        # FIXME: Check if there is an alternative file to use here
-        if not os.path.isfile(residuals_file):
-            rms_map = None;
+
+        if self.first_level:
+            residuals_file = os.path.join(self.feat_dir, 
+                'stats', 'sigmasquareds.nii.gz')
         else:
-            rms_map = ResidualMeanSquares(self.export_dir, residuals_file, 
-                self.coordinate_system, self.coordinate_space_id)
-            self.coordinate_space_id = self.coordinate_space_id + 1
+            sigma2_group_file = os.path.join(self.feat_dir, 
+                'stats', 'mean_random_effects_var1.nii.gz')
+            sigma2_sub_file = os.path.join(self.feat_dir, 
+                'stats', 'varcope1.nii.gz')
+            # Create residual mean squares map
+            sigma2_group_img = nib.load(sigma2_group_file)
+            sigma2_group = sigma2_group_img.get_data()
+
+            sigma2_sub_img = nib.load(sigma2_sub_file)
+            sigma2_sub = sigma2_sub_img.get_data()
+
+            residuals_file = os.path.join(self.feat_dir, 
+                'stats', 'calculated_sigmasquareds.nii.gz')
+            residuals_img = nib.Nifti1Image(sigma2_group+sigma2_sub,
+                sigma2_sub_img.get_qform())
+            nib.save(residuals_img, residuals_file)
+
+        rms_map = ResidualMeanSquares(self.export_dir, residuals_file, 
+            self.coordinate_system, self.coordinate_space_id)
+        self.coordinate_space_id = self.coordinate_space_id + 1
+        if not self.first_level:
+            # Delete calculated rms file (a copy is now in the NIDM export)
+            # FIXME we need to add the wasDerivedFrom maps 
+            os.remove(residuals_file)
+
         return rms_map
 
     def _get_param_estimate_maps(self):
