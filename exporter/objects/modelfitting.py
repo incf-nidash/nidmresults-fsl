@@ -236,7 +236,8 @@ class ResidualMeanSquares(NIDMObject):
     Object representing an ResidualMeanSquares entity.
     """ 
 
-    def __init__(self, export_dir, residual_file, coordinate_system, coordinate_space_id):
+    def __init__(self, export_dir, residual_file, coordinate_system, 
+        coordinate_space_id):
         super(ResidualMeanSquares, self).__init__(export_dir)
         self.file = residual_file
         self.coord_space = CoordinateSpace(coordinate_system, 
