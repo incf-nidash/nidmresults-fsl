@@ -350,13 +350,16 @@ class PeakCriteria(NIDMObject):
         """
         Create prov entities and activities.
         """
+        num_peak = ()
+        if self.num_peak:
+            num_peak = (NIDM['maxNumberOfPeaksPerCluster'], self.num_peak)
+
         # Create "Peak definition criteria" entity
         self.p.entity(self.id,
             other_attributes=(  
                 (PROV['type'], NIDM['PeakDefinitionCriteria']), 
                 (PROV['label'] , "Peak Definition Criteria"),
-                (NIDM['maxNumberOfPeaksPerCluster'], self.num_peak),
-                (NIDM['minDistanceBetweenPeaks'], self.peak_dist)))
+                (NIDM['minDistanceBetweenPeaks'], self.peak_dist))+num_peak)
 
         return self.p
 

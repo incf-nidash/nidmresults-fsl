@@ -501,7 +501,8 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             else:
                 # If not specified, default value is inf? (cf. http://fsl.fmrib.ox.ac.uk/fsl/fslwiki/Cluster)
                 # Is it ok to say no limit with -1 (as for Inf we would need float...)
-                num_peak = -1
+                # FIXME: for now omitted if not explicitely defined
+                num_peak = None
         return num_peak
 
     def _get_peak_dist(self):
