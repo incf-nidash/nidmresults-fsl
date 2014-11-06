@@ -250,7 +250,11 @@ class StatisticMap(NIDMObject):
 
         if not self.stat_type == 'Z':
             attributes.insert(0, (NIDM['errorDegreesOfFreedom'], self.dof))
-            # Check if we should have effectDegreesOfFreedom with z-stat?
+            # FIXME: this should not be 1 for F-test
+            attributes.insert(0, (NIDM['effectDegreesOfFreedom'], 1.0))
+        else:
+            # For Z-Statistic error dof is infinity and effect dof is 1
+            attributes.insert(0, (NIDM['errorDegreesOfFreedom'], float("inf")))
             attributes.insert(0, (NIDM['effectDegreesOfFreedom'], 1.0))
 
         # Create "Statistic Map" entity
