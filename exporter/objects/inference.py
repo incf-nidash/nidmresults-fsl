@@ -488,7 +488,7 @@ class Coordinate(NIDMObject):
         """
         # We can not have this in the dictionnary because we want to keep the 
         # duplicate prov:type attribute
-        typeAndLabelAttributes = [(PROV['type'],PROV['Location']),
+        typeAndLabelAttributes = [#(PROV['type'],PROV['Location']),
             (PROV['type'], NIDM['Coordinate']),
             (PROV['label'], "Coordinate "+self.label_id)]
 
