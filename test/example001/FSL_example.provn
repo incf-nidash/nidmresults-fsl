@@ -4,7 +4,7 @@ document
           prefix nidm <http://www.incf.org/ns/nidash/nidm#>
           
           entity(niiri:fsl_results_id, [prov:type='prov:Bundle', nidm:objectModel='nidm:FSLResults', nidm:version="0.2.0", prov:label="FSL Results"])
-          wasGeneratedBy(niiri:fsl_results_id, -, 2014-11-06T16:09:15.958270)
+          wasGeneratedBy(niiri:fsl_results_id, -, 2014-11-06T16:26:26.300869)
           bundle niiri:fsl_results_id
             prefix niiri <http://iri.nidash.org/>
             prefix fsl <http://www.incf.org/ns/nidash/fsl#>
@@ -58,7 +58,7 @@ document
             entity(niiri:statistic_map_id_1, [dct:format="image/nifti", nidm:errorDegreesOfFreedom="102" %% xsd:float, prov:label="Statistic Map: Generation", prov:type='nidm:StatisticMap', prov:location="file://./TStatistic.nii.gz" %% xsd:anyURI, nidm:inCoordinateSpace='niiri:coordinate_space_id_11', nidm:contrastName="Generation", nidm:filename="tstat1.nii.gz", nidm:filename="TStatistic.nii.gz", nidm:statisticType='nidm:TStatistic', crypto:sha512="b6286d36e678c23622b5b0486f0efb5b274f9a5e2a3ee6aceb6a0338f7745fb8a4d8f72b8af22c4ffb40c860bfb65940c87b03a7336cdf1a665f9cb07a5c2527", nidm:effectDegreesOfFreedom="1" %% xsd:float])
             wasGeneratedBy(niiri:statistic_map_id_1, niiri:contrast_estimation_id_1, -)
             entity(niiri:coordinate_space_id_12, [prov:label="Coordinate space 12", prov:type='nidm:CoordinateSpace', nidm:voxelUnits="['mm', 'mm', 'mm']", nidm:dimensionsInVoxels="[64, 64, 42]", nidm:inWorldCoordinateSystem='nidm:IcbmMni152NonLinear6thGenerationCoordinateSystem', nidm:voxelSize="[3.5, 3.5, 3.5]", nidm:voxelToWorldMapping="[[ -3.5, 0, 0, 108.5], [ 0, 3.5, 0, -108.5], [ 0, 0, 3.5, -52.5], [ 0, 0, 0, 1]]", nidm:numberOfDimensions=3])
-            entity(niiri:z_statistic_map_id_1, [dct:format="image/nifti", prov:label="Z-Statistic Map: Generation", prov:type='nidm:StatisticMap', prov:location="file://./ZStatistic.nii.gz" %% xsd:anyURI, nidm:inCoordinateSpace='niiri:coordinate_space_id_12', nidm:contrastName="Generation", nidm:filename="zstat1.nii.gz", nidm:filename="ZStatistic.nii.gz", nidm:statisticType='nidm:ZStatistic', crypto:sha512="3a68a4e5963766af86d22a871a4dbca9568a46441a567855b3a84dbd47ea01acea11ed77b37ce85078a219adaa92264296a4548c1ba39b11ff028e8fefd95d03"])
+            entity(niiri:z_statistic_map_id_1, [dct:format="image/nifti", nidm:errorDegreesOfFreedom="inf" %% xsd:float, prov:label="Z-Statistic Map: Generation", prov:type='nidm:StatisticMap', prov:location="file://./ZStatistic.nii.gz" %% xsd:anyURI, nidm:inCoordinateSpace='niiri:coordinate_space_id_12', nidm:contrastName="Generation", nidm:filename="zstat1.nii.gz", nidm:filename="ZStatistic.nii.gz", nidm:statisticType='nidm:ZStatistic', crypto:sha512="3a68a4e5963766af86d22a871a4dbca9568a46441a567855b3a84dbd47ea01acea11ed77b37ce85078a219adaa92264296a4548c1ba39b11ff028e8fefd95d03", nidm:effectDegreesOfFreedom="1" %% xsd:float])
             wasGeneratedBy(niiri:z_statistic_map_id_1, niiri:contrast_estimation_id_1, -)
             used(niiri:contrast_estimation_id_1, niiri:residual_mean_squares_map_id, -)
             used(niiri:contrast_estimation_id_1, niiri:mask_id_1, -)
