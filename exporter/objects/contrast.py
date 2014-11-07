@@ -14,6 +14,7 @@ from constants import *
 import nibabel as nib
 import hashlib
 from generic import *
+import uuid
 
 class Contrast(NIDMObject):
     """
@@ -72,7 +73,7 @@ class ContrastWeights(NIDMObject):
         self.contrast_name = contrast_name
         self.contrast_weights = contrast_weights
         self.contrast_num = contrast_num
-        self.id = NIIRI['contrast_id_'+self.contrast_num]
+        self.id = NIIRI[str(uuid.uuid4())]
 
     def export(self):
         """
@@ -99,7 +100,7 @@ class ContrastMap(NIDMObject):
         self.file = contrast_file
         self.num = contrast_num
         self.name = contrast_name
-        self.id = NIIRI['contrast_map_id_'+contrast_num]
+        self.id = NIIRI[str(uuid.uuid4())]
         self.coord_space = CoordinateSpace(coordinate_system, 
             coordinate_space_id, self.file)
 
@@ -137,7 +138,7 @@ class ContrastStdErrMap(NIDMObject):
         coordinate_space_id, export_dir):
         super(ContrastStdErrMap, self).__init__(export_dir)
         self.file = filename
-        self.id = NIIRI['contrast_standard_error_map_id_'+contrast_num]
+        self.id = NIIRI[str(uuid.uuid4())]
         self.is_variance = is_variance
         self.coord_space = CoordinateSpace(coordinate_system, 
             coordinate_space_id, filename)
@@ -211,10 +212,7 @@ class StatisticMap(NIDMObject):
         self.num = contrast_num
         self.name = contrast_name
         self.file = stat_file
-        if stat_type == 'Z':
-            self.id = NIIRI['z_statistic_map_id_'+contrast_num ]
-        else:
-            self.id = NIIRI['statistic_map_id_'+contrast_num ]
+        self.id = NIIRI[str(uuid.uuid4())]
         self.coord_space = CoordinateSpace(coordinate_system, 
             coordinate_space_id, stat_file)
         self.stat_type = stat_type
@@ -235,7 +233,6 @@ class StatisticMap(NIDMObject):
         label = "Statistic Map: "+self.name
         if self.stat_type == 'Z':
             label = self.stat_type+'-'+label
-
 
         attributes = [(PROV['type'], NIDM['StatisticMap']), 
                     (DCT['format'], "image/nifti"), 
@@ -271,7 +268,7 @@ class ContrastEstimation(NIDMObject):
         super(ContrastEstimation, self).__init__()
         self.num = contrast_num
         self.name = contrast_name
-        self.id = NIIRI['contrast_estimation_id_'+self.num]
+        self.id = NIIRI[str(uuid.uuid4())]
 
     def export(self):
         """

@@ -13,6 +13,7 @@ from constants import *
 import nibabel as nib
 import shutil
 import hashlib
+import uuid
 
 class NIDMObject(object):
     """
@@ -50,7 +51,7 @@ class CoordinateSpace(NIDMObject):
         self.coordinate_system = coordinate_system
         self.nifti_file = nifti_file
         self.id_num = coordinate_space_id
-        self.id = NIIRI['coordinate_space_id_'+str(coordinate_space_id)]
+        self.id = NIIRI[str(uuid.uuid4())]
 
     def export(self):
         """
@@ -87,7 +88,7 @@ class Image(NIDMObject):
     def __init__(self, export_dir, image_file):
         super(Image, self).__init__(export_dir)
         self.file = image_file
-        self.id = NIIRI['design_matrix_png_id']
+        self.id = NIIRI[str(uuid.uuid4())]
 
     def export(self):
         """

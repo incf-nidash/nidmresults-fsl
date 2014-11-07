@@ -8,6 +8,7 @@ Specification: http://nidm.nidash.org/specs/nidm-results.html
 @copyright: University of Warwick 2013-2014
 """
 from prov.model import Identifier
+import uuid
 import numpy as np
 import os
 from constants import *
@@ -79,7 +80,7 @@ class DesignMatrix(NIDMObject):
     def __init__(self, matrix, image_file, export_dir):
         super(DesignMatrix, self).__init__(export_dir=export_dir)
         self.matrix = matrix
-        self.id = NIIRI['design_matrix_id']
+        self.id = NIIRI[str(uuid.uuid4())]
         self.image = Image(export_dir, image_file)
 
     def export(self):     
@@ -114,7 +115,7 @@ class Data(NIDMObject):
         super(Data, self).__init__()
         self.grand_mean_sc = grand_mean_scaling
         self.target_intensity = target
-        self.id = NIIRI['data_id']
+        self.id = NIIRI[str(uuid.uuid4())]
 
     def export(self):
         """
@@ -146,7 +147,7 @@ class ErrorModel(NIDMObject):
         self.variance_spatial = variance_spatial
         self.dependance = dependance
         self.dependance_spatial = dependance_spatial
-        self.id = NIIRI['error_model_id']
+        self.id = NIIRI[str(uuid.uuid4())]
 
     def export(self):
         """
@@ -176,7 +177,7 @@ class ModelParametersEstimation(NIDMObject):
         super(ModelParametersEstimation, self).__init__()
         self.estimation_method = estimation_method
         self.software_id = software_id
-        self.id = NIIRI['model_parameters_estimation_id']
+        self.id = NIIRI[str(uuid.uuid4())]
 
     def export(self):
         """
@@ -203,7 +204,7 @@ class ParameterEstimateMap(NIDMObject):
         self.num = pe_num
         self.coord_space = CoordinateSpace(coordinate_system, 
             coordinate_space_id, filename)
-        self.id = NIIRI['beta_map_id_'+str(self.num)]
+        self.id = NIIRI[str(uuid.uuid4())]
 
     # Generate prov for contrast map
     def export(self):
@@ -242,7 +243,7 @@ class ResidualMeanSquares(NIDMObject):
         self.file = residual_file
         self.coord_space = CoordinateSpace(coordinate_system, 
             coordinate_space_id, residual_file)
-        self.id = NIIRI['residual_mean_squares_map_id']
+        self.id = NIIRI[str(uuid.uuid4())]
 
     def export(self):
         """
@@ -283,7 +284,7 @@ class MaskMap(NIDMObject):
         self.file = mask_file
         self.coord_space = CoordinateSpace(coordinate_system, 
             coordinate_space_id, mask_file)
-        self.id = NIIRI['mask_id_1']
+        self.id = NIIRI[str(uuid.uuid4())]
 
     def export(self):
         """
@@ -319,7 +320,7 @@ class GrandMeanMap(NIDMObject):
     def __init__(self, filename, mask_file, coordinate_system, 
         coordinate_space_id, export_dir):
         super(GrandMeanMap, self).__init__(export_dir)
-        self.id = NIIRI['grand_mean_map_id']
+        self.id = NIIRI[str(uuid.uuid4())]
         self.file = filename
         self.mask_file = mask_file # needed to compute masked median
         self.coord_space = CoordinateSpace(coordinate_system, 

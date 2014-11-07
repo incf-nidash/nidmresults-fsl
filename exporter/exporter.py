@@ -15,6 +15,7 @@ from objects.constants import *
 from objects.modelfitting import *
 from objects.contrast import *
 from objects.inference import *
+import uuid 
 
 class NIDMExporter():
     """ 
@@ -141,9 +142,10 @@ class NIDMExporter():
         software_lc = self.software.name.lower()
         software_uc = self.software.name.upper()
 
-        self.bundle = ProvBundle(identifier=NIIRI[software_lc+'_results_id'])
+        bundle_id = NIIRI[str(uuid.uuid4())]
+        self.bundle = ProvBundle(identifier=bundle_id)
 
-        self.doc.entity(NIIRI[software_lc+'_results_id'], 
+        self.doc.entity(bundle_id, 
             other_attributes=( (PROV['type'], PROV['Bundle'],), 
                                (PROV['label'],software_uc+" Results" ),
                                (NIDM['objectModel'],
