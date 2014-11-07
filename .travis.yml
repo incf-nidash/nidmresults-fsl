@@ -9,4 +9,6 @@ script:  python test/test_fsl_export.py
 before_install: 
  - git config --global user.name "TravisCI"
  # Create subtree nidm from main nidm repository
- - git subtree add --prefix nidm https://github.com/incf-nidash/nidm.git master --squash
+ - git remote add nidm https://github.com/cmaumet/nidm.git
+ - git fetch nidm
+ - git subtree add --prefix nidm nidm/uuid --squash
