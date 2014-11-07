@@ -12,6 +12,7 @@ import os
 from constants import *
 import shutil
 from generic import *
+from scipy.stats import norm
 
 class Inference(NIDMObject):
     """
@@ -539,6 +540,7 @@ class Peak(NIDMObject):
             (PROV['type'] , NIDM['Peak']), 
             (PROV['label'] , "Peak "+str(self.num)), 
             (NIDM['equivalentZStatistic'], self.equiv_z), 
+            (NIDM['pValueUncorrected'], 1-norm.cdf(self.equiv_z)), 
             (PROV['location'] , self.coordinate.id)]
 
         if self.max_peak:
