@@ -111,12 +111,18 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
         contrasts = dict()
         for filename in os.listdir(self.feat_dir):
-            if filename.startswith("thresh_zstat"):
+            if filename.startswith("thresh_z"):
                 if filename.endswith(".nii.gz"):
-                    s = re.compile('zstat\d+')
+                    s = re.compile('zf?stat\d+')
                     zstatnum = s.search(filename)
                     zstatnum = zstatnum.group()
-                    con_num = zstatnum.replace('zstat', '')
+
+                    if zstatnum.startswith("zstat"):
+                        stat_type = "T"
+                        con_num = zstatnum.replace('zstat', '')
+                    elif zstatnum.startswith("zfstat"):
+                        stat_type = "F"
+                        con_num = zstatnum.replace('zfstat', '')
 
                     # Contrast name
                     name_re = r'.*set fmri\(conname_real\.'+con_num+\
@@ -183,8 +189,8 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
                     # Statistic Map
                     stat_file = os.path.join(self.feat_dir, 
-                        'stats', 'tstat'+str(con_num)+'.nii.gz')
-                    stat_map = StatisticMap(stat_file, 'T', con_num, 
+                        'stats', stat_type.lower()+'stat'+str(con_num)+'.nii.gz')
+                    stat_map = StatisticMap(stat_file, stat_type, con_num, 
                         contrast_name, dof, self.coordinate_system, 
                         self.coordinate_space_id, self.export_dir)
                     self.coordinate_space_id += 1
