@@ -63,6 +63,7 @@ class NIDMExporter():
         """ 
         Generate a NIDM-Results export. 
         """  
+        os.mkdir(self.export_dir)
 
         # Initialise main bundle
         self._create_bundle(self.version)
