@@ -7,6 +7,8 @@ FSL-specific classes and classes overloaded to add FSL-specific attributes.
 from exporter.objects.generic import NIDMObject
 from exporter.objects.constants import *
 import logging
+import uuid
+
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
 
@@ -21,7 +23,7 @@ class Software(NIDMObject):
         super(Software, self).__init__()
         self.feat_version = feat_version
         self.name = "FSL"
-        self.id = NIIRI['software_id']
+        self.id = NIIRI[str(uuid.uuid4())]
         # Retreive FSL version from feat version 
         # (cf. https://github.com/incf-nidash/nidm-results_fsl/issues/3)
         if feat_version == "6.00":
