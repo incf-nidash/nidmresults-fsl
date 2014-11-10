@@ -8,6 +8,7 @@ specification.
 
 import re
 import os
+import glob
 import numpy as np
 from exporter.exporter import NIDMExporter
 from exporter.objects.constants import *
@@ -24,7 +25,20 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
     def __init__(self, *args, **kwargs):
         self.feat_dir = kwargs.pop('feat_dir')        
-        self.export_dir = os.path.join(self.feat_dir, 'nidm')
+
+        nidm_dirs = glob.glob(os.path.join(self.feat_dir, 'nidm****'))
+        if nidm_dirs:
+            if nidm_dirs[-1] == os.path.join(self.feat_dir, 'nidm'):
+                export_dir_num = 1
+            else:
+                m = re.search('(?<=nidm_).*', nidm_dirs[-1])
+                export_dir_num = int(m.group(0))+1
+
+            self.export_dir = os.path.join(self.feat_dir, \
+                'nidm'+"_{0:0>4}".format(export_dir_num))
+        else:
+            self.export_dir = os.path.join(self.feat_dir, 'nidm')
+
         self.design_file = os.path.join(self.feat_dir, 'design.fsf');
         # FIXME: maybe not always "4"?
         feat_post_log_file = os.path.join(self.feat_dir, 'logs', 'feat4_post')
@@ -109,98 +123,111 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         dof_file = open(os.path.join(self.feat_dir, 'stats', 'dof'), 'r')
         dof = float(dof_file.read())
 
+        exc_sets = glob.glob(os.path.join(self.feat_dir, 'thresh_z*.nii.gz'))
+
         contrasts = dict()
-        for filename in os.listdir(self.feat_dir):
-            if filename.startswith("thresh_zstat"):
-                if filename.endswith(".nii.gz"):
-                    s = re.compile('zstat\d+')
-                    zstatnum = s.search(filename)
-                    zstatnum = zstatnum.group()
-                    con_num = zstatnum.replace('zstat', '')
+        for filename in exc_sets:
+            s = re.compile('zf?stat\d+')
+            zstatnum = s.search(filename)
+            zstatnum = zstatnum.group()
 
-                    # Contrast name
-                    name_re = r'.*set fmri\(conname_real\.'+con_num+\
-                                        '\) "(?P<info>[\w\s><]+)".*'
-                    contrast_name = self._search_in_fsf(name_re)
-                    self.contrast_names_by_num[con_num] = contrast_name
+            if zstatnum.startswith("zstat"):
+                stat_type = "T"
+                con_num = zstatnum.replace('zstat', '')
+            elif zstatnum.startswith("zfstat"):
+                stat_type = "F"
+                con_num = zstatnum.replace('zfstat', '')
 
-                    # Contrast estimation activity
-                    estimation = ContrastEstimation(con_num, contrast_name)
+            # If more than one excursion set is reported, we need to use 
+            # an index in the file names of the file exported in nidm
+            if len(exc_sets) > 1:
+                stat_num = "_"+stat_type.upper()+"{0:0>3}".format(con_num)
+            else:
+                stat_num = ""    
 
-                    # Contrast weights
-                    weights_re = r'.*set fmri\(con_real'+con_num+\
-                                        '\.\d+\) (?P<info>\d+)'
-                    weight_search = re.compile(weights_re)
-                    contrast_weights = str(re.findall(weight_search, 
-                        self.design_txt)).replace("'", '')
+            # Contrast name
+            name_re = r'.*set fmri\(conname_real\.'+con_num+\
+                                '\) "(?P<info>[\w\s><]+)".*'
+            contrast_name = self._search_in_fsf(name_re)
+            self.contrast_names_by_num[con_num] = contrast_name
 
-                    weights = ContrastWeights(con_num, contrast_name, 
-                        contrast_weights)
-                   
-                    # Find which parameter estimates were used to compute the 
-                    # contrast
-                    pe_ids = list()
-                    pe_index = 1
-                    contrast_weights = contrast_weights.replace(' ', '')
-                    contrast_weights = contrast_weights.replace('[', '')
-                    contrast_weights = contrast_weights.replace(']', '')
-                    contrast_weights = contrast_weights.split(',')
+            # Contrast estimation activity
+            estimation = ContrastEstimation(con_num, contrast_name)
 
-                    # Whenever a "1" is found in contrast_weights, the 
-                    # parameter estimate map identified by the corresponding 
-                    # index is in use
-                    for beta_index in contrast_weights:
-                        if int(beta_index) == 1:
-                            for model_fitting in self.model_fittings:
-                                for pe in model_fitting.param_estimates:
-                                    s = re.compile('pe\d+')
-                                    pe_num = s.search(pe.file)
-                                    pe_num = pe_num.group()
-                                    pe_num = pe_num.replace('pe', '')
-                                    if pe_num == pe_index:
-                                        pe_ids.append(pe.id)
-                        pe_index += 1;
+            # Contrast weights
+            weights_re = r'.*set fmri\(con_real'+con_num+\
+                                '\.\d+\) (?P<info>\d+)'
+            weight_search = re.compile(weights_re)
+            contrast_weights = str(re.findall(weight_search, 
+                self.design_txt)).replace("'", '')
 
-                    # Convert to immutable tuple to be used as key
-                    pe_ids = tuple(pe_ids)
+            weights = ContrastWeights(stat_num, contrast_name, 
+                contrast_weights, stat_type)
+           
+            # Find which parameter estimates were used to compute the 
+            # contrast
+            pe_ids = list()
+            pe_index = 1
+            contrast_weights = contrast_weights.replace(' ', '')
+            contrast_weights = contrast_weights.replace('[', '')
+            contrast_weights = contrast_weights.replace(']', '')
+            contrast_weights = contrast_weights.split(',')
 
-                    # Contrast Map
-                    con_file = os.path.join(self.feat_dir, 
-                        'stats', 'cope'+str(con_num)+'.nii.gz')
-                    contrast_map = ContrastMap(con_file, con_num, 
-                        contrast_name, self.coordinate_system, 
-                        self.coordinate_space_id, self.export_dir)
-                    self.coordinate_space_id += 1
+            # Whenever a "1" is found in contrast_weights, the 
+            # parameter estimate map identified by the corresponding 
+            # index is in use
+            for beta_index in contrast_weights:
+                if int(beta_index) == 1:
+                    for model_fitting in self.model_fittings:
+                        for pe in model_fitting.param_estimates:
+                            s = re.compile('pe\d+')
+                            pe_num = s.search(pe.file)
+                            pe_num = pe_num.group()
+                            pe_num = pe_num.replace('pe', '')
+                            if pe_num == pe_index:
+                                pe_ids.append(pe.id)
+                pe_index += 1;
 
-                    # Contrast Variance and Standard Error Maps
-                    varcontrast_file = os.path.join(self.feat_dir, 
-                        'stats', 'varcope'+str(con_num)+'.nii.gz')
-                    is_variance = True
-                    std_err_map = ContrastStdErrMap(con_num, 
-                        varcontrast_file, is_variance, self.coordinate_system, 
-                        self.coordinate_space_id, self.export_dir)
-                    self.coordinate_space_id += 2
+            # Convert to immutable tuple to be used as key
+            pe_ids = tuple(pe_ids)
 
-                    # Statistic Map
-                    stat_file = os.path.join(self.feat_dir, 
-                        'stats', 'tstat'+str(con_num)+'.nii.gz')
-                    stat_map = StatisticMap(stat_file, 'T', con_num, 
-                        contrast_name, dof, self.coordinate_system, 
-                        self.coordinate_space_id, self.export_dir)
-                    self.coordinate_space_id += 1
+            # Contrast Map
+            con_file = os.path.join(self.feat_dir, 
+                'stats', 'cope'+str(con_num)+'.nii.gz')
+            contrast_map = ContrastMap(con_file, stat_num, 
+                contrast_name, self.coordinate_system, 
+                self.coordinate_space_id, self.export_dir)
+            self.coordinate_space_id += 1
 
-                    # Z-Statistic Map
-                    z_stat_file = os.path.join(self.feat_dir, 
-                        'stats', 'zstat'+str(con_num)+'.nii.gz')
-                    z_stat_map = StatisticMap(z_stat_file, 'Z', con_num, 
-                        contrast_name, dof, self.coordinate_system, 
-                        self.coordinate_space_id, self.export_dir)
-                    self.coordinate_space_id += 1
+            # Contrast Variance and Standard Error Maps
+            varcontrast_file = os.path.join(self.feat_dir, 
+                'stats', 'varcope'+str(con_num)+'.nii.gz')
+            is_variance = True
+            std_err_map = ContrastStdErrMap(stat_num, 
+                varcontrast_file, is_variance, self.coordinate_system, 
+                self.coordinate_space_id, self.export_dir)
+            self.coordinate_space_id += 2
 
-                    con = Contrast(con_num, contrast_name, weights, estimation, 
-                        contrast_map, std_err_map, stat_map, z_stat_map)
+            # Statistic Map
+            stat_file = os.path.join(self.feat_dir, 
+                'stats', stat_type.lower()+'stat'+str(con_num)+'.nii.gz')
+            stat_map = StatisticMap(stat_file, stat_type, stat_num, 
+                contrast_name, dof, self.coordinate_system, 
+                self.coordinate_space_id, self.export_dir)
+            self.coordinate_space_id += 1
 
-                    contrasts.setdefault((mf_id, pe_ids), list()).append(con)
+            # Z-Statistic Map
+            z_stat_file = os.path.join(self.feat_dir, 
+                'stats', 'zstat'+str(con_num)+'.nii.gz')
+            z_stat_map = StatisticMap(z_stat_file, 'Z', stat_num, 
+                contrast_name, dof, self.coordinate_system, 
+                self.coordinate_space_id, self.export_dir)
+            self.coordinate_space_id += 1
+
+            con = Contrast(con_num, contrast_name, weights, estimation, 
+                contrast_map, std_err_map, stat_map, z_stat_map)
+
+            contrasts.setdefault((mf_id, pe_ids), list()).append(con)
 
         return contrasts
 
@@ -213,106 +240,118 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         """
         inferences = dict()
 
+        exc_sets = glob.glob(os.path.join(self.feat_dir, 'thresh_z*.nii.gz'))
+
         # Find excursion sets (in a given feat directory we have one excursion 
         # set per contrast)
-        for filename in os.listdir(self.feat_dir):
-            if filename.startswith("thresh_zstat"):
-                if filename.endswith(".nii.gz"):
-                    s = re.compile('zstat\d+')
-                    zstatnum = s.search(filename)
-                    zstatnum = zstatnum.group()
-                    stat_num = zstatnum.replace('zstat', '')
+        for filename in exc_sets:
+            s = re.compile('zf?stat\d+')
+            zstatnum = s.search(filename)
+            zstatnum = zstatnum.group()
+            if zstatnum.startswith("zstat"):
+                stat_type = "T"
+                stat_num = zstatnum.replace('zstat', '')
+            elif zstatnum.startswith("zfstat"):
+                stat_type = "F"
+                stat_num = zstatnum.replace('zfstat', '')
 
-                    # Find corresponding contrast estimation activity
-                    for contrasts in self.contrasts.values():
-                        for contrast in contrasts:
-                            s = re.compile('cope\d+')
-                            con_num = s.search(contrast.contrast_map.file)
-                            con_num = con_num.group()
-                            con_num = con_num.replace('cope', '')
-                            if con_num == stat_num:
-                                con_id = contrast.estimation.id
+            # If more than one excursion set is reported, we need to use 
+            # an index in the file names of the file exported in nidm
+            if len(exc_sets) > 1:
+                stat_num_t = "_"+stat_type.upper()+"{0:0>3}".format(stat_num)
+            else:
+                stat_num_t = ""  
 
-                    # Inference activity
-                    inference_act = InferenceActivity(stat_num, 
-                        self.contrast_names_by_num[stat_num])
+            # Find corresponding contrast estimation activity
+            for contrasts in self.contrasts.values():
+                for contrast in contrasts:
+                    s = re.compile('cope\d+')
+                    con_num = s.search(contrast.contrast_map.file)
+                    con_num = con_num.group()
+                    con_num = con_num.replace('cope', '')
+                    if con_num == stat_num:
+                        con_id = contrast.estimation.id
 
-                    # Excursion set
-                    visualisation = os.path.join(self.feat_dir, 
-                        'rendered_thresh_zstat'+stat_num+'.png')
-                    zFileImg = os.path.join(self.feat_dir, 
-                        'thresh_zstat'+stat_num+'.nii.gz')
-                    exc_set = ExcursionSet(zFileImg, stat_num, visualisation, 
-                        self.coordinate_system, self.coordinate_space_id, 
-                        self.export_dir)
-                    self.coordinate_space_id += 1
+            # Inference activity
+            inference_act = InferenceActivity(stat_num, 
+                self.contrast_names_by_num[stat_num])
 
-                    # Height Threshold
-                    prob_re = r'.*set fmri\(prob_thresh\) (?P<info>\d+\.?\d+).*'
-                    z_re = r'.*set fmri\(z_thresh\) (?P<info>\d+\.?\d+).*'
-                    type_re = r'.*set fmri\(thresh\) (?P<info>\d+).*'
+            # Excursion set
+            visualisation = os.path.join(self.feat_dir, 
+                'rendered_thresh_zstat'+stat_num+'.png')
+            zFileImg = os.path.join(self.feat_dir, 
+                'thresh_zstat'+stat_num+'.nii.gz')
+            exc_set = ExcursionSet(zFileImg, stat_num_t, visualisation, 
+                self.coordinate_system, self.coordinate_space_id, 
+                self.export_dir)
+            self.coordinate_space_id += 1
 
-                    prob_thresh = float(self._search_in_fsf(prob_re))
-                    z_thresh = float(self._search_in_fsf(z_re))
-                    thresh_type = self._search_in_fsf(type_re)
+            # Height Threshold
+            prob_re = r'.*set fmri\(prob_thresh\) (?P<info>\d+\.?\d+).*'
+            z_re = r'.*set fmri\(z_thresh\) (?P<info>\d+\.?\d+).*'
+            type_re = r'.*set fmri\(thresh\) (?P<info>\d+).*'
 
-                    # FIXME: deal with 0 = no thresh?
-                    voxel_uncorr = (thresh_type == 1)
-                    voxel_corr = (thresh_type == 2)
-                    # cluster_thresh = (thresh_type == 3)
-                    
-                    stat_threshold = None
-                    p_corr_threshold = None
-                    p_uncorr_threshold = None
-                    if voxel_uncorr:
-                        p_uncorr_threshold = prob_thresh
-                    elif voxel_corr:
-                        p_corr_threshold = prob_thresh
-                    else:
-                        stat_threshold = z_thresh
-                        extent_p_corr = prob_thresh
+            prob_thresh = float(self._search_in_fsf(prob_re))
+            z_thresh = float(self._search_in_fsf(z_re))
+            thresh_type = self._search_in_fsf(type_re)
 
-                    height_thresh = HeightThreshold(stat_threshold, 
-                        p_corr_threshold, p_uncorr_threshold)
+            # FIXME: deal with 0 = no thresh?
+            voxel_uncorr = (thresh_type == 1)
+            voxel_corr = (thresh_type == 2)
+            # cluster_thresh = (thresh_type == 3)
+            
+            stat_threshold = None
+            p_corr_threshold = None
+            p_uncorr_threshold = None
+            if voxel_uncorr:
+                p_uncorr_threshold = prob_thresh
+            elif voxel_corr:
+                p_corr_threshold = prob_thresh
+            else:
+                stat_threshold = z_thresh
+                extent_p_corr = prob_thresh
 
-                    # Extent Threshold
-                    extent_thresh = ExtentThreshold(p_corr=extent_p_corr)
+            height_thresh = HeightThreshold(stat_threshold, 
+                p_corr_threshold, p_uncorr_threshold)
 
-                    # Clusters (and associated peaks)
-                    clusters = self._get_clusters_peaks(stat_num)
+            # Extent Threshold
+            extent_thresh = ExtentThreshold(p_corr=extent_p_corr)
 
-                    # Peak and Cluster Definition Criteria
-                    peak_criteria = PeakCriteria(stat_num, 
-                        self._get_num_peaks(), self._get_peak_dist())
-                    clus_criteria = ClusterCriteria(stat_num, 
-                        self._get_connectivity())
+            # Clusters (and associated peaks)
+            clusters = self._get_clusters_peaks(stat_num)
 
-                    # Display mask
-                    # # FIXME deal with the case in which we are contrast masking by more than one contrast
-                    # contrast_masking_search = re.compile(r'.*set fmri\(conmask'+contrast_num+'_(?P<maskingconnum>\d+)\) (?P<domask>\d+).*')
-                    # contrast_masking_found = contrast_masking_search.search(self.design_txt)
-                    # do_contrast_masking = float(contrast_masking_found.group('domask'))
-                    # if do_contrast_masking:
-                    #     contrast_masking_num = contrast_masking_found.group('maskingconnum')
-                    #     contrast_masking_file = 
-                    # else:
-                    #     contrast_masking_num = None
-                    # FIXME: We need an example with more than one contrast to code contrast masking        
-                    contrast_masking_file = self._get_display_mask()
-                    display_mask = DisplayMaskMap(stat_num, 
-                        contrast_masking_file, self.coordinate_system, 
-                        self.coordinate_space_id, self.export_dir)
-                    self.coordinate_space_id += 1
+            # Peak and Cluster Definition Criteria
+            peak_criteria = PeakCriteria(stat_num, 
+                self._get_num_peaks(), self._get_peak_dist())
+            clus_criteria = ClusterCriteria(stat_num, 
+                self._get_connectivity())
 
-                    # Search space
-                    search_space = self._get_search_space()
+            # Display mask
+            # # FIXME deal with the case in which we are contrast masking by more than one contrast
+            # contrast_masking_search = re.compile(r'.*set fmri\(conmask'+contrast_num+'_(?P<maskingconnum>\d+)\) (?P<domask>\d+).*')
+            # contrast_masking_found = contrast_masking_search.search(self.design_txt)
+            # do_contrast_masking = float(contrast_masking_found.group('domask'))
+            # if do_contrast_masking:
+            #     contrast_masking_num = contrast_masking_found.group('maskingconnum')
+            #     contrast_masking_file = 
+            # else:
+            #     contrast_masking_num = None
+            # FIXME: We need an example with more than one contrast to code contrast masking        
+            contrast_masking_file = self._get_display_mask()
+            display_mask = DisplayMaskMap(stat_num, 
+                contrast_masking_file, self.coordinate_system, 
+                self.coordinate_space_id, self.export_dir)
+            self.coordinate_space_id += 1
 
-                    inference = Inference(inference_act, height_thresh, 
-                        extent_thresh, peak_criteria, clus_criteria, 
-                        display_mask, exc_set, clusters, search_space, 
-                        self.software.id)
+            # Search space
+            search_space = self._get_search_space()
 
-                    inferences.setdefault(con_id, list()).append(inference)
+            inference = Inference(inference_act, height_thresh, 
+                extent_thresh, peak_criteria, clus_criteria, 
+                display_mask, exc_set, clusters, search_space, 
+                self.software.id)
+
+            inferences.setdefault(con_id, list()).append(inference)
 
         return inferences
 

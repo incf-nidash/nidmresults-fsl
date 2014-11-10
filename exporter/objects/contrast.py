@@ -12,7 +12,6 @@ import numpy as np
 import os
 from constants import *
 import nibabel as nib
-import hashlib
 from generic import *
 import uuid
 
@@ -68,23 +67,25 @@ class ContrastWeights(NIDMObject):
     """
     Object representing a ContrastWeight entity.
     """    
-    def __init__(self, contrast_num, contrast_name, contrast_weights):
+    def __init__(self, contrast_num, contrast_name, contrast_weights, 
+        stat_type):
         super(ContrastWeights, self).__init__()
         self.contrast_name = contrast_name
         self.contrast_weights = contrast_weights
         self.contrast_num = contrast_num
+        self.stat_type = stat_type
         self.id = NIIRI[str(uuid.uuid4())]
 
     def export(self):
         """
         Create prov graph.
         """
-        # FIXME: Deal with F weights
         label = "Contrast Weights: "+self.contrast_name
 
         self.p.entity(self.id, 
             other_attributes=( (PROV['type'], NIDM['ContrastWeights']), 
-                               (NIDM['statisticType'], NIDM['TStatistic']),
+                               (NIDM['statisticType'], \
+                                        NIDM[self.stat_type+'Statistic']),
                                (PROV['label'], label), 
                                (NIDM['contrastName'], self.contrast_name),
                                (PROV['value'], self.contrast_weights)))
@@ -111,7 +112,8 @@ class ContrastMap(NIDMObject):
         self.p.update(self.coord_space.export())
 
         # Copy contrast map in export directory
-        cope_file = os.path.join(self.export_dir, 'Contrast.nii.gz')
+        cope_file = os.path.join(self.export_dir, \
+            'Contrast'+self.num+'.nii.gz')
         cope_original_filename, cope_filename = self.copy_nifti(self.file, 
             cope_file)
 
@@ -140,6 +142,7 @@ class ContrastStdErrMap(NIDMObject):
         self.file = filename
         self.id = NIIRI[str(uuid.uuid4())]
         self.is_variance = is_variance
+        self.num = contrast_num
         self.coord_space = CoordinateSpace(coordinate_system, 
             coordinate_space_id, filename)
         if is_variance:
@@ -153,7 +156,7 @@ class ContrastStdErrMap(NIDMObject):
         self.p.update(self.coord_space.export())
 
         standard_error_file = os.path.join(self.export_dir, 
-            "ContrastStandardError.nii.gz")
+            "ContrastStandardError"+self.num+".nii.gz")
         if self.is_variance:
             self.p.update(self.var_coord_space.export())
 
@@ -165,8 +168,7 @@ class ContrastStdErrMap(NIDMObject):
 
             # Contrast Variance Map entity
             # self.provBundle.entity('niiri:'+'contrast_variance_map_id_'+contrast_num, other_attributes=( 
-            contrast_var_id = NIIRI[hashlib.md5(
-                self.get_sha_sum(self.file)).hexdigest()]
+            contrast_var_id = NIIRI[str(uuid.uuid4())]
             
             self.p.entity(contrast_var_id, other_attributes=( 
                 (PROV['type'], FSL['ContrastVarianceMap']), 
@@ -226,7 +228,7 @@ class StatisticMap(NIDMObject):
 
         # Copy Statistical map in export directory
         stat_file = os.path.join(self.export_dir, 
-            self.stat_type+'Statistic.nii.gz')
+            self.stat_type+'Statistic'+self.num+'.nii.gz')
         stat_orig_filename, stat_filename = self.copy_nifti(
             self.file, stat_file)       
 
