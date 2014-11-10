@@ -133,7 +133,8 @@ class ExcursionSet(NIDMObject):
 
         # Copy "Excursion set map" in export directory
         exc_set_orig_file = self.file
-        exc_set_file = os.path.join(self.export_dir, 'ExcursionSet.nii.gz')
+        exc_set_file = os.path.join(self.export_dir, 'ExcursionSet'+\
+            self.num+'.nii.gz')
         exc_set_orig_filename, exc_set_filename = self.copy_nifti(
             exc_set_orig_file, exc_set_file)
 
