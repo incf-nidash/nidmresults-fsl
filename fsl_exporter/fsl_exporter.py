@@ -8,6 +8,7 @@ specification.
 
 import re
 import os
+import glob
 import numpy as np
 from exporter.exporter import NIDMExporter
 from exporter.objects.constants import *
@@ -24,7 +25,20 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
     def __init__(self, *args, **kwargs):
         self.feat_dir = kwargs.pop('feat_dir')        
-        self.export_dir = os.path.join(self.feat_dir, 'nidm')
+
+        nidm_dirs = glob.glob(os.path.join(self.feat_dir, 'nidm****'))
+        if nidm_dirs:
+            if nidm_dirs[-1] == os.path.join(self.feat_dir, 'nidm'):
+                export_dir_num = 1
+            else:
+                m = re.search('(?<=nidm_).*', nidm_dirs[-1])
+                export_dir_num = int(m.group(0))+1
+
+            self.export_dir = os.path.join(self.feat_dir, \
+                'nidm'+"_{0:0>4}".format(export_dir_num))
+        else:
+            self.export_dir = os.path.join(self.feat_dir, 'nidm')
+
         self.design_file = os.path.join(self.feat_dir, 'design.fsf');
         # FIXME: maybe not always "4"?
         feat_post_log_file = os.path.join(self.feat_dir, 'logs', 'feat4_post')

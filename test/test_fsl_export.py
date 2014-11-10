@@ -69,10 +69,10 @@ class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
             # fslnidm = FSL_NIDM(feat_dir=DATA_DIR);
             fslnidm = FSLtoNIDMExporter(feat_dir=DATA_DIR, version="0.2.0")
             fslnidm.parse()
-            fslnidm.export()
+            export_dir = fslnidm.export()
 
             # Copy provn export to test directory
-            shutil.copy(os.path.join(DATA_DIR, 'nidm', 'nidm.provn'), 
+            shutil.copy(os.path.join(export_dir, 'nidm.provn'), 
                         os.path.join(fsl_export_provn))
 
         # Equivalent turtle file converted using the ProvStore API

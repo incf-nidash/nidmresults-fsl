@@ -28,6 +28,6 @@ if __name__ == "__main__":
 
     fslnidm = FSLtoNIDMExporter(feat_dir=feat_dir, version="0.2.0")
     fslnidm.parse()
-    fslnidm.export()
+    export_dir = fslnidm.export()
 
-    print 'NIDM export available at: '+str(os.path.join(feat_dir, "nidm"))
+    print 'NIDM export available at: '+str(export_dir)

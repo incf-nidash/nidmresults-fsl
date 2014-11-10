@@ -63,7 +63,8 @@ class NIDMExporter():
         """ 
         Generate a NIDM-Results export. 
         """  
-        os.mkdir(self.export_dir)
+        if not os.path.isdir(self.export_dir):
+            os.mkdir(self.export_dir)
 
         # Initialise main bundle
         self._create_bundle(self.version)
@@ -103,6 +104,8 @@ class NIDMExporter():
 
         # Write-out prov file
         self.save_prov_to_files()
+
+        return self.export_dir
 
     def _get_model_fitting(self, mf_id):
         """ 
