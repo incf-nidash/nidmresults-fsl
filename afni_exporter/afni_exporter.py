@@ -15,7 +15,7 @@ from exporter.objects.constants import *
 from exporter.objects.modelfitting import *
 from exporter.objects.contrast import *
 from exporter.objects.inference import *
-from objects.fsl_objects import *
+import objects.afni_objects as afniobjs
 
 class AFNItoNIDMExporter(NIDMExporter, object):
     """ 
@@ -24,14 +24,14 @@ class AFNItoNIDMExporter(NIDMExporter, object):
     """
 
     def __init__(self, dset, csim_dset, p_uncor=0.01, p_cor=0.05,
-	         nidm_ver="0.2.0"):
+                 nidm_ver="0.2.0"):
         self.stat_dset = dset
         self.clust_dset = csim_dset
         self.p_uncor = p_uncor
         self.p_cor = p_cor
 
-	self.ind_contr = 0
-	self.ind_stat  = 1
+        self.ind_contr = 0
+        self.ind_stat  = 1
 
         self.afni_dir = os.path.dirname(self.stat_dset)
 
@@ -48,17 +48,18 @@ class AFNItoNIDMExporter(NIDMExporter, object):
         else:
             self.export_dir = os.path.join(self.afni_dir, 'nidm')
 
+        self.design_txt = None
+        self.coordinate_system = None
+
     def parse(self):
         """ 
         Parse an AFNI result directory to extract the pieces information to be 
         stored in NIDM-Results.
         """    
-        # Load design.fsf file
-        design_file_open = open(self.design_file, 'r')
-        self.design_txt = design_file_open.read()
+        # rcr - ponder
+        # design_file_open = open(self.design_file, 'r')
+        # self.design_txt = design_file_open.read()
         
-        # Load feat post log file
-        self.feat_post_log = self.feat_post_log.read()
 
         # Retreive coordinate space used for current analysis
         if not self.coordinate_system:
@@ -82,7 +83,7 @@ class AFNItoNIDMExporter(NIDMExporter, object):
         #afni_version = self._search_in_fsf(version_re)
 
         version = os.system("afni -ver")   # get a string
-        software = Software(version=version)
+        software = afniobjs.Software(version=version)
 
         return software
 
@@ -361,7 +362,9 @@ class AFNItoNIDMExporter(NIDMExporter, object):
         Parse AFNI result directory to retreive information about the design 
         matrix. Return an object of type DesignMatrix.
         """
-        design_matrix = DesignMatrix(None, None)
+        # rcr - DesignMatrix looks FSLish, may need alteration
+        # design_matrix = DesignMatrix(None, None)
+        design_matrix = None
         return design_matrix
 
     def _get_data(self):
@@ -370,7 +373,7 @@ class AFNItoNIDMExporter(NIDMExporter, object):
         Return an object of type Data. 
         """
         grand_mean_scaling = False
-        target_intensity = 1.0	# rcr - maybe get from first level
+        target_intensity = 1.0  # rcr - maybe get from first level
         data = Data(grand_mean_scaling, target_intensity)
         return data
 
@@ -383,13 +386,13 @@ class AFNItoNIDMExporter(NIDMExporter, object):
         fmri_level = 2 # group, for now
         self.first_level = (fmri_level == 1)
 
-        if self.first_level:	# rcr - update
+        if self.first_level:    # rcr - update
             variance_homo = True
             dependance = SERIALLY_CORR
             variance_spatial = SPATIALLY_LOCAL
             dependance_spatial = SPATIALLY_LOCAL
         else:
-            variance_homo = True		# rcr - for ttest
+            variance_homo = True                # rcr - for ttest
             dependance = INDEPEDENT_CORR
             variance_spatial = SPATIALLY_LOCAL
             dependance_spatial = None
@@ -405,10 +408,10 @@ class AFNItoNIDMExporter(NIDMExporter, object):
         mean squares map. Return an object of type ResidualMeanSquares. 
         """
 
-	# rcr - finish
-
-        rms_map = ResidualMeanSquares(self.export_dir, residuals_file, 
-            self.coordinate_system, self.coordinate_space_id)
+        # rcr - finish
+        # rms_map = ResidualMeanSquares(self.export_dir, residuals_file, 
+        #     self.coordinate_system, self.coordinate_space_id)
+        rms_map = None
 
         return rms_map
 
@@ -418,20 +421,20 @@ class AFNItoNIDMExporter(NIDMExporter, object):
         estimates. Return a list of objects of type ParameterEstimateMap. 
         """
 
-	# create temporary set of NIFTI volumes of betas output by ttest
-	# (for A-B, return one for A and for B)
-	# then delete the temp files
+        # create temporary set of NIFTI volumes of betas output by ttest
+        # (for A-B, return one for A and for B)
+        # then delete the temp files
         param_estimates = list()
-	# rcr - ponder penum (beta index, 1-based?)
+        # rcr - ponder penum (beta index, 1-based?)
         for filename, ind in enumerate(os.listdir(os.path.join(self.afni_dir, 'stats'))):
-	    # if AFNI format, convert to NIFTI as temp file
-	    full_path_file = NIFTI_NAME # rcr
-	    penum = ind 
-	    param_estimate = ParameterEstimateMap(full_path_file, 
-		penum, self.coordinate_space_id, 
-		self.coordinate_system)
-	    self.coordinate_space_id = self.coordinate_space_id + 1
-	    param_estimates.append(param_estimate)
+            # if AFNI format, convert to NIFTI as temp file
+            full_path_file = NIFTI_NAME # rcr
+            penum = ind 
+            param_estimate = ParameterEstimateMap(full_path_file, 
+                penum, self.coordinate_space_id, 
+                self.coordinate_system)
+            self.coordinate_space_id = self.coordinate_space_id + 1
+            param_estimates.append(param_estimate)
         return param_estimates
 
     def _get_mask_map(self):
@@ -440,8 +443,8 @@ class AFNItoNIDMExporter(NIDMExporter, object):
         created as part of Model Parameters Estimation. Return an object of 
         type MaskMap. 
         """
-	# this is infered mask
-	# (elsewhere: would want to know custom_mask (input vs implied))
+        # this is infered mask
+        # (elsewhere: would want to know custom_mask (input vs implied))
 
         mask_file = os.path.join(self.afni_dir, 'mask.nii.gz')
         mask_map = MaskMap(self.export_dir, mask_file,
@@ -508,9 +511,13 @@ class AFNItoNIDMExporter(NIDMExporter, object):
         Look for information matching regular expression 'regexp' in the design
         file of the current study.
         """
-        info_search = re.compile(regexp)
-        info_found = info_search.search(self.design_txt)
-        info = info_found.group('info')
+        # rcr - what are we looking for, group labels?
+        if self.design_txt != None:
+           info_search = re.compile(regexp)
+           info_found = info_search.search(self.design_txt)
+           info = info_found.group('info')
+        else:
+           info = ''
         return info
 
     def _get_display_mask(self):
@@ -533,8 +540,6 @@ class AFNItoNIDMExporter(NIDMExporter, object):
             if num_peak_found:
                 num_peak = int(num_peak_found.group('numpeak'))
             else:
-                # If not specified, default value is inf? (cf. http://fsl.fmrib.ox.ac.uk/fsl/fslwiki/Cluster)
-                # Is it ok to say no limit with -1 (as for Inf we would need float...)
                 # FIXME: for now omitted if not explicitely defined
                 num_peak = None
         return num_peak
@@ -545,7 +550,6 @@ class AFNItoNIDMExporter(NIDMExporter, object):
         if peak_dist_found:
             peak_dist = float(peak_dist_found.group('peakdist'))
         else:
-            # If not specified, default value is zero (cf. http://fsl.fmrib.ox.ac.uk/fsl/fslwiki/Cluster)
             peak_dist = 0.0
 
         return peak_dist

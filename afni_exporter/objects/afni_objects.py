@@ -19,7 +19,7 @@ class Software(NIDMObject):
     Class representing a Software entity.
     """
 
-    def __init__(self, ersion):
+    def __init__(self, version):
         super(Software, self).__init__()
         self.version = version
         self.name = "AFNI"
@@ -34,6 +34,6 @@ class Software(NIDMObject):
             other_attributes=((PROV['type'], NIDM[self.name]), 
                             (PROV['type'], PROV['SoftwareAgent']),
                             (PROV['label'],self.name),
-                            (NIDM['softwareVersion'],self.version))
+                            (NIDM['softwareVersion'],self.version)))
 
         return self.p

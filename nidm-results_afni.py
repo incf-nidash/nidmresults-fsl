@@ -23,14 +23,15 @@ if __name__ == "__main__":
 
     dset = args[0]
     cset = args[1]
-    p_unc = args[2]
-    p_cor = args[3]
+    # p_unc = args[2]	rcr - add option processing
+    # p_cor = args[3]
+
     # check for existance given various extensions
     #if not os.path.isdir(feat_dir):
     #    raise Exception("Unknown directory: "+str(feat_dir))
 
     afninidm = AFNItoNIDMExporter(dset=dset, csim_dset=cset,
-		 		  p_uncor=p_unc, p_cor=p_cor,
+		 		  # p_uncor=p_unc, p_cor=p_cor,
 				  nidm_ver="0.2.0")
     afninidm.parse()
     export_dir = afninidm.export()
