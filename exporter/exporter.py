@@ -99,8 +99,8 @@ class NIDMExporter():
                     used_id = contrast.z_stat_map.id
                 else:
                     used_id = contrast.stat_map.id
-                self.bundle.used(inference.id, used_id)
-                self.bundle.wasAssociatedWith(inference.id, self.software.id)
+                self.bundle.used(inference.inference_act.id, used_id)
+                self.bundle.wasAssociatedWith(inference.inference_act.id, self.software.id)
 
         # Write-out prov file
         self.save_prov_to_files()
