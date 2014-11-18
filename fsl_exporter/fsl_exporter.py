@@ -215,30 +215,29 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     # Contrast Map
                     con_file = os.path.join(stat_dir, \
                         'cope'+str(con_num)+'.nii.gz')
-                    contrast_map = ContrastMap(con_file, stat_num, 
-                        contrast_name, self.coord_space, 
-                        self.export_dir)
+                    contrast_map = ContrastMap(con_file, contrast_name, 
+                        self.coord_space, self.export_dir)
 
                     # Contrast Variance and Standard Error Maps
                     varcontrast_file = os.path.join(stat_dir, \
                         'varcope'+str(con_num)+'.nii.gz')
                     is_variance = True
-                    std_err_map = ContrastStdErrMap(stat_num, 
-                        varcontrast_file, is_variance, self.coord_space,
-                        self.coord_space, self.export_dir)
+                    std_err_map = ContrastStdErrMap(varcontrast_file, 
+                        is_variance, self.coord_space, self.coord_space, 
+                        self.export_dir, contrast_map.num)
 
                     # Statistic Map
                     stat_file = os.path.join(stat_dir, \
                         stat_type.lower()+'stat'+str(con_num)+'.nii.gz')
-                    stat_map = StatisticMap(stat_file, stat_type, stat_num, 
-                        contrast_name, dof, self.coord_space, 
+                    stat_map = StatisticMap(stat_file, stat_type,  
+                        contrast_map.num, contrast_name, dof, self.coord_space, 
                         self.export_dir)
 
                     # Z-Statistic Map
                     z_stat_file = os.path.join(stat_dir,\
                      'zstat'+str(con_num)+'.nii.gz')
-                    z_stat_map = StatisticMap(z_stat_file, 'Z', stat_num, 
-                        contrast_name, dof, self.coord_space, 
+                    z_stat_map = StatisticMap(z_stat_file, 'Z', 
+                        contrast_map.num, contrast_name, dof, self.coord_space, 
                         self.export_dir)
 
                     con = Contrast(con_num, contrast_name, weights, estimation, 
