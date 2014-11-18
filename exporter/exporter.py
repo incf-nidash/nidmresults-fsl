@@ -38,8 +38,9 @@ class NIDMExporter():
         # used for the analysis
         self.software = self._find_software()
 
-        # List of objects of type ModelFitting describing the model fitting 
-        # step in NIDM-Results (main activity: Model Parameters Estimation)
+        # List of objects (or dictionary) of type ModelFitting describing the 
+        # model fitting step in NIDM-Results (main activity: Model Parameters 
+        # Estimation)
         self.model_fittings = self._find_model_fitting()
 
         # Dictionary of (key, value) pairs where where key is a tuple 
@@ -72,7 +73,7 @@ class NIDMExporter():
         self.bundle.update(self.software.export())
 
         # Add model fitting steps
-        for model_fitting in self.model_fittings:
+        for model_fitting in self.model_fittings.values():
             self.bundle.update(model_fitting.export())
             self.bundle.wasAssociatedWith(model_fitting.activity.id, 
                 self.software.id)
@@ -113,7 +114,7 @@ class NIDMExporter():
         Retreive model fitting with identifier 'mf_id' from the list of model 
         fitting objects stored in self.model_fittings
         """   
-        for model_fitting in self.model_fittings:
+        for model_fitting in self.model_fittings.values():
             if model_fitting.activity.id == mf_id:
                 return model_fitting
         raise Exception("Model fitting activity with id: "+str(mf_id)+\
