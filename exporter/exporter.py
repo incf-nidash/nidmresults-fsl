@@ -16,6 +16,7 @@ from objects.modelfitting import *
 from objects.contrast import *
 from objects.inference import *
 import uuid 
+from subprocess import call
 
 class NIDMExporter():
     """ 
@@ -182,5 +183,11 @@ class NIDMExporter():
         Write-out provn serialisation to nidm.provn.
         """
         self.doc.add_bundle(self.bundle)
-        provn_fid = open(os.path.join(self.export_dir, 'nidm.provn'), 'w');
-        provn_fid.write(self.doc.get_provn(4))
+        provn_file = os.path.join(self.export_dir, 'nidm.provn')
+        provn_fid = open(provn_file, 'w');
+        # FIXME None
+        provn_fid.write(self.doc.get_provn(4).replace("None", "-"))
+
+        ttl_file = provn_file.replace(".provn", ".ttl")
+        print "provconvert -infile "+provn_file+" -outfile "+ttl_file
+        call("provconvert -infile "+provn_file+" -outfile "+ttl_file, shell=True)
