@@ -96,14 +96,13 @@ class ContrastMap(NIDMObject):
     Object representing a ContrastMap entity.
     """   
     def __init__(self, contrast_file, contrast_num, contrast_name, 
-        coordinate_system, coordinate_space_id, export_dir):
+        coord_space, export_dir):
         super(ContrastMap, self).__init__(export_dir)
         self.file = contrast_file
         self.num = contrast_num
         self.name = contrast_name
         self.id = NIIRI[str(uuid.uuid4())]
-        self.coord_space = CoordinateSpace(coordinate_system, 
-            coordinate_space_id, self.file)
+        self.coord_space = coord_space
 
     def export(self):
         """
@@ -136,18 +135,16 @@ class ContrastStdErrMap(NIDMObject):
     """
     Object representing a ContrastStdErrMap entity.
     """    
-    def __init__(self, contrast_num, filename, is_variance, coordinate_system, 
-        coordinate_space_id, export_dir):
+    def __init__(self, contrast_num, filename, is_variance, coord_space, 
+        var_coord_space, export_dir):
         super(ContrastStdErrMap, self).__init__(export_dir)
         self.file = filename
         self.id = NIIRI[str(uuid.uuid4())]
         self.is_variance = is_variance
         self.num = contrast_num
-        self.coord_space = CoordinateSpace(coordinate_system, 
-            coordinate_space_id, filename)
+        self.coord_space = coord_space
         if is_variance:
-            self.var_coord_space = CoordinateSpace(coordinate_system, 
-                coordinate_space_id+1, filename)
+            self.var_coord_space = var_coord_space
 
     def export(self):
         """
@@ -209,14 +206,13 @@ class StatisticMap(NIDMObject):
     Object representing a StatisticMap entity.
     """ 
     def __init__(self, stat_file, stat_type, contrast_num, contrast_name, dof,
-                coordinate_system, coordinate_space_id, export_dir):
+                coord_space, export_dir):
         super(StatisticMap, self).__init__(export_dir)
         self.num = contrast_num
         self.name = contrast_name
         self.file = stat_file
         self.id = NIIRI[str(uuid.uuid4())]
-        self.coord_space = CoordinateSpace(coordinate_system, 
-            coordinate_space_id, stat_file)
+        self.coord_space = coord_space
         self.stat_type = stat_type
         self.dof = dof
 

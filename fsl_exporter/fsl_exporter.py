@@ -44,8 +44,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         feat_post_log_file = os.path.join(self.feat_dir, 'logs', 'feat4_post')
         self.feat_post_log = open(feat_post_log_file, 'r')
         self.version = kwargs.pop('version')   
-        self.coordinate_space_id = 1
-        self.coordinate_system = None
+        self.coord_space = None
         self.contrast_names_by_num = dict()
 
     def parse(self):
@@ -59,10 +58,6 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         
         # Load feat post log file
         self.feat_post_log = self.feat_post_log.read()
-
-        # Retreive coordinate space used for current analysis
-        if not self.coordinate_system:
-            self._get_coordinate_system()
 
         fmri_level_re = r'.*set fmri\(level\) (?P<info>\d+).*'
         fmri_level = int(self._search_in_fsf(fmri_level_re))
@@ -221,34 +216,30 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     con_file = os.path.join(stat_dir, \
                         'cope'+str(con_num)+'.nii.gz')
                     contrast_map = ContrastMap(con_file, stat_num, 
-                        contrast_name, self.coordinate_system, 
-                        self.coordinate_space_id, self.export_dir)
-                    self.coordinate_space_id += 1
+                        contrast_name, self.coord_space, 
+                        self.export_dir)
 
                     # Contrast Variance and Standard Error Maps
                     varcontrast_file = os.path.join(stat_dir, \
                         'varcope'+str(con_num)+'.nii.gz')
                     is_variance = True
                     std_err_map = ContrastStdErrMap(stat_num, 
-                        varcontrast_file, is_variance, self.coordinate_system, 
-                        self.coordinate_space_id, self.export_dir)
-                    self.coordinate_space_id += 2
+                        varcontrast_file, is_variance, self.coord_space,
+                        self.coord_space, self.export_dir)
 
                     # Statistic Map
                     stat_file = os.path.join(stat_dir, \
                         stat_type.lower()+'stat'+str(con_num)+'.nii.gz')
                     stat_map = StatisticMap(stat_file, stat_type, stat_num, 
-                        contrast_name, dof, self.coordinate_system, 
-                        self.coordinate_space_id, self.export_dir)
-                    self.coordinate_space_id += 1
+                        contrast_name, dof, self.coord_space, 
+                        self.export_dir)
 
                     # Z-Statistic Map
                     z_stat_file = os.path.join(stat_dir,\
                      'zstat'+str(con_num)+'.nii.gz')
                     z_stat_map = StatisticMap(z_stat_file, 'Z', stat_num, 
-                        contrast_name, dof, self.coordinate_system, 
-                        self.coordinate_space_id, self.export_dir)
-                    self.coordinate_space_id += 1
+                        contrast_name, dof, self.coord_space, 
+                        self.export_dir)
 
                     con = Contrast(con_num, contrast_name, weights, estimation, 
                         contrast_map, std_err_map, stat_map, z_stat_map)
@@ -310,9 +301,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 zFileImg = os.path.join(analysis_dir, 
                     'thresh_zstat'+stat_num+'.nii.gz')
                 exc_set = ExcursionSet(zFileImg, stat_num_t, visualisation, 
-                    self.coordinate_system, self.coordinate_space_id, 
-                    self.export_dir)
-                self.coordinate_space_id += 1
+                    self.coord_space, self.export_dir)
 
                 # Height Threshold
                 prob_re = r'.*set fmri\(prob_thresh\) (?P<info>\d+\.?\d+).*'
@@ -367,9 +356,8 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 # FIXME: We need an example with more than one contrast to code contrast masking        
                 contrast_masking_file = self._get_display_mask()
                 display_mask = DisplayMaskMap(stat_num, 
-                    contrast_masking_file, self.coordinate_system, 
-                    self.coordinate_space_id, self.export_dir)
-                self.coordinate_space_id += 1
+                    contrast_masking_file, self.coord_space, 
+                    self.export_dir)
 
                 # Search space
                 search_space = self._get_search_space(analysis_dir)
@@ -455,9 +443,13 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 sigma2_sub_img.get_qform())
             nib.save(residuals_img, residuals_file)
 
+        # In FSL all files will be in the same coordinate space
+        self.coord_space = CoordinateSpace(self._get_coordinate_system(),\
+            residuals_file)
+
         rms_map = ResidualMeanSquares(self.export_dir, residuals_file, 
-            self.coordinate_system, self.coordinate_space_id)
-        self.coordinate_space_id = self.coordinate_space_id + 1
+            self.coord_space)
+
         # FIXME: does not work
         # if not self.first_level:
         #     # Delete calculated rms file (a copy is now in the NIDM export)
@@ -482,9 +474,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     penum = penum.replace('pe', '')
                     full_path_file = os.path.join(stat_dir, filename)
                     param_estimate = ParameterEstimateMap(full_path_file, 
-                        penum, self.coordinate_space_id, 
-                        self.coordinate_system)
-                    self.coordinate_space_id = self.coordinate_space_id + 1
+                        penum, self.coord_space)
                     param_estimates.append(param_estimate)
         return param_estimates
 
@@ -496,8 +486,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         """
         mask_file = os.path.join(analysis_dir, 'mask.nii.gz')
         mask_map = MaskMap(self.export_dir, mask_file,
-            self.coordinate_system, self.coordinate_space_id)
-        self.coordinate_space_id = self.coordinate_space_id + 1
+            self.coord_space)
         return mask_map       
 
     def _get_grand_mean(self, mask_file, analysis_dir):
@@ -513,9 +502,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             grand_mean = None;
         else:
             grand_mean = GrandMeanMap(grand_mean_file, mask_file, 
-                self.coordinate_system, self.coordinate_space_id, 
-                self.export_dir)
-            self.coordinate_space_id = self.coordinate_space_id + 1
+                self.coord_space, self.export_dir)
         
         return grand_mean
 
@@ -543,7 +530,8 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         else:
             custom_standard = False;
 
-        if not standard_space:
+        # TODO check if first level is always performed in subject space?
+        if not standard_space or self.first_level:
             coordinate_system = NIDM['SubjectSpace'];
         else:
             if not custom_standard:
@@ -552,7 +540,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             else:
                 coordinate_system = NIDM['StandarizedSpace'];
 
-        self.coordinate_system = coordinate_system
+        return coordinate_system
 
     def _search_in_fsf(self, regexp):
         """ 
@@ -630,10 +618,8 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             resel_size_in_voxels=float(smoothness[2]), 
             dlh=float(smoothness[0]), 
             random_field_stationarity=True,
-            coordinate_system=self.coordinate_system, 
-            coordinate_space_id=self.coordinate_space_id,
+            coord_space=self.coord_space, 
             export_dir=self.export_dir)
-        self.coordinate_space_id += 1
 
         return search_space
 
