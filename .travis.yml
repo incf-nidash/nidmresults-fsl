@@ -11,4 +11,4 @@ before_install:
  # Create subtree nidm from main nidm repository
  - git remote add nidm https://github.com/cmaumet/nidm.git
  - git fetch nidm
- - git subtree add --prefix nidm nidm/uuid --squash
+ - git subtree add --prefix nidm nidm/fsl_gt --squash
