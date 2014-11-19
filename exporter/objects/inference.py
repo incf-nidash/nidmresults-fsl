@@ -112,10 +112,15 @@ class ExcursionSet(NIDMObject):
     """
     Object representing a ExcursionSet entity.
     """   
+    index = 1
+
     def __init__(self, filename, stat_num, visualisation, coord_space, 
         export_dir):
         super(ExcursionSet, self).__init__(export_dir)
-        self.num = stat_num
+        self.num = ""
+        if ExcursionSet.index > 1:
+            self.num = "_{0:0>4}".format(ExcursionSet.index)
+        ExcursionSet.index += 1
         self.file = filename
         self.id = NIIRI[str(uuid.uuid4())]
         self.visu = Visualisation(visualisation, stat_num, export_dir)
