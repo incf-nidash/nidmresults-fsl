@@ -156,7 +156,7 @@ class ErrorModel(NIDMObject):
                 # Create "Error Model" entity
         self.p.entity(self.id, 
             other_attributes=( (PROV['type'],NIDM['ErrorModel']), 
-                               (NIDM['hasNoiseDistribution'], 
+                               (NIDM['hasErrorDistribution'], 
                                     self.error_distribution), 
                                (NIDM['errorVarianceHomogeneous'], 
                                     self.variance_homo), 
@@ -196,14 +196,12 @@ class ParameterEstimateMap(NIDMObject):
     Object representing an ParameterEstimateMap entity.
     """ 
 
-    def __init__(self, filename, pe_num, coordinate_space_id, 
-        coordinate_system):
+    def __init__(self, filename, pe_num, coord_space):
         super(ParameterEstimateMap, self).__init__()
         self.file = filename
         # Column index in the corresponding design matrix
         self.num = pe_num
-        self.coord_space = CoordinateSpace(coordinate_system, 
-            coordinate_space_id, filename)
+        self.coord_space = coord_space
         self.id = NIIRI[str(uuid.uuid4())]
 
     # Generate prov for contrast map
@@ -237,12 +235,10 @@ class ResidualMeanSquares(NIDMObject):
     Object representing an ResidualMeanSquares entity.
     """ 
 
-    def __init__(self, export_dir, residual_file, coordinate_system, 
-        coordinate_space_id):
+    def __init__(self, export_dir, residual_file, coord_space):
         super(ResidualMeanSquares, self).__init__(export_dir)
         self.file = residual_file
-        self.coord_space = CoordinateSpace(coordinate_system, 
-            coordinate_space_id, residual_file)
+        self.coord_space = coord_space
         self.id = NIIRI[str(uuid.uuid4())]
 
     def export(self):
@@ -278,12 +274,10 @@ class MaskMap(NIDMObject):
     Object representing an MaskMap entity.
     """ 
 
-    def __init__(self, export_dir, mask_file, coordinate_system, 
-        coordinate_space_id):
+    def __init__(self, export_dir, mask_file, coord_space):
         super(MaskMap, self).__init__(export_dir)
         self.file = mask_file
-        self.coord_space = CoordinateSpace(coordinate_system, 
-            coordinate_space_id, mask_file)
+        self.coord_space = coord_space
         self.id = NIIRI[str(uuid.uuid4())]
 
     def export(self):
@@ -317,14 +311,12 @@ class GrandMeanMap(NIDMObject):
     Object representing an GrandMeanMap entity.
     """ 
 
-    def __init__(self, filename, mask_file, coordinate_system, 
-        coordinate_space_id, export_dir):
+    def __init__(self, filename, mask_file, coord_space, export_dir):
         super(GrandMeanMap, self).__init__(export_dir)
         self.id = NIIRI[str(uuid.uuid4())]
         self.file = filename
         self.mask_file = mask_file # needed to compute masked median
-        self.coord_space = CoordinateSpace(coordinate_system, 
-            coordinate_space_id, self.file)
+        self.coord_space = coord_space
 
     def export(self):
         """

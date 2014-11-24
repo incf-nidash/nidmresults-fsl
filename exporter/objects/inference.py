@@ -112,16 +112,15 @@ class ExcursionSet(NIDMObject):
     """
     Object representing a ExcursionSet entity.
     """   
-    def __init__(self, filename, stat_num, visualisation, coordinate_system, 
-        coordinate_space_id, export_dir):
+    def __init__(self, filename, stat_num, visualisation, coord_space, 
+        export_dir):
         super(ExcursionSet, self).__init__(export_dir)
         self.num = stat_num
         self.file = filename
         self.id = NIIRI[str(uuid.uuid4())]
         self.visu = Visualisation(visualisation, stat_num, export_dir)
 
-        self.coord_space = CoordinateSpace(coordinate_system, 
-            coordinate_space_id, filename)
+        self.coord_space = coord_space
 
     def export(self):
         """
@@ -302,13 +301,11 @@ class DisplayMaskMap(NIDMObject):
     """
     Object representing a DisplayMaskMap entity.
     """   
-    def __init__(self, contrast_num, filename, coordinate_system, 
-        coordinate_space_id, export_dir):
+    def __init__(self, contrast_num, filename, coord_space, export_dir):
         super(DisplayMaskMap, self).__init__(export_dir)
         self.id = NIIRI[str(uuid.uuid4())]
         self.filename = filename
-        self.coord_space = CoordinateSpace(coordinate_system, 
-            coordinate_space_id, filename)
+        self.coord_space = coord_space
 
     def export(self):
         """
@@ -423,12 +420,10 @@ class SearchSpace(NIDMObject):
     Object representing a SearchSpace entity.
     """   
     def __init__(self, search_space_file, search_volume, resel_size_in_voxels, 
-        dlh, random_field_stationarity, coordinate_system, coordinate_space_id, 
-        export_dir):
+        dlh, random_field_stationarity, coord_space, export_dir):
         super(SearchSpace, self).__init__(export_dir)
         self.file = search_space_file
-        self.coord_space = CoordinateSpace(coordinate_system, 
-            coordinate_space_id, self.file) 
+        self.coord_space = coord_space
         self.resel_size_in_voxels = resel_size_in_voxels
         self.dlh = dlh
         self.search_volume = search_volume

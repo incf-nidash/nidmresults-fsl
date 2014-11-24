@@ -20,9 +20,8 @@ class NIDMObject(object):
     Generic class, parent of all objects describing a NIDM entity, activity 
     or agent 
     """
-    def __init__(self, export_dir=None, coordinate_space_id=None):
+    def __init__(self, export_dir=None):
         self.export_dir = export_dir
-        self.coordinate_space_id = coordinate_space_id
         self.p = ProvBundle()
         self.id = None
 
@@ -46,11 +45,10 @@ class CoordinateSpace(NIDMObject):
     """
     Object representing a CoordinateSpace entity.
     """
-    def __init__(self, coordinate_system, coordinate_space_id, nifti_file):
+    def __init__(self, coordinate_system, nifti_file):
         super(CoordinateSpace, self).__init__()
         self.coordinate_system = coordinate_system
         self.nifti_file = nifti_file
-        self.id_num = coordinate_space_id
         self.id = NIIRI[str(uuid.uuid4())]
 
     def export(self):
@@ -78,7 +76,7 @@ class CoordinateSpace(NIDMObject):
             # NIDM['voxelUnits']: '[%s]'%str(thresImgHdr.get_xyzt_units()).strip('()'),
             NIDM['voxelUnits']: "['mm', 'mm', 'mm']",
             NIDM['voxelSize']: voxel_size,
-            PROV['label']: "Coordinate space "+str(self.id_num)})
+            PROV['label']: "Coordinate space"})
         return self.p
 
 class Image(NIDMObject):

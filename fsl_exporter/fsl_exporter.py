@@ -44,8 +44,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         feat_post_log_file = os.path.join(self.feat_dir, 'logs', 'feat4_post')
         self.feat_post_log = open(feat_post_log_file, 'r')
         self.version = kwargs.pop('version')   
-        self.coordinate_space_id = 1
-        self.coordinate_system = None
+        self.coord_space = None
         self.contrast_names_by_num = dict()
 
     def parse(self):
@@ -60,9 +59,20 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         # Load feat post log file
         self.feat_post_log = self.feat_post_log.read()
 
-        # Retreive coordinate space used for current analysis
-        if not self.coordinate_system:
-            self._get_coordinate_system()
+        fmri_level_re = r'.*set fmri\(level\) (?P<info>\d+).*'
+        fmri_level = int(self._search_in_fsf(fmri_level_re))
+        self.first_level = (fmri_level == 1)
+
+        # FIXME cope1
+        if self.first_level:
+            # stat_dir = list([os.path.join(self.feat_dir, 'stats')])
+            self.analysis_dirs = list([self.feat_dir])
+        else:
+            self.analysis_dirs = glob.glob(os.path.join(self.feat_dir, 'cope*.feat'))
+            # cope_dirs
+            # print cope_dirs
+            # stat_dir = os.path.join(self.feat_dir, 'cope1.feat', 'stats')
+            # analysis_dir = os.path.join(self.feat_dir, 'cope1.feat')
 
         super(FSLtoNIDMExporter, self).parse()
 
@@ -90,21 +100,28 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         Parse FSL result directory to retreive model fitting information. 
         Return a list of objects of type ModelFitting.
         """
-        design_matrix = self._get_design_matrix()
-        data = self._get_data()
-        error_model = self._get_error_model()
+        self.model_fittings = dict()
 
-        rms_map = self._get_residual_mean_squares_map()
-        param_estimates = self._get_param_estimate_maps()
-        mask_map = self._get_mask_map()
-        grand_mean_map = self._get_grand_mean(mask_map.file)
+        for analysis_dir in self.analysis_dirs:
+            stat_dir = os.path.join(analysis_dir, 'stats')
 
-        activity = self._get_model_parameters_estimations(error_model)
+            design_matrix = self._get_design_matrix(analysis_dir)
+            data = self._get_data()
+            error_model = self._get_error_model()
 
-        model_fitting = ModelFitting(activity, design_matrix, data, 
-            error_model, param_estimates, rms_map, mask_map, grand_mean_map)
+            rms_map = self._get_residual_mean_squares_map(stat_dir)
+            param_estimates = self._get_param_estimate_maps(stat_dir)
+            mask_map = self._get_mask_map(analysis_dir)
+            grand_mean_map = self._get_grand_mean(mask_map.file, analysis_dir)
 
-        return list([model_fitting])
+            activity = self._get_model_parameters_estimations(error_model)
+
+            model_fitting = ModelFitting(activity, design_matrix, data, 
+                error_model, param_estimates, rms_map, mask_map, grand_mean_map)
+
+            self.model_fittings[analysis_dir] = model_fitting
+
+        return self.model_fittings
 
     def _find_contrasts(self):
         """ 
@@ -114,120 +131,120 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         tuple of identifiers of ParameterEstimateMap objects, and value is an 
         object of type Contrast.
         """
-        # There is a single Model Parameters Estimations activity per feat 
-        # directory, all contrasts will therefore depend on it.
-        mf_id = self.model_fittings[0].activity.id
+        for analysis_dir in self.analysis_dirs:
+            # Retreive the Model Parameters Estimations activity corresponding
+            # to current analysis directory.
+            mf_id = self.model_fittings[analysis_dir].activity.id
+            stat_dir = os.path.join(analysis_dir, 'stats')
 
-        # Degrees of freedom
-        # FIXME: check what happens when more than one contrast is performed
-        dof_file = open(os.path.join(self.feat_dir, 'stats', 'dof'), 'r')
-        dof = float(dof_file.read())
+            # Degrees of freedom
+            # FIXME: check what happens when more than one contrast is performed
+            dof_file = open(os.path.join(stat_dir, 'dof'), 'r')
+            dof = float(dof_file.read())
 
-        exc_sets = glob.glob(os.path.join(self.feat_dir, 'thresh_z*.nii.gz'))
+            for analysis_dir in self.analysis_dirs:
+                exc_sets = glob.glob(os.path.join(analysis_dir, \
+                    'thresh_z*.nii.gz'))
 
-        contrasts = dict()
-        for filename in exc_sets:
-            s = re.compile('zf?stat\d+')
-            zstatnum = s.search(filename)
-            zstatnum = zstatnum.group()
+                contrasts = dict()
+                for filename in exc_sets:
+                    s = re.compile('zf?stat\d+')
+                    zstatnum = s.search(filename)
+                    zstatnum = zstatnum.group()
 
-            if zstatnum.startswith("zstat"):
-                stat_type = "T"
-                con_num = zstatnum.replace('zstat', '')
-            elif zstatnum.startswith("zfstat"):
-                stat_type = "F"
-                con_num = zstatnum.replace('zfstat', '')
+                    if zstatnum.startswith("zstat"):
+                        stat_type = "T"
+                        con_num = zstatnum.replace('zstat', '')
+                    elif zstatnum.startswith("zfstat"):
+                        stat_type = "F"
+                        con_num = zstatnum.replace('zfstat', '')
 
-            # If more than one excursion set is reported, we need to use 
-            # an index in the file names of the file exported in nidm
-            if len(exc_sets) > 1:
-                stat_num = "_"+stat_type.upper()+"{0:0>3}".format(con_num)
-            else:
-                stat_num = ""    
+                    # If more than one excursion set is reported, we need to use 
+                    # an index in the file names of the file exported in nidm
+                    if len(exc_sets) > 1:
+                        stat_num = "_"+stat_type.upper()+"{0:0>3}".format(con_num)
+                    else:
+                        stat_num = ""    
 
-            # Contrast name
-            name_re = r'.*set fmri\(conname_real\.'+con_num+\
-                                '\) "(?P<info>[\w\s><]+)".*'
-            contrast_name = self._search_in_fsf(name_re)
-            self.contrast_names_by_num[con_num] = contrast_name
+                    # Contrast name
+                    name_re = r'.*set fmri\(conname_real\.'+con_num+\
+                                        '\) "(?P<info>[\w\s><]+)".*'
+                    contrast_name = self._search_in_fsf(name_re)
+                    self.contrast_names_by_num[con_num] = contrast_name
 
-            # Contrast estimation activity
-            estimation = ContrastEstimation(con_num, contrast_name)
+                    # Contrast estimation activity
+                    estimation = ContrastEstimation(con_num, contrast_name)
 
-            # Contrast weights
-            weights_re = r'.*set fmri\(con_real'+con_num+\
-                                '\.\d+\) (?P<info>\d+)'
-            weight_search = re.compile(weights_re)
-            contrast_weights = str(re.findall(weight_search, 
-                self.design_txt)).replace("'", '')
+                    # Contrast weights
+                    weights_re = r'.*set fmri\(con_real'+con_num+\
+                                        '\.\d+\) (?P<info>\d+)'
+                    weight_search = re.compile(weights_re)
+                    contrast_weights = str(re.findall(weight_search, 
+                        self.design_txt)).replace("'", '')
 
-            weights = ContrastWeights(stat_num, contrast_name, 
-                contrast_weights, stat_type)
-           
-            # Find which parameter estimates were used to compute the 
-            # contrast
-            pe_ids = list()
-            pe_index = 1
-            contrast_weights = contrast_weights.replace(' ', '')
-            contrast_weights = contrast_weights.replace('[', '')
-            contrast_weights = contrast_weights.replace(']', '')
-            contrast_weights = contrast_weights.split(',')
+                    weights = ContrastWeights(stat_num, contrast_name, 
+                        contrast_weights, stat_type)
+                   
+                    # Find which parameter estimates were used to compute the 
+                    # contrast
+                    pe_ids = list()
+                    pe_index = 1
+                    contrast_weights = contrast_weights.replace(' ', '')
+                    contrast_weights = contrast_weights.replace('[', '')
+                    contrast_weights = contrast_weights.replace(']', '')
+                    contrast_weights = contrast_weights.split(',')
 
-            # Whenever a "1" is found in contrast_weights, the 
-            # parameter estimate map identified by the corresponding 
-            # index is in use
-            for beta_index in contrast_weights:
-                if int(beta_index) == 1:
-                    for model_fitting in self.model_fittings:
-                        for pe in model_fitting.param_estimates:
-                            s = re.compile('pe\d+')
-                            pe_num = s.search(pe.file)
-                            pe_num = pe_num.group()
-                            pe_num = pe_num.replace('pe', '')
-                            if pe_num == pe_index:
-                                pe_ids.append(pe.id)
-                pe_index += 1;
+                    # Whenever a "1" is found in contrast_weights, the 
+                    # parameter estimate map identified by the corresponding 
+                    # index is in use
+                    for beta_index in contrast_weights:
+                        if int(beta_index) == 1:
+                            for model_fitting in self.model_fittings.values():
+                                for pe in model_fitting.param_estimates:
+                                    s = re.compile('pe\d+')
+                                    pe_num = s.search(pe.file)
+                                    pe_num = pe_num.group()
+                                    pe_num = pe_num.replace('pe', '')
+                                    if pe_num == pe_index:
+                                        pe_ids.append(pe.id)
+                        pe_index += 1;
 
-            # Convert to immutable tuple to be used as key
-            pe_ids = tuple(pe_ids)
+                    # Convert to immutable tuple to be used as key
+                    pe_ids = tuple(pe_ids)
 
-            # Contrast Map
-            con_file = os.path.join(self.feat_dir, 
-                'stats', 'cope'+str(con_num)+'.nii.gz')
-            contrast_map = ContrastMap(con_file, stat_num, 
-                contrast_name, self.coordinate_system, 
-                self.coordinate_space_id, self.export_dir)
-            self.coordinate_space_id += 1
+                    # Contrast Map
+                    con_file = os.path.join(stat_dir, \
+                        'cope'+str(con_num)+'.nii.gz')
+                    contrast_map = ContrastMap(con_file, stat_num, 
+                        contrast_name, self.coord_space, 
+                        self.export_dir)
 
-            # Contrast Variance and Standard Error Maps
-            varcontrast_file = os.path.join(self.feat_dir, 
-                'stats', 'varcope'+str(con_num)+'.nii.gz')
-            is_variance = True
-            std_err_map = ContrastStdErrMap(stat_num, 
-                varcontrast_file, is_variance, self.coordinate_system, 
-                self.coordinate_space_id, self.export_dir)
-            self.coordinate_space_id += 2
+                    # Contrast Variance and Standard Error Maps
+                    varcontrast_file = os.path.join(stat_dir, \
+                        'varcope'+str(con_num)+'.nii.gz')
+                    is_variance = True
+                    std_err_map = ContrastStdErrMap(stat_num, 
+                        varcontrast_file, is_variance, self.coord_space,
+                        self.coord_space, self.export_dir)
 
-            # Statistic Map
-            stat_file = os.path.join(self.feat_dir, 
-                'stats', stat_type.lower()+'stat'+str(con_num)+'.nii.gz')
-            stat_map = StatisticMap(stat_file, stat_type, stat_num, 
-                contrast_name, dof, self.coordinate_system, 
-                self.coordinate_space_id, self.export_dir)
-            self.coordinate_space_id += 1
+                    # Statistic Map
+                    stat_file = os.path.join(stat_dir, \
+                        stat_type.lower()+'stat'+str(con_num)+'.nii.gz')
+                    stat_map = StatisticMap(stat_file, stat_type, stat_num, 
+                        contrast_name, dof, self.coord_space, 
+                        self.export_dir)
 
-            # Z-Statistic Map
-            z_stat_file = os.path.join(self.feat_dir, 
-                'stats', 'zstat'+str(con_num)+'.nii.gz')
-            z_stat_map = StatisticMap(z_stat_file, 'Z', stat_num, 
-                contrast_name, dof, self.coordinate_system, 
-                self.coordinate_space_id, self.export_dir)
-            self.coordinate_space_id += 1
+                    # Z-Statistic Map
+                    z_stat_file = os.path.join(stat_dir,\
+                     'zstat'+str(con_num)+'.nii.gz')
+                    z_stat_map = StatisticMap(z_stat_file, 'Z', stat_num, 
+                        contrast_name, dof, self.coord_space, 
+                        self.export_dir)
 
-            con = Contrast(con_num, contrast_name, weights, estimation, 
-                contrast_map, std_err_map, stat_map, z_stat_map)
+                    con = Contrast(con_num, contrast_name, weights, estimation, 
+                        contrast_map, std_err_map, stat_map, z_stat_map)
 
-            contrasts.setdefault((mf_id, pe_ids), list()).append(con)
+                    contrasts.setdefault((mf_id, pe_ids), list()).append(con)
 
         return contrasts
 
@@ -240,130 +257,129 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         """
         inferences = dict()
 
-        exc_sets = glob.glob(os.path.join(self.feat_dir, 'thresh_z*.nii.gz'))
+        for analysis_dir in self.analysis_dirs:
+            exc_sets = glob.glob(os.path.join(analysis_dir, \
+                    'thresh_z*.nii.gz'))
 
-        # Find excursion sets (in a given feat directory we have one excursion 
-        # set per contrast)
-        for filename in exc_sets:
-            s = re.compile('zf?stat\d+')
-            zstatnum = s.search(filename)
-            zstatnum = zstatnum.group()
-            if zstatnum.startswith("zstat"):
-                stat_type = "T"
-                stat_num = zstatnum.replace('zstat', '')
-            elif zstatnum.startswith("zfstat"):
-                stat_type = "F"
-                stat_num = zstatnum.replace('zfstat', '')
+            # Find excursion sets (in a given feat directory we have one excursion 
+            # set per contrast)
+            for filename in exc_sets:
+                s = re.compile('zf?stat\d+')
+                zstatnum = s.search(filename)
+                zstatnum = zstatnum.group()
+                if zstatnum.startswith("zstat"):
+                    stat_type = "T"
+                    stat_num = zstatnum.replace('zstat', '')
+                elif zstatnum.startswith("zfstat"):
+                    stat_type = "F"
+                    stat_num = zstatnum.replace('zfstat', '')
 
-            # If more than one excursion set is reported, we need to use 
-            # an index in the file names of the file exported in nidm
-            if len(exc_sets) > 1:
-                stat_num_t = "_"+stat_type.upper()+"{0:0>3}".format(stat_num)
-            else:
-                stat_num_t = ""  
+                # If more than one excursion set is reported, we need to use 
+                # an index in the file names of the file exported in nidm
+                if len(exc_sets) > 1:
+                    stat_num_t = "_"+stat_type.upper()+"{0:0>3}".format(stat_num)
+                else:
+                    stat_num_t = ""  
 
-            # Find corresponding contrast estimation activity
-            for contrasts in self.contrasts.values():
-                for contrast in contrasts:
-                    s = re.compile('cope\d+')
-                    con_num = s.search(contrast.contrast_map.file)
-                    con_num = con_num.group()
-                    con_num = con_num.replace('cope', '')
-                    if con_num == stat_num:
-                        con_id = contrast.estimation.id
+                # Find corresponding contrast estimation activity
+                for contrasts in self.contrasts.values():
+                    for contrast in contrasts:
+                        s = re.compile('cope\d+')
+                        con_num = s.search(contrast.contrast_map.file)
+                        con_num = con_num.group()
+                        con_num = con_num.replace('cope', '')
+                        if con_num == stat_num:
+                            con_id = contrast.estimation.id
 
-            # Inference activity
-            inference_act = InferenceActivity(stat_num, 
-                self.contrast_names_by_num[stat_num])
+                # Inference activity
+                inference_act = InferenceActivity(stat_num, 
+                    self.contrast_names_by_num[stat_num])
 
-            # Excursion set
-            visualisation = os.path.join(self.feat_dir, 
-                'rendered_thresh_zstat'+stat_num+'.png')
-            zFileImg = os.path.join(self.feat_dir, 
-                'thresh_zstat'+stat_num+'.nii.gz')
-            exc_set = ExcursionSet(zFileImg, stat_num_t, visualisation, 
-                self.coordinate_system, self.coordinate_space_id, 
-                self.export_dir)
-            self.coordinate_space_id += 1
+                # Excursion set
+                visualisation = os.path.join(analysis_dir, 
+                    'rendered_thresh_zstat'+stat_num+'.png')
+                zFileImg = os.path.join(analysis_dir, 
+                    'thresh_zstat'+stat_num+'.nii.gz')
+                exc_set = ExcursionSet(zFileImg, stat_num_t, visualisation, 
+                    self.coord_space, self.export_dir)
 
-            # Height Threshold
-            prob_re = r'.*set fmri\(prob_thresh\) (?P<info>\d+\.?\d+).*'
-            z_re = r'.*set fmri\(z_thresh\) (?P<info>\d+\.?\d+).*'
-            type_re = r'.*set fmri\(thresh\) (?P<info>\d+).*'
+                # Height Threshold
+                prob_re = r'.*set fmri\(prob_thresh\) (?P<info>\d+\.?\d+).*'
+                z_re = r'.*set fmri\(z_thresh\) (?P<info>\d+\.?\d+).*'
+                type_re = r'.*set fmri\(thresh\) (?P<info>\d+).*'
 
-            prob_thresh = float(self._search_in_fsf(prob_re))
-            z_thresh = float(self._search_in_fsf(z_re))
-            thresh_type = self._search_in_fsf(type_re)
+                prob_thresh = float(self._search_in_fsf(prob_re))
+                z_thresh = float(self._search_in_fsf(z_re))
+                thresh_type = self._search_in_fsf(type_re)
 
-            # FIXME: deal with 0 = no thresh?
-            voxel_uncorr = (thresh_type == 1)
-            voxel_corr = (thresh_type == 2)
-            # cluster_thresh = (thresh_type == 3)
-            
-            stat_threshold = None
-            p_corr_threshold = None
-            p_uncorr_threshold = None
-            if voxel_uncorr:
-                p_uncorr_threshold = prob_thresh
-            elif voxel_corr:
-                p_corr_threshold = prob_thresh
-            else:
-                stat_threshold = z_thresh
-                extent_p_corr = prob_thresh
+                # FIXME: deal with 0 = no thresh?
+                voxel_uncorr = (thresh_type == 1)
+                voxel_corr = (thresh_type == 2)
+                # cluster_thresh = (thresh_type == 3)
+                
+                stat_threshold = None
+                p_corr_threshold = None
+                p_uncorr_threshold = None
+                if voxel_uncorr:
+                    p_uncorr_threshold = prob_thresh
+                elif voxel_corr:
+                    p_corr_threshold = prob_thresh
+                else:
+                    stat_threshold = z_thresh
+                    extent_p_corr = prob_thresh
 
-            height_thresh = HeightThreshold(stat_threshold, 
-                p_corr_threshold, p_uncorr_threshold)
+                height_thresh = HeightThreshold(stat_threshold, 
+                    p_corr_threshold, p_uncorr_threshold)
 
-            # Extent Threshold
-            extent_thresh = ExtentThreshold(p_corr=extent_p_corr)
+                # Extent Threshold
+                extent_thresh = ExtentThreshold(p_corr=extent_p_corr)
 
-            # Clusters (and associated peaks)
-            clusters = self._get_clusters_peaks(stat_num)
+                # Clusters (and associated peaks)
+                clusters = self._get_clusters_peaks(stat_num)
 
-            # Peak and Cluster Definition Criteria
-            peak_criteria = PeakCriteria(stat_num, 
-                self._get_num_peaks(), self._get_peak_dist())
-            clus_criteria = ClusterCriteria(stat_num, 
-                self._get_connectivity())
+                # Peak and Cluster Definition Criteria
+                peak_criteria = PeakCriteria(stat_num, 
+                    self._get_num_peaks(), self._get_peak_dist())
+                clus_criteria = ClusterCriteria(stat_num, 
+                    self._get_connectivity())
 
-            # Display mask
-            # # FIXME deal with the case in which we are contrast masking by more than one contrast
-            # contrast_masking_search = re.compile(r'.*set fmri\(conmask'+contrast_num+'_(?P<maskingconnum>\d+)\) (?P<domask>\d+).*')
-            # contrast_masking_found = contrast_masking_search.search(self.design_txt)
-            # do_contrast_masking = float(contrast_masking_found.group('domask'))
-            # if do_contrast_masking:
-            #     contrast_masking_num = contrast_masking_found.group('maskingconnum')
-            #     contrast_masking_file = 
-            # else:
-            #     contrast_masking_num = None
-            # FIXME: We need an example with more than one contrast to code contrast masking        
-            contrast_masking_file = self._get_display_mask()
-            display_mask = DisplayMaskMap(stat_num, 
-                contrast_masking_file, self.coordinate_system, 
-                self.coordinate_space_id, self.export_dir)
-            self.coordinate_space_id += 1
+                # Display mask
+                # # FIXME deal with the case in which we are contrast masking by more than one contrast
+                # contrast_masking_search = re.compile(r'.*set fmri\(conmask'+contrast_num+'_(?P<maskingconnum>\d+)\) (?P<domask>\d+).*')
+                # contrast_masking_found = contrast_masking_search.search(self.design_txt)
+                # do_contrast_masking = float(contrast_masking_found.group('domask'))
+                # if do_contrast_masking:
+                #     contrast_masking_num = contrast_masking_found.group('maskingconnum')
+                #     contrast_masking_file = 
+                # else:
+                #     contrast_masking_num = None
+                # FIXME: We need an example with more than one contrast to code contrast masking        
+                contrast_masking_file = self._get_display_mask()
+                display_mask = DisplayMaskMap(stat_num, 
+                    contrast_masking_file, self.coord_space, 
+                    self.export_dir)
 
-            # Search space
-            search_space = self._get_search_space()
+                # Search space
+                search_space = self._get_search_space(analysis_dir)
 
-            inference = Inference(inference_act, height_thresh, 
-                extent_thresh, peak_criteria, clus_criteria, 
-                display_mask, exc_set, clusters, search_space, 
-                self.software.id)
+                inference = Inference(inference_act, height_thresh, 
+                    extent_thresh, peak_criteria, clus_criteria, 
+                    display_mask, exc_set, clusters, search_space, 
+                    self.software.id)
 
-            inferences.setdefault(con_id, list()).append(inference)
+                inferences.setdefault(con_id, list()).append(inference)
 
         return inferences
 
-    def _get_design_matrix(self):
+    def _get_design_matrix(self, analysis_dir):
         """ 
         Parse FSL result directory to retreive information about the design 
         matrix. Return an object of type DesignMatrix.
         """
-        design_mat_file = os.path.join(self.feat_dir, 'design.mat')
+        design_mat_file = os.path.join(analysis_dir, 'design.mat')
         design_mat_fid = open(design_mat_file, 'r')
         design_mat_values = np.loadtxt(design_mat_fid, skiprows=5, ndmin=2)
-        design_mat_image = os.path.join(self.feat_dir, 'design.png')
+        design_mat_image = os.path.join(analysis_dir, 'design.png')
 
         design_matrix = DesignMatrix(design_mat_values, design_mat_image,
             self.export_dir)
@@ -384,9 +400,6 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         Parse FSL result directory to retreive information about the error 
         model. Return an object of type ErrorModel. 
         """
-        fmri_level_re = r'.*set fmri\(level\) (?P<info>\d+).*'
-        fmri_level = int(self._search_in_fsf(fmri_level_re))
-        self.first_level = (fmri_level == 1)
 
         if self.first_level:
             variance_homo = True
@@ -404,20 +417,19 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             variance_spatial, dependance, dependance_spatial)
         return error_model
 
-    def _get_residual_mean_squares_map(self):
+    def _get_residual_mean_squares_map(self, stat_dir):
         """ 
         Parse FSL result directory to retreive information about the residual 
         mean squares map. Return an object of type ResidualMeanSquares. 
         """
-
         if self.first_level:
-            residuals_file = os.path.join(self.feat_dir, 
-                'stats', 'sigmasquareds.nii.gz')
+            residuals_file = os.path.join(stat_dir, 'sigmasquareds.nii.gz')
         else:
-            sigma2_group_file = os.path.join(self.feat_dir, 
-                'stats', 'mean_random_effects_var1.nii.gz')
-            sigma2_sub_file = os.path.join(self.feat_dir, 
-                'stats', 'varcope1.nii.gz')
+            # FIXME cope num enter here
+            sigma2_group_file = os.path.join(stat_dir,\
+                'mean_random_effects_var1.nii.gz')
+            sigma2_sub_file = os.path.join(stat_dir,\
+                'varcope1.nii.gz')
             # Create residual mean squares map
             sigma2_group_img = nib.load(sigma2_group_file)
             sigma2_group = sigma2_group_img.get_data()
@@ -425,62 +437,64 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             sigma2_sub_img = nib.load(sigma2_sub_file)
             sigma2_sub = sigma2_sub_img.get_data()
 
-            residuals_file = os.path.join(self.feat_dir, 
-                'stats', 'calculated_sigmasquareds.nii.gz')
+            residuals_file = os.path.join(stat_dir,\
+                'calculated_sigmasquareds.nii.gz')
             residuals_img = nib.Nifti1Image(sigma2_group+sigma2_sub,
                 sigma2_sub_img.get_qform())
             nib.save(residuals_img, residuals_file)
 
+        # In FSL all files will be in the same coordinate space
+        self.coord_space = CoordinateSpace(self._get_coordinate_system(),\
+            residuals_file)
+
         rms_map = ResidualMeanSquares(self.export_dir, residuals_file, 
-            self.coordinate_system, self.coordinate_space_id)
-        self.coordinate_space_id = self.coordinate_space_id + 1
-        if not self.first_level:
-            # Delete calculated rms file (a copy is now in the NIDM export)
-            # FIXME we need to add the wasDerivedFrom maps 
-            os.remove(residuals_file)
+            self.coord_space)
+
+        # FIXME: does not work
+        # if not self.first_level:
+        #     # Delete calculated rms file (a copy is now in the NIDM export)
+        #     # FIXME we need to add the wasDerivedFrom maps 
+        #     os.remove(residuals_file)
 
         return rms_map
 
-    def _get_param_estimate_maps(self):
+    def _get_param_estimate_maps(self, stat_dir):
         """ 
         Parse FSL result directory to retreive information about the parameter
         estimates. Return a list of objects of type ParameterEstimateMap. 
         """
         param_estimates = list()
-        for filename in os.listdir(os.path.join(self.feat_dir, 'stats')):
+
+        for filename in os.listdir(stat_dir):
             if filename.startswith("pe"):
                 if filename.endswith(".nii.gz"):
                     s = re.compile('pe\d+')
                     penum = s.search(filename)
                     penum = penum.group()
                     penum = penum.replace('pe', '')
-                    full_path_file = os.path.join(self.feat_dir, 
-                        'stats', filename)
+                    full_path_file = os.path.join(stat_dir, filename)
                     param_estimate = ParameterEstimateMap(full_path_file, 
-                        penum, self.coordinate_space_id, 
-                        self.coordinate_system)
-                    self.coordinate_space_id = self.coordinate_space_id + 1
+                        penum, self.coord_space)
                     param_estimates.append(param_estimate)
         return param_estimates
 
-    def _get_mask_map(self):
+    def _get_mask_map(self, analysis_dir):
         """ 
         Parse FSL result directory to retreive information about the mask 
         created as part of Model Parameters Estimation. Return an object of 
         type MaskMap. 
         """
-        mask_file = os.path.join(self.feat_dir, 'mask.nii.gz')
+        mask_file = os.path.join(analysis_dir, 'mask.nii.gz')
         mask_map = MaskMap(self.export_dir, mask_file,
-            self.coordinate_system, self.coordinate_space_id)
-        self.coordinate_space_id = self.coordinate_space_id + 1
+            self.coord_space)
         return mask_map       
 
-    def _get_grand_mean(self, mask_file):
+    def _get_grand_mean(self, mask_file, analysis_dir):
         """ 
         Parse FSL result directory to retreive information about the grand 
         mean map. Return an object of type GrandMeanMap. 
         """
-        grand_mean_file = os.path.join(self.feat_dir, 'mean_func.nii.gz')
+        grand_mean_file = os.path.join(analysis_dir, 'mean_func.nii.gz')
 
         # FIXME: Check if there is an alternative file to use here (maybe)
         # depending on FSL version
@@ -488,9 +502,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             grand_mean = None;
         else:
             grand_mean = GrandMeanMap(grand_mean_file, mask_file, 
-                self.coordinate_system, self.coordinate_space_id, 
-                self.export_dir)
-            self.coordinate_space_id = self.coordinate_space_id + 1
+                self.coord_space, self.export_dir)
         
         return grand_mean
 
@@ -518,7 +530,8 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         else:
             custom_standard = False;
 
-        if not standard_space:
+        # TODO check if first level is always performed in subject space?
+        if not standard_space or self.first_level:
             coordinate_system = NIDM['SubjectSpace'];
         else:
             if not custom_standard:
@@ -527,7 +540,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             else:
                 coordinate_system = NIDM['StandarizedSpace'];
 
-        self.coordinate_system = coordinate_system
+        return coordinate_system
 
     def _search_in_fsf(self, regexp):
         """ 
@@ -587,14 +600,15 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
         return connectivity
 
-    def _get_search_space(self):
+    def _get_search_space(self, analysis_dir):
         """ 
         Parse FSL result directory to retreive information about the search 
         space. Return an object of type SearchSpace. 
         """
         # FIXME this needs to be estimated
-        search_space_file = os.path.join(self.feat_dir, 'mask.nii.gz')
-        smoothness_file = os.path.join(self.feat_dir, 'stats', 'smoothness')
+        search_space_file = os.path.join(analysis_dir, 'mask.nii.gz')
+
+        smoothness_file = os.path.join(analysis_dir, 'stats', 'smoothness')
 
         # Load DLH, VOLUME and RESELS
         smoothness = np.loadtxt(smoothness_file, usecols=[1])
@@ -604,10 +618,8 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             resel_size_in_voxels=float(smoothness[2]), 
             dlh=float(smoothness[0]), 
             random_field_stationarity=True,
-            coordinate_system=self.coordinate_system, 
-            coordinate_space_id=self.coordinate_space_id,
+            coord_space=self.coord_space, 
             export_dir=self.export_dir)
-        self.coordinate_space_id += 1
 
         return search_space
 
@@ -617,151 +629,151 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         and peaks declared significant for statistic 'stat_num'. Return a list
         of Cluster objects.
         """
-
-        # Cluster list (positions in voxels)
-        cluster_file = os.path.join(self.feat_dir, 
-            'cluster_zstat'+stat_num+'.txt')
-        if not os.path.isfile(cluster_file):
-            cluster_file = None;
-        else:
-            cluster_table = np.loadtxt(cluster_file, skiprows=1, ndmin=2)
-
-        # Cluster list (positions in mm)
-        cluster_std_file = os.path.join(self.feat_dir, 
-            'cluster_zstat'+stat_num+'_std.txt')
-        if not os.path.isfile(cluster_std_file):
-            cluster_std_file = None;
-            # cluster_std_table = np.zeros_like(cluster_table)*float('nan')
-        else:
-            cluster_std_table = np.loadtxt(cluster_std_file, skiprows=1, 
-                ndmin=2) 
-        
-        # Peaks
-        peak_file = os.path.join(self.feat_dir, 'lmax_zstat'+stat_num+'.txt')
-        if not os.path.isfile(peak_file):
-            peak_file = None;
-        else:
-            peak_table = np.loadtxt(peak_file, skiprows=1, ndmin=2)
-
-        peak_std_file = os.path.join(self.feat_dir, 
-            'lmax_zstat'+stat_num+'_std.txt')
-        if not os.path.isfile(peak_std_file):
-            peak_std_file = None;  
-        else:
-            peak_std_table = np.loadtxt(peak_std_file, skiprows=1, ndmin=2)  
-
-        peaks = dict()
-        prev_cluster = -1
-        if (peak_file is not None) and (peak_std_file is not None):
-
-            peaks_join_table = np.column_stack((peak_table, peak_std_table))
-            for peak_row in peaks_join_table:    
-                cluster_id = int(peak_row[0])
-
-                if not cluster_id == prev_cluster:
-                    # First peak in this cluster
-                    peakIndex = 1;
-
-                # Though peak coordinates in voxels are integer, we use a float 
-                # type to comply with the rdfs:range
-                peak = Peak(peak_index=int(peakIndex), x=float(peak_row[2]), 
-                    y=float(peak_row[3]), z=float(peak_row[4]), 
-                    x_std=float(peak_row[7]), y_std=float(peak_row[8]), 
-                    z_std=float(peak_row[9]), equiv_z=float(peak_row[1]), 
-                    cluster_index=cluster_id, stat_num=stat_num, 
-                    max_peak=(peakIndex==1))
-                if cluster_id in peaks:
-                    peaks[cluster_id].append(peak)
-                else:
-                    peaks[cluster_id] = list([peak])
-                
-                prev_cluster = cluster_id
-
-                peakIndex = peakIndex + 1
-        elif (peak_file is not None):
-            for peak_row in peak_table:    
-                cluster_id = int(peak_row[0])
-
-                if not cluster_id == prev_cluster:
-                    peakIndex = 1;
-
-                peak = Peak(peak_index=int(peakIndex), x=int(peak_row[2]), 
-                    y=int(peak_row[3]), z=int(peak_row[4]),
-                    equiv_z=float(peak_row[1]), cluster_index=cluster_id, 
-                    stat_num=stat_num, max_peak=(peakIndex==1))
-                if cluster_id in peaks:
-                    peaks[cluster_id].append(peak)
-                else:
-                    peaks[cluster_id] = list([peak])             
-
-                prev_cluster = cluster_id
-
-                peakIndex = peakIndex + 1
-        elif (peak_std_file is not None):
-            for peak_row in peak_std_table:    
-                cluster_id = int(peak_row[0])
-
-                if not cluster_id == prev_cluster:
-                    peakIndex = 1;
-
-                peak = Peak(peak_index=int(peakIndex), x_std=int(peak_row[2]), 
-                    y_std=int(peak_row[3]), z_std=int(peak_row[4]), 
-                    equiv_z=float(peak_row[1]), cluster_index=cluster_id, 
-                    stat_num=stat_num, max_peak=(peakIndex==1))
-                if cluster_id in peaks:
-                    peaks[cluster_id].append(peak)
-                else:
-                    peaks[cluster_id] = list([peak])
-                prev_cluster = cluster_id
-
-                peakIndex = peakIndex + 1     
-        
         clusters = list()
 
-        if (cluster_file is not None) and (cluster_std_file is not None):
-            clusters_join_table = np.column_stack((cluster_table, 
-                cluster_std_table))
-            for cluster_row in clusters_join_table: 
-                cluster_id = int(cluster_row[0])
-                size = int(cluster_row[1])
-                pFWER = float(cluster_row[2])
-                x = float(cluster_row[8])
-                y = float(cluster_row[9])
-                z = float(cluster_row[10])
-                x_std = float(cluster_row[24])
-                y_std = float(cluster_row[25])
-                z_std = float(cluster_row[26])
-                clusters.append(Cluster(cluster_num=cluster_id, size=size, 
-                    pFWER=pFWER, peaks=peaks[cluster_id], x=x, y=y, z=z,
-                    x_std=x_std, y_std=y_std, z_std=z_std))
+        for analysis_dir in self.analysis_dirs:
+            # Cluster list (positions in voxels)
+            cluster_file = os.path.join(analysis_dir, 
+                'cluster_zstat'+stat_num+'.txt')
+            if not os.path.isfile(cluster_file):
+                cluster_file = None;
+            else:
+                cluster_table = np.loadtxt(cluster_file, skiprows=1, ndmin=2)
 
-        elif (cluster_file is not None):
-            for cluster_row in cluster_table: 
-                cluster_id = int(cluster_row[0])
-                size = int(cluster_row[1])
-                pFWER = float(cluster_row[2])
-                x = float(cluster_row[8])
-                y = float(cluster_row[9])
-                z = float(cluster_row[10])
-                x_std = None
-                y_std = None
-                z_std = None
-                clusters.append(Cluster(cluster_num=cluster_id, size=size, 
-                    pFWER=pFWER, peaks=peaks[cluster_id], x=x, y=y, z=z,
-                    x_std=x_std,y_std=y_std,z_std=z_std))
-        elif (cluster_std_file is not None):
-            for cluster_row in cluster_std_table: 
-                cluster_id = int(cluster_row[0])
-                size = int(cluster_row[1])
-                pFWER = float(cluster_row[2])
-                x_std = float(cluster_row[8])
-                y_std = float(cluster_row[9])
-                z_std = float(cluster_row[10])
-                x = None
-                y = None
-                z = None
-                clusters.append(Cluster(cluster_num=cluster_id, size=size, 
-                    pFWER=pFWER, peaks=peaks[cluster_id], x=x, y=y, z=z,
-                    x_std=x_std,y_std=y_std,z_std=z_std))
+            # Cluster list (positions in mm)
+            cluster_std_file = os.path.join(analysis_dir, 
+                'cluster_zstat'+stat_num+'_std.txt')
+            if not os.path.isfile(cluster_std_file):
+                cluster_std_file = None;
+                # cluster_std_table = np.zeros_like(cluster_table)*float('nan')
+            else:
+                cluster_std_table = np.loadtxt(cluster_std_file, skiprows=1, 
+                    ndmin=2) 
+            
+            # Peaks
+            peak_file = os.path.join(analysis_dir, 'lmax_zstat'+stat_num+'.txt')
+            if not os.path.isfile(peak_file):
+                peak_file = None;
+            else:
+                peak_table = np.loadtxt(peak_file, skiprows=1, ndmin=2)
+
+            peak_std_file = os.path.join(analysis_dir, 
+                'lmax_zstat'+stat_num+'_std.txt')
+            if not os.path.isfile(peak_std_file):
+                peak_std_file = None;  
+            else:
+                peak_std_table = np.loadtxt(peak_std_file, skiprows=1, ndmin=2)  
+
+            peaks = dict()
+            prev_cluster = -1
+            if (peak_file is not None) and (peak_std_file is not None):
+
+                peaks_join_table = np.column_stack((peak_table, peak_std_table))
+                for peak_row in peaks_join_table:    
+                    cluster_id = int(peak_row[0])
+
+                    if not cluster_id == prev_cluster:
+                        # First peak in this cluster
+                        peakIndex = 1;
+
+                    # Though peak coordinates in voxels are integer, we use a float 
+                    # type to comply with the rdfs:range
+                    peak = Peak(peak_index=int(peakIndex), x=float(peak_row[2]), 
+                        y=float(peak_row[3]), z=float(peak_row[4]), 
+                        x_std=float(peak_row[7]), y_std=float(peak_row[8]), 
+                        z_std=float(peak_row[9]), equiv_z=float(peak_row[1]), 
+                        cluster_index=cluster_id, stat_num=stat_num, 
+                        max_peak=(peakIndex==1))
+                    if cluster_id in peaks:
+                        peaks[cluster_id].append(peak)
+                    else:
+                        peaks[cluster_id] = list([peak])
+                    
+                    prev_cluster = cluster_id
+
+                    peakIndex = peakIndex + 1
+            elif (peak_file is not None):
+                for peak_row in peak_table:    
+                    cluster_id = int(peak_row[0])
+
+                    if not cluster_id == prev_cluster:
+                        peakIndex = 1;
+
+                    peak = Peak(peak_index=int(peakIndex), x=int(peak_row[2]), 
+                        y=int(peak_row[3]), z=int(peak_row[4]),
+                        equiv_z=float(peak_row[1]), cluster_index=cluster_id, 
+                        stat_num=stat_num, max_peak=(peakIndex==1))
+                    if cluster_id in peaks:
+                        peaks[cluster_id].append(peak)
+                    else:
+                        peaks[cluster_id] = list([peak])             
+
+                    prev_cluster = cluster_id
+
+                    peakIndex = peakIndex + 1
+            elif (peak_std_file is not None):
+                for peak_row in peak_std_table:    
+                    cluster_id = int(peak_row[0])
+
+                    if not cluster_id == prev_cluster:
+                        peakIndex = 1;
+
+                    peak = Peak(peak_index=int(peakIndex), x_std=int(peak_row[2]), 
+                        y_std=int(peak_row[3]), z_std=int(peak_row[4]), 
+                        equiv_z=float(peak_row[1]), cluster_index=cluster_id, 
+                        stat_num=stat_num, max_peak=(peakIndex==1))
+                    if cluster_id in peaks:
+                        peaks[cluster_id].append(peak)
+                    else:
+                        peaks[cluster_id] = list([peak])
+                    prev_cluster = cluster_id
+
+                    peakIndex = peakIndex + 1     
+            
+            if (cluster_file is not None) and (cluster_std_file is not None):
+                clusters_join_table = np.column_stack((cluster_table, 
+                    cluster_std_table))
+                for cluster_row in clusters_join_table: 
+                    cluster_id = int(cluster_row[0])
+                    size = int(cluster_row[1])
+                    pFWER = float(cluster_row[2])
+                    x = float(cluster_row[8])
+                    y = float(cluster_row[9])
+                    z = float(cluster_row[10])
+                    x_std = float(cluster_row[24])
+                    y_std = float(cluster_row[25])
+                    z_std = float(cluster_row[26])
+                    clusters.append(Cluster(cluster_num=cluster_id, size=size, 
+                        pFWER=pFWER, peaks=peaks[cluster_id], x=x, y=y, z=z,
+                        x_std=x_std, y_std=y_std, z_std=z_std))
+
+            elif (cluster_file is not None):
+                for cluster_row in cluster_table: 
+                    cluster_id = int(cluster_row[0])
+                    size = int(cluster_row[1])
+                    pFWER = float(cluster_row[2])
+                    x = float(cluster_row[8])
+                    y = float(cluster_row[9])
+                    z = float(cluster_row[10])
+                    x_std = None
+                    y_std = None
+                    z_std = None
+                    clusters.append(Cluster(cluster_num=cluster_id, size=size, 
+                        pFWER=pFWER, peaks=peaks[cluster_id], x=x, y=y, z=z,
+                        x_std=x_std,y_std=y_std,z_std=z_std))
+            elif (cluster_std_file is not None):
+                for cluster_row in cluster_std_table: 
+                    cluster_id = int(cluster_row[0])
+                    size = int(cluster_row[1])
+                    pFWER = float(cluster_row[2])
+                    x_std = float(cluster_row[8])
+                    y_std = float(cluster_row[9])
+                    z_std = float(cluster_row[10])
+                    x = None
+                    y = None
+                    z = None
+                    clusters.append(Cluster(cluster_num=cluster_id, size=size, 
+                        pFWER=pFWER, peaks=peaks[cluster_id], x=x, y=y, z=z,
+                        x_std=x_std,y_std=y_std,z_std=z_std))
 
         return clusters

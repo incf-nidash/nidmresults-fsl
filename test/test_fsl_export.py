@@ -146,8 +146,8 @@ class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
     @classmethod
     def tearDownClass(cls):
         # Delete temporarily written out ttl file
-        fsl_export_ttl = os.path.join(TEST_FOLDER, 'FSL_example.ttl');
-        os.remove(fsl_export_ttl)
+        os.path.join(TEST_FOLDER, 'FSL_example.ttl');
+        # os.remove(fsl_export_ttl)
 
     # '''Test02: Test availability of attributes needed to perform a meta-analysis as specified in use-case *1* at: http://wiki.incf.org/mediawiki/index.php/Queries'''
     # def test02_metaanalysis_usecase1(self):
