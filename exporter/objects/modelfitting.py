@@ -76,12 +76,18 @@ class DesignMatrix(NIDMObject):
     """
     Object representing a DesignMatrix entity.
     """ 
+    # Class variable keeping track of an index to write files on disk
+    index = 1
 
     def __init__(self, matrix, image_file, export_dir):
         super(DesignMatrix, self).__init__(export_dir=export_dir)
         self.matrix = matrix
         self.id = NIIRI[str(uuid.uuid4())]
         self.image = Image(export_dir, image_file)
+        self.num = ""
+        if self.index > 1:
+            self.num = "_{0:0>4}".format(self.index)
+        DesignMatrix.index += 1
 
     def export(self):     
         """
@@ -91,7 +97,7 @@ class DesignMatrix(NIDMObject):
         self.p.update(self.image.export())
 
         # Create cvs file containing design matrix
-        design_matrix_csv = 'DesignMatrix.csv'
+        design_matrix_csv = 'DesignMatrix'+self.num+'.csv'
         np.savetxt(os.path.join(self.export_dir, design_matrix_csv), 
             np.asarray(self.matrix), delimiter=",")
 
@@ -100,7 +106,7 @@ class DesignMatrix(NIDMObject):
             other_attributes=( (PROV['type'],NIDM['DesignMatrix']), 
                                (PROV['label'],"Design Matrix"), 
                                (DCT['format'], "text/csv"),
-                               (NIDM['filename'], "DesignMatrix.csv"),
+                               (NIDM['filename'], design_matrix_csv),
                                (NIDM['visualisation'], self.image.id),
                                (PROV['location'], 
                                 Identifier("file://./"+design_matrix_csv))))       
