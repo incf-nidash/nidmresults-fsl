@@ -156,7 +156,7 @@ class ErrorModel(NIDMObject):
                 # Create "Error Model" entity
         self.p.entity(self.id, 
             other_attributes=( (PROV['type'],NIDM['ErrorModel']), 
-                               (NIDM['hasNoiseDistribution'], 
+                               (NIDM['hasErrorDistribution'], 
                                     self.error_distribution), 
                                (NIDM['errorVarianceHomogeneous'], 
                                     self.variance_homo), 
