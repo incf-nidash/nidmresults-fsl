@@ -5,7 +5,8 @@ readme = open('README.md').read()
 requirements = [
     'prov',
     'nibabel',
-    'numpy'    
+    'numpy',
+    'nidmresults'    
 ]
 
 setup(
