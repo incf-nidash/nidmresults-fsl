@@ -4,8 +4,8 @@ FSL-specific classes and classes overloaded to add FSL-specific attributes.
 @author: Camille Maumet <c.m.j.maumet@warwick.ac.uk>
 @copyright: University of Warwick 2013-2014
 """
-from exporter.objects.generic import NIDMObject
-from exporter.objects.constants import *
+from nidmfsl.exporter.objects.generic import NIDMObject
+from nidmfsl.exporter.objects.constants import *
 import logging
 import uuid
 

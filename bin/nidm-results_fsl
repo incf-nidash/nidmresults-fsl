@@ -9,7 +9,7 @@ specification. The path to feat directory must be passed as first argument.
 
 import sys
 import os
-from fsl_exporter.fsl_exporter import FSLtoNIDMExporter
+from nidmfsl.fsl_exporter.fsl_exporter import FSLtoNIDMExporter
 
 if __name__ == "__main__":
     # Remove first argument (script name)
