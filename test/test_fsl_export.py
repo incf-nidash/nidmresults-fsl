@@ -34,8 +34,11 @@ if not os.path.isdir(NIDM_DIR):
 
 NIDM_RESULTS_DIR = os.path.join(NIDM_DIR, "nidm", "nidm-results")
 TERM_RESULTS_DIR = os.path.join(NIDM_RESULTS_DIR, "terms")
-TEST_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'example001')
-DATA_DIR = os.path.join(RELPATH, 'test', 'data', 'fmri.feat')
+TEST_DIR = os.path.dirname(os.path.abspath(__file__))
+TEST_DIR_001 = os.path.join(TEST_DIR, 'example001')
+TEST_DIR_002 = os.path.join(TEST_DIR, 'example002')
+DATA_DIR_001 = os.path.join(RELPATH, 'test', 'data', 'fmri_one_contrast.feat')
+DATA_DIR_002 = os.path.join(RELPATH, 'test', 'data', 'fmri_one_contrast_voxelwise.feat')
 
 path = os.path.join(NIDM_RESULTS_DIR, "test")
 sys.path.append(path)
@@ -56,42 +59,41 @@ class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
     @classmethod
     def setUpClass(cls):
         # *** Once for all, run the export and convert provn to ttl
-        
-        #  Turtle file obtained with FSL NI-DM export tool
-        fsl_export_provn = os.path.join(TEST_FOLDER, 'FSL_example.provn');
+        for test_dir, data_dir in [(TEST_DIR_001, DATA_DIR_001),(TEST_DIR_002,DATA_DIR_002)]:
+            #  Turtle file obtained with FSL NI-DM export tool
+            provn = os.path.join(test_dir, 'FSL_example.provn');
 
-        # If test data is available (usually if the test is run locally) then 
-        # compute a fresh export
-        if os.path.isdir(DATA_DIR):
-            logging.debug("Computing NIDM FSL export")
+            # If test data is available (usually if the test is run locally) then 
+            # compute a fresh export
+            if os.path.isdir(data_dir):
+                logging.debug("Computing NIDM FSL export")
 
-            # Export to NIDM using FSL export tool
-            # fslnidm = FSL_NIDM(feat_dir=DATA_DIR);
-            fslnidm = FSLtoNIDMExporter(feat_dir=DATA_DIR, version="0.2.0")
-            fslnidm.parse()
-            export_dir = fslnidm.export()
+                # Export to NIDM using FSL export tool
+                # fslnidm = FSL_NIDM(feat_dir=DATA_DIR_001);
+                fslnidm = FSLtoNIDMExporter(feat_dir=data_dir, version="0.2.0")
+                fslnidm.parse()
+                export_dir = fslnidm.export()
+                # Copy provn export to test directory
+                shutil.copy(os.path.join(export_dir, 'nidm.provn'), 
+                            os.path.join(provn))
 
-            # Copy provn export to test directory
-            shutil.copy(os.path.join(export_dir, 'nidm.provn'), 
-                        os.path.join(fsl_export_provn))
-
-        # Equivalent turtle file converted using the ProvStore API
-        # Local file to save the turtle export (and avoid multiple calls to ProvStore)
-        fsl_export_ttl = os.path.join(TEST_FOLDER, 'FSL_example.ttl');
-        fsl_export_ttl_url = get_turtle(fsl_export_provn)
-        ttl_fid = open(fsl_export_ttl, 'w')
-        ttl_fid.write(urllib2.urlopen(fsl_export_ttl_url).read())
-        ttl_fid.close()
+            # Equivalent turtle file converted using the ProvStore API
+            # Local file to save the turtle export (and avoid multiple calls to ProvStore)
+            ttl = os.path.join(test_dir, 'FSL_example.ttl');
+            ttl_url = get_turtle(provn)
+            ttl_fid = open(ttl, 'w')
+            ttl_fid.write(urllib2.urlopen(ttl_url).read())
+            ttl_fid.close()
 
     def setUp(self):
         TestResultDataModel.setUp(self) 
         self.ground_truth_dir = os.path.join(NIDM_RESULTS_DIR,'fsl', 'example001')
-        self.fsl_export_ttl = os.path.join(TEST_FOLDER, 'FSL_example.ttl');
+        self.ttl_001 = os.path.join(TEST_DIR_001, 'FSL_example.ttl');
 
         # RDF obtained by the FSL export 
         self.fslexport = Graph()
-        # self.fsl_export_ttl = os.path.join(self.test_dir, 'fsl', 'export', 'test01', 'fsl_nidm.ttl');
-        self.fslexport.parse(self.fsl_export_ttl, format='turtle')
+        # self.ttl_001 = os.path.join(self.test_dir, 'fsl', 'export', 'test01', 'fsl_nidm.ttl');
+        self.fslexport.parse(self.ttl_001, format='turtle')
 
         # Retreive owl file for NIDM-Results
         self.owl_file = os.path.join(TERM_RESULTS_DIR, 'nidm-results.owl')
@@ -146,8 +148,8 @@ class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
     @classmethod
     def tearDownClass(cls):
         # Delete temporarily written out ttl file
-        os.path.join(TEST_FOLDER, 'FSL_example.ttl');
-        # os.remove(fsl_export_ttl)
+        os.path.join(TEST_DIR_001, 'FSL_example.ttl');
+        # os.remove(ttl_001)
 
     # '''Test02: Test availability of attributes needed to perform a meta-analysis as specified in use-case *1* at: http://wiki.incf.org/mediawiki/index.php/Queries'''
     # def test02_metaanalysis_usecase1(self):
