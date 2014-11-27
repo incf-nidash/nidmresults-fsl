@@ -318,14 +318,13 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 cluster_thresh = (thresh_type == 3)
                 
                 stat_threshold = None
+                extent_p_corr = None
                 p_corr_threshold = None
                 p_uncorr_threshold = None
                 if voxel_uncorr:
                     p_uncorr_threshold = prob_thresh
-                    extent_p_corr = 1
                 elif voxel_corr:
                     p_corr_threshold = prob_thresh
-                    extent_p_corr = 1
                 else:
                     stat_threshold = z_thresh
                     extent_p_corr = prob_thresh
