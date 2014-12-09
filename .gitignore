@@ -2,3 +2,6 @@
 test/data/*
 
 nidm/*
+build/*
+*egg*/*
+dist/*

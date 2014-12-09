@@ -10,12 +10,12 @@ import re
 import os
 import glob
 import numpy as np
-from exporter.exporter import NIDMExporter
-from exporter.objects.constants import *
-from exporter.objects.modelfitting import *
-from exporter.objects.contrast import *
-from exporter.objects.inference import *
-from objects.fsl_objects import *
+from nidmresults.exporter import NIDMExporter
+from nidmresults.objects.constants import *
+from nidmresults.objects.modelfitting import *
+from nidmresults.objects.contrast import *
+from nidmresults.objects.inference import *
+from nidmfsl.fsl_exporter.objects.fsl_objects import *
 
 class FSLtoNIDMExporter(NIDMExporter, object):
     """ 
