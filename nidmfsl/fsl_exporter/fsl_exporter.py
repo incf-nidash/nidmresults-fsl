@@ -9,6 +9,7 @@ specification.
 import re
 import os
 import glob
+from fnmatch import fnmatch
 import numpy as np
 from nidmresults.exporter import NIDMExporter
 from nidmresults.objects.constants import *
@@ -63,8 +64,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         fmri_level = int(self._search_in_fsf(fmri_level_re))
         self.first_level = (fmri_level == 1)
 
-        # FIXME cope1
-        if self.first_level:
+        if self.first_level or fnmatch(self.feat_dir,'*cope1.feat'):
             # stat_dir = list([os.path.join(self.feat_dir, 'stats')])
             self.analysis_dirs = list([self.feat_dir])
         else:
@@ -288,7 +288,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                         con_num = s.search(contrast.contrast_map.file)
                         con_num = con_num.group()
                         con_num = con_num.replace('cope', '')
-                        if con_num == stat_num:
+                        if int(con_num) == int(stat_num):
                             con_id = contrast.estimation.id
 
                 # Inference activity
@@ -517,8 +517,10 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
         if standard_space:
             custom_re = r'.*set fmri\(alternateReference_yn\) (?P<info>[\d]+).*'
-            custom_space = (self._search_in_fsf(custom_re) == "1")
-
+            try:
+                custom_space = (self._search_in_fsf(custom_re) == "1")
+            except:
+                custom_space = False
             if custom_space is not None:
                 custom_standard = (custom_space == "1");
             else:
