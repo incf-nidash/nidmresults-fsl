@@ -310,14 +310,15 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
                 prob_thresh = float(self._search_in_fsf(prob_re))
                 z_thresh = float(self._search_in_fsf(z_re))
-                thresh_type = self._search_in_fsf(type_re)
+                thresh_type = int(self._search_in_fsf(type_re))
 
                 # FIXME: deal with 0 = no thresh?
                 voxel_uncorr = (thresh_type == 1)
                 voxel_corr = (thresh_type == 2)
-                # cluster_thresh = (thresh_type == 3)
+                cluster_thresh = (thresh_type == 3)
                 
                 stat_threshold = None
+                extent_p_corr = None
                 p_corr_threshold = None
                 p_uncorr_threshold = None
                 if voxel_uncorr:
@@ -334,14 +335,21 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 # Extent Threshold
                 extent_thresh = ExtentThreshold(p_corr=extent_p_corr)
 
-                # Clusters (and associated peaks)
-                clusters = self._get_clusters_peaks(stat_num)
+                # There is not table display listing peaks and clusters for 
+                # voxelwise correction
+                if cluster_thresh:
+                    # Clusters (and associated peaks)
+                    clusters = self._get_clusters_peaks(stat_num)
 
-                # Peak and Cluster Definition Criteria
-                peak_criteria = PeakCriteria(stat_num, 
-                    self._get_num_peaks(), self._get_peak_dist())
-                clus_criteria = ClusterCriteria(stat_num, 
-                    self._get_connectivity())
+                    # Peak and Cluster Definition Criteria
+                    peak_criteria = PeakCriteria(stat_num, 
+                        self._get_num_peaks(), self._get_peak_dist())
+                    clus_criteria = ClusterCriteria(stat_num, 
+                        self._get_connectivity())
+                else:
+                    clusters = None
+                    peak_criteria = None
+                    clus_criteria = None
 
                 # Display mask
                 # # FIXME deal with the case in which we are contrast masking by more than one contrast

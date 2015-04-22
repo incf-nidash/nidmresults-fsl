@@ -34,8 +34,14 @@ if not os.path.isdir(NIDM_DIR):
 
 NIDM_RESULTS_DIR = os.path.join(NIDM_DIR, "nidm", "nidm-results")
 TERM_RESULTS_DIR = os.path.join(NIDM_RESULTS_DIR, "terms")
-TEST_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'example001')
-DATA_DIR = os.path.join(RELPATH, 'test', 'data', 'fmri.feat')
+TEST_DIR = os.path.dirname(os.path.abspath(__file__))
+TEST_DIR_001 = os.path.join(TEST_DIR, 'example001')
+TEST_DIR_002 = os.path.join(TEST_DIR, 'example002')
+TEST_DIR_003 = os.path.join(TEST_DIR, 'example003')
+DATA_DIR_001 = os.path.join(RELPATH, 'test', 'data', 'fmri_one_contrast.feat')
+DATA_DIR_002 = os.path.join(RELPATH, 'test', 'data', 'fmri_one_contrast_voxelwise.feat')
+DATA_DIR_003 = os.path.join(RELPATH, 'test', 'data', 'fmri_one_contrast_unc_voxelwise.feat')
+
 
 path = os.path.join(NIDM_RESULTS_DIR, "test")
 sys.path.append(path)
@@ -56,42 +62,56 @@ class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
     @classmethod
     def setUpClass(cls):
         # *** Once for all, run the export and convert provn to ttl
-        
-        #  Turtle file obtained with FSL NI-DM export tool
-        fsl_export_provn = os.path.join(TEST_FOLDER, 'FSL_example.provn');
+        for test_dir, data_dir in [ (TEST_DIR_001, DATA_DIR_001),
+                                    (TEST_DIR_002,DATA_DIR_002),
+                                    (TEST_DIR_003,DATA_DIR_003)]:
 
-        # If test data is available (usually if the test is run locally) then 
-        # compute a fresh export
-        if os.path.isdir(DATA_DIR):
-            logging.debug("Computing NIDM FSL export")
+            #  Turtle file obtained with FSL NI-DM export tool
+            provn = os.path.join(test_dir, 'FSL_example.provn');
+            ttl = os.path.join(test_dir, 'FSL_example.ttl');
 
-            # Export to NIDM using FSL export tool
-            # fslnidm = FSL_NIDM(feat_dir=DATA_DIR);
-            fslnidm = FSLtoNIDMExporter(feat_dir=DATA_DIR, version="0.2.0")
-            fslnidm.parse()
-            export_dir = fslnidm.export()
+            # If test data is available (usually if the test is run locally) then 
+            # compute a fresh export
+            if os.path.isdir(data_dir):
+                logging.debug("Computing NIDM FSL export")
 
-            # Copy provn export to test directory
-            shutil.copy(os.path.join(export_dir, 'nidm.provn'), 
-                        os.path.join(fsl_export_provn))
+                # Export to NIDM using FSL export tool
+                # fslnidm = FSL_NIDM(feat_dir=DATA_DIR_001);
+                fslnidm = FSLtoNIDMExporter(feat_dir=data_dir, version="0.2.0")
+                fslnidm.parse()
+                export_dir = fslnidm.export()
+                # Copy provn export to test directory
+                shutil.copy(os.path.join(export_dir, 'nidm.provn'), 
+                            os.path.join(provn))
+                shutil.copy(os.path.join(export_dir, 'nidm.ttl'), 
+                            os.path.join(ttl))
 
-        # Equivalent turtle file converted using the ProvStore API
-        # Local file to save the turtle export (and avoid multiple calls to ProvStore)
-        fsl_export_ttl = os.path.join(TEST_FOLDER, 'FSL_example.ttl');
-        fsl_export_ttl_url = get_turtle(fsl_export_provn)
-        ttl_fid = open(fsl_export_ttl, 'w')
-        ttl_fid.write(urllib2.urlopen(fsl_export_ttl_url).read())
-        ttl_fid.close()
+            # # Equivalent turtle file converted using the ProvStore API
+            # # Local file to save the turtle export (and avoid multiple calls to ProvStore)
+            # ttl = os.path.join(test_dir, 'FSL_example.ttl');
+            # ttl_url = get_turtle(provn)
+            # ttl_fid = open(ttl, 'w')
+            # ttl_fid.write(urllib2.urlopen(ttl_url).read())
+            # ttl_fid.close()
 
     def setUp(self):
         TestResultDataModel.setUp(self) 
-        self.ground_truth_dir = os.path.join(NIDM_RESULTS_DIR,'fsl', 'example001')
-        self.fsl_export_ttl = os.path.join(TEST_FOLDER, 'FSL_example.ttl');
+        self.ttl_001 = os.path.join(TEST_DIR_001, 'FSL_example.ttl');
+        self.ttl_002 = os.path.join(TEST_DIR_002, 'FSL_example.ttl');
+        self.ttl_003 = os.path.join(TEST_DIR_003, 'FSL_example.ttl');
+
+        self.graphs = list()
 
         # RDF obtained by the FSL export 
-        self.fslexport = Graph()
-        # self.fsl_export_ttl = os.path.join(self.test_dir, 'fsl', 'export', 'test01', 'fsl_nidm.ttl');
-        self.fslexport.parse(self.fsl_export_ttl, format='turtle')
+        self.graphs.append(Graph())
+        # self.ttl_001 = os.path.join(self.test_dir, 'fsl', 'export', 'test01', 'fsl_nidm.ttl');
+        self.graphs[0].parse(self.ttl_001, format='turtle')
+
+        self.graphs.append(Graph())
+        self.graphs[1].parse(self.ttl_002, format='turtle')
+
+        self.graphs.append(Graph())
+        self.graphs[2].parse(self.ttl_003, format='turtle')
 
         # Retreive owl file for NIDM-Results
         self.owl_file = os.path.join(TERM_RESULTS_DIR, 'nidm-results.owl')
@@ -100,30 +120,32 @@ class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
         # fsl_test_dir = os.path.join(RELPATH, 'test')
 
     def test01_class_consistency_with_owl(self):
-        my_exception = check_class_names(self.fslexport, "FSL example001", owl_file=self.owl_file)
+        for graph in self.graphs:
+            # FIXME: change example name depending on graph
+            my_exception = check_class_names(graph, "FSL example00", owl_file=self.owl_file)
 
-        # FIXME (error message display should be simplified when only one example...)
-        if my_exception:
-            error_msg = ""
-            for unrecognised_class_name, examples in my_exception.items():
-                error_msg += unrecognised_class_name+" (from "+', '.join(examples)+")"
-            raise Exception(error_msg)
+            # FIXME (error message display should be simplified when only one example...)
+            if my_exception:
+                error_msg = ""
+                for unrecognised_class_name, examples in my_exception.items():
+                    error_msg += unrecognised_class_name+" (from "+', '.join(examples)+")"
+                raise Exception(error_msg)
 
 
     def test02_attributes_consistency_with_owl(self):
-        my_exception = check_attributes(self.fslexport, "FSL example001", owl_file=self.owl_file)
+        for graph in self.graphs:
+            my_exception = check_attributes(graph, "FSL example001", owl_file=self.owl_file)
 
-        # FIXME (error message display should be simplified when only one example...)
-        error_msg = ""
-        if my_exception[0]:
-            for unrecognised_attribute, example_names in my_exception[0].items():
-                error_msg += unrecognised_attribute+" (from "+', '.join(example_names)+")"
-        if my_exception[1]:
-            for unrecognised_range, example_names in my_exception[1].items():
-                error_msg += unrecognised_range+" (from "+', '.join(example_names)+")"
-        if error_msg:
-            raise Exception(error_msg)
-
+            # FIXME (error message display should be simplified when only one example...)
+            error_msg = ""
+            if my_exception[0]:
+                for unrecognised_attribute, example_names in my_exception[0].items():
+                    error_msg += unrecognised_attribute+" (from "+', '.join(example_names)+")"
+            if my_exception[1]:
+                for unrecognised_range, example_names in my_exception[1].items():
+                    error_msg += unrecognised_range+" (from "+', '.join(example_names)+")"
+            if error_msg:
+                raise Exception(error_msg)
 
     # FIXME: If terms PR is accepted then these tests should be moved to TestResultDataModel.py
     def test03_ex1_auditory_singlesub_full_graph(self):
@@ -131,23 +153,62 @@ class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
         Test03: Comparing that the ttl file generated by FSL and the expected 
         ttl file (generated manually) are identical
         """
-        ground_truth_ttl = os.path.join(self.ground_truth_dir, 'fsl_nidm.ttl');
+        ground_truth_dir = os.path.join(NIDM_RESULTS_DIR,'fsl', "example001")
+        ground_truth_ttl = os.path.join(ground_truth_dir, 'fsl_nidm.ttl');
         logging.info("Ground truth ttl: "+ground_truth_ttl)
 
         # RDF obtained by the ground truth export
         gt = Graph()
         gt.parse(ground_truth_ttl, format='turtle')
 
-        self.compare_full_graphs(gt, self.fslexport)
+        self.compare_full_graphs(gt, self.graphs[0])
 
         if self.my_execption:
             raise Exception(self.my_execption)
 
+    def test_voxelwise_threshold_fwe05(self):
+        """
+        Check that minimal set of relations needed to describe FWE p<0.05 
+        voxel-wise thresholding is present.
+        """
+        ground_truth_dir = os.path.join(NIDM_RESULTS_DIR,'fsl', "example002")
+        ground_truth_ttl = os.path.join(ground_truth_dir, 'fsl_nidm.ttl');
+        logging.info("Ground truth ttl: "+ground_truth_ttl)
+
+        # RDF obtained by the ground truth export
+        gt = Graph()
+        gt.parse(ground_truth_ttl, format='turtle')
+
+        self.compare_full_graphs(gt, self.graphs[1], True)
+
+        if self.my_execption:
+            raise Exception(self.my_execption)
+
+    def test_voxelwise_threshold_unc05(self):
+        """
+        Check that minimal set of relations needed to describe p<0.05 
+        uncorrected voxel-wise thresholding is present.
+        """
+
+        ground_truth_dir = os.path.join(NIDM_RESULTS_DIR,'fsl', "example003")
+        ground_truth_ttl = os.path.join(ground_truth_dir, 'fsl_nidm.ttl');
+        logging.info("Ground truth ttl: "+ground_truth_ttl)
+
+        # RDF obtained by the ground truth export
+        gt = Graph()
+        gt.parse(ground_truth_ttl, format='turtle')
+
+        self.compare_full_graphs(gt, self.graphs[2], True)
+
+        if self.my_execption:
+            raise Exception(self.my_execption)            
+
+
     @classmethod
     def tearDownClass(cls):
         # Delete temporarily written out ttl file
-        os.path.join(TEST_FOLDER, 'FSL_example.ttl');
-        # os.remove(fsl_export_ttl)
+        os.path.join(TEST_DIR_001, 'FSL_example.ttl');
+        # os.remove(ttl_001)
 
     # '''Test02: Test availability of attributes needed to perform a meta-analysis as specified in use-case *1* at: http://wiki.incf.org/mediawiki/index.php/Queries'''
     # def test02_metaanalysis_usecase1(self):
@@ -178,7 +239,7 @@ class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
     #     }
     #     """
 
-    #     if not self.successful_retreive(self.fslexport.query(query), 'ContrastMap and ContrastStandardErrorMap'):
+    #     if not self.successful_retreive(self.graphs[0].query(query), 'ContrastMap and ContrastStandardErrorMap'):
     #         raise Exception(self.my_execption)
 
     # '''Test03: Test availability of attributes needed to perform a meta-analysis as specified in use-case *2* at: http://wiki.incf.org/mediawiki/index.php/Queries'''
@@ -207,7 +268,7 @@ class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
     #     }
     #     """
 
-    #     if not self.successful_retreive(self.fslexport.query(query), 'ContrastMap and ContrastStandardErrorMap'):
+    #     if not self.successful_retreive(self.graphs[0].query(query), 'ContrastMap and ContrastStandardErrorMap'):
     #         raise Exception(self.my_execption)
 
     # '''Test04: Test availability of attributes needed to perform a meta-analysis as specified in use-case *3* at: http://wiki.incf.org/mediawiki/index.php/Queries'''
@@ -230,7 +291,7 @@ class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
     #     }
     #     """
 
-    #     if not self.successful_retreive(self.fslexport.query(query), 'ContrastMap and ContrastStandardErrorMap'):
+    #     if not self.successful_retreive(self.graphs[0].query(query), 'ContrastMap and ContrastStandardErrorMap'):
     #         raise Exception(self.my_execption)
 
     # '''Test05: Test availability of attributes needed to perform a meta-analysis as specified in use-case *4* at: http://wiki.incf.org/mediawiki/index.php/Queries'''
@@ -270,7 +331,7 @@ class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
     #     }
     #     """
 
-    #     if not self.successful_retreive(self.fslexport.query(query), 'ContrastMap and ContrastStandardErrorMap'):
+    #     if not self.successful_retreive(self.graphs[0].query(query), 'ContrastMap and ContrastStandardErrorMap'):
     #         raise Exception(self.my_execption)
 
 if __name__ == '__main__':
