@@ -12,6 +12,7 @@ import uuid
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
 
+
 class Software(NIDMObject):
     # FIXME software should be generic and then overloaded
 
@@ -24,7 +25,7 @@ class Software(NIDMObject):
         self.feat_version = feat_version
         self.name = "FSL"
         self.id = NIIRI[str(uuid.uuid4())]
-        # Retreive FSL version from feat version 
+        # Retreive FSL version from feat version
         # (cf. https://github.com/incf-nidash/nidm-results_fsl/issues/3)
         if feat_version == "6.00":
             self.version = "fsl-5_0_x"
@@ -43,19 +44,20 @@ class Software(NIDMObject):
         elif feat_version == "5.1":
             self.version = "fsl-3_1_1_x"
         else:
-            logging.debug("FSL version unknow for feat version: \""+\
-                feat_version+"\"")
+            logging.debug("FSL version unknow for feat version: \"" +
+                          feat_version + "\"")
             self.version = "fsl-unknown"
 
     def export(self):
         """
         Create prov entities and activities.
         """
-        self.p.agent(self.id, 
-            other_attributes=((PROV['type'], NIDM[self.name]), 
-                            (PROV['type'], PROV['SoftwareAgent']),
-                            (PROV['label'],self.name),
-                            (NIDM['softwareVersion'],self.version),
-                            (FSL['featVersion'], self.feat_version)))
+        self.p.agent(self.id,
+                     other_attributes=(
+                         (PROV['type'], NIDM[self.name]),
+                         (PROV['type'], PROV['SoftwareAgent']),
+                         (PROV['label'], self.name),
+                         (NIDM['softwareVersion'], self.version),
+                         (FSL['featVersion'], self.feat_version)))
 
         return self.p
