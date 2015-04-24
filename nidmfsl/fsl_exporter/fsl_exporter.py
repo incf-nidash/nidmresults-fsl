@@ -741,12 +741,12 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     # Though peak coordinates in voxels are integer, we use a
                     # float type to comply with the rdfs:range
                     peak = Peak(
-                        peak_index=int(peakIndex), x=float(peak_row[2]),
-                        y=float(peak_row[3]), z=float(peak_row[4]),
-                        x_std=float(peak_row[7]), y_std=float(peak_row[8]),
-                        z_std=float(peak_row[9]), equiv_z=float(peak_row[1]),
-                        cluster_index=cluster_id, stat_num=stat_num,
-                        max_peak=(peakIndex == 1))
+                        peak_index=int(peakIndex), x=int(peak_row[2]),
+                        y=int(peak_row[3]), z=int(peak_row[4]),
+                        x_std=peak_row[7], y_std=peak_row[8],
+                        z_std=peak_row[9],
+                        equiv_z=float(peak_row[1]),
+                        cluster_index=cluster_id, stat_num=stat_num)
                     if cluster_id in peaks:
                         peaks[cluster_id].append(peak)
                     else:
@@ -783,8 +783,10 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                         peakIndex = 1
 
                     peak = Peak(
-                        peak_index=int(peakIndex), x_std=int(peak_row[2]),
-                        y_std=int(peak_row[3]), z_std=int(peak_row[4]),
+                        peak_index=int(peakIndex),
+                        x_std=peak_row[2],
+                        y_std=peak_row[3],
+                        z_std=peak_row[4],
                         equiv_z=float(peak_row[1]), cluster_index=cluster_id,
                         stat_num=stat_num)
                     if cluster_id in peaks:
