@@ -131,8 +131,7 @@ class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
     def test01_class_consistency_with_owl(self):
         for graph in self.graphs:
             # FIXME: change example name depending on graph
-            my_exception = check_class_names(
-                graph, "FSL example00", owl_file=self.owl_file)
+            my_exception = self.owl.check_class_names(graph, "FSL example00")
 
             # FIXME (error message display should be simplified when only one
             # example...)
@@ -145,8 +144,7 @@ class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
 
     def test02_attributes_consistency_with_owl(self):
         for graph in self.graphs:
-            my_exception = check_attributes(
-                graph, "FSL example001", owl_file=self.owl_file)
+            my_exception = self.owl.check_attributes(graph, "FSL example001")
 
             # FIXME (error message display should be simplified when only one
             # example...)
