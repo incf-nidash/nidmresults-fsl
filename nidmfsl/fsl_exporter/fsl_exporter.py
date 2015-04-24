@@ -463,7 +463,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             variance_spatial = SPATIALLY_LOCAL
             dependance_spatial = None
 
-        error_distribution = GAUSSIAN_DISTRIBUTION
+        error_distribution = NIDM_GAUSSIAN_DISTRIBUTION
         error_model = ErrorModel(
             error_distribution, variance_homo,
             variance_spatial, dependance, dependance_spatial)
@@ -586,13 +586,13 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
         # TODO check if first level is always performed in subject space?
         if not standard_space or self.first_level:
-            coordinate_system = NIDM['SubjectSpace']
+            coordinate_system = NIDM_SUBJECT_COORDINATE_SYSTEM
         else:
             if not custom_standard:
                 coordinate_system = \
-                    NIDM['IcbmMni152NonLinear6thGenerationCoordinateSystem']
+                    NIDM_ICBM_MNI152_NON_LINEAR6TH_GENERATION_COORDINATE_SYSTEM
             else:
-                coordinate_system = NIDM['StandarizedSpace']
+                coordinate_system = NIDM_STANDARDIZED_COORDINATE_SYSTEM
 
         return coordinate_system
 

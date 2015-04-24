@@ -54,10 +54,10 @@ class Software(NIDMObject):
         """
         self.p.agent(self.id,
                      other_attributes=(
-                         (PROV['type'], NIDM[self.name]),
+                         (PROV['type'], NLX_FSL),
                          (PROV['type'], PROV['SoftwareAgent']),
                          (PROV['label'], self.name),
-                         (NIDM['softwareVersion'], self.version),
-                         (FSL['featVersion'], self.feat_version)))
+                         (NIDM_SOFTWARE_VERSION, self.version),
+                         (FSL_FEAT_VERSION, self.feat_version)))
 
         return self.p
