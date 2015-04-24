@@ -100,7 +100,10 @@ class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
             # ttl_fid.close()
 
     def setUp(self):
-        TestResultDataModel.setUp(self)
+        # Retreive owl file for NIDM-Results
+        self.owl_file = os.path.join(TERM_RESULTS_DIR, 'nidm-results.owl')
+
+        TestResultDataModel.setUp(self, self.owl_file)
         self.ttl_001 = os.path.join(TEST_DIR_001, 'FSL_example.ttl')
         self.ttl_002 = os.path.join(TEST_DIR_002, 'FSL_example.ttl')
         self.ttl_003 = os.path.join(TEST_DIR_003, 'FSL_example.ttl')
@@ -119,8 +122,7 @@ class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
         self.graphs.append(Graph())
         self.graphs[2].parse(self.ttl_003, format='turtle')
 
-        # Retreive owl file for NIDM-Results
-        self.owl_file = os.path.join(TERM_RESULTS_DIR, 'nidm-results.owl')
+
 
         # Move in test dir (storage of prov file)
         # fsl_test_dir = os.path.join(RELPATH, 'test')
