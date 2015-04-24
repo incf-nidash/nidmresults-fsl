@@ -11,6 +11,7 @@ import os
 from rdflib.graph import Graph
 import shutil
 import sys
+import glob
 
 import logging
 logger = logging.getLogger(__name__)
@@ -101,9 +102,12 @@ class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
 
     def setUp(self):
         # Retreive owl file for NIDM-Results
-        self.owl_file = os.path.join(TERM_RESULTS_DIR, 'nidm-results.owl')
+        owl_file = os.path.join(TERM_RESULTS_DIR, 'nidm-results.owl')
+        import_files = glob.glob(
+            os.path.join(os.path.dirname(owl_file),
+                         os.pardir, os.pardir, "imports", '*.ttl'))
 
-        TestResultDataModel.setUp(self, self.owl_file)
+        TestResultDataModel.setUp(self, owl_file, import_files)
         self.ttl_001 = os.path.join(TEST_DIR_001, 'FSL_example.ttl')
         self.ttl_002 = os.path.join(TEST_DIR_002, 'FSL_example.ttl')
         self.ttl_003 = os.path.join(TEST_DIR_003, 'FSL_example.ttl')
@@ -122,11 +126,8 @@ class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
         self.graphs.append(Graph())
         self.graphs[2].parse(self.ttl_003, format='turtle')
 
-
-
         # Move in test dir (storage of prov file)
         # fsl_test_dir = os.path.join(RELPATH, 'test')
-
     def test01_class_consistency_with_owl(self):
         for graph in self.graphs:
             # FIXME: change example name depending on graph
