@@ -766,7 +766,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                         peak_index=int(peakIndex), x=int(peak_row[2]),
                         y=int(peak_row[3]), z=int(peak_row[4]),
                         equiv_z=float(peak_row[1]), cluster_index=cluster_id,
-                        stat_num=stat_num, max_peak=(peakIndex == 1))
+                        stat_num=stat_num)
                     if cluster_id in peaks:
                         peaks[cluster_id].append(peak)
                     else:
@@ -786,7 +786,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                         peak_index=int(peakIndex), x_std=int(peak_row[2]),
                         y_std=int(peak_row[3]), z_std=int(peak_row[4]),
                         equiv_z=float(peak_row[1]), cluster_index=cluster_id,
-                        stat_num=stat_num, max_peak=(peakIndex == 1))
+                        stat_num=stat_num)
                     if cluster_id in peaks:
                         peaks[cluster_id].append(peak)
                     else:
