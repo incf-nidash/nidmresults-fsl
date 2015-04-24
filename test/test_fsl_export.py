@@ -82,7 +82,7 @@ class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
 
                 # Export to NIDM using FSL export tool
                 # fslnidm = FSL_NIDM(feat_dir=DATA_DIR_001);
-                fslnidm = FSLtoNIDMExporter(feat_dir=data_dir, version="0.2.0")
+                fslnidm = FSLtoNIDMExporter(feat_dir=data_dir, version="1.0.0")
                 fslnidm.parse()
                 export_dir = fslnidm.export()
                 # Copy provn export to test directory
