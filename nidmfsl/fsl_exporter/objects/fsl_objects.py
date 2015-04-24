@@ -28,25 +28,25 @@ class Software(NIDMObject):
         # Retreive FSL version from feat version
         # (cf. https://github.com/incf-nidash/nidm-results_fsl/issues/3)
         if feat_version == "6.00":
-            self.version = "fsl-5_0_x"
+            self.version = "5.0.x"
         elif feat_version == "5.98":
-            self.version = "fsl-4_1_x"
+            self.version = "4.1.x"
         elif feat_version == "5.92":
-            self.version = "fsl-4_0_x"
+            self.version = "4.0.x"
         elif feat_version == "5.91":
-            self.version = "fsl-4_0_1"
+            self.version = "4.0.1"
         elif feat_version == "5.90":
-            self.version = "fsl-4_0"
+            self.version = "4.0"
         elif feat_version == "5.61":
-            self.version = "fsl-3_3"
+            self.version = "3.3"
         elif feat_version == "5.4":
-            self.version = "fsl-3_2_1"
+            self.version = "3.2.1"
         elif feat_version == "5.1":
-            self.version = "fsl-3_1_1_x"
+            self.version = "3.1.1.x"
         else:
             logging.debug("FSL version unknow for feat version: \"" +
                           feat_version + "\"")
-            self.version = "fsl-unknown"
+            self.version = "unknown"
 
     def export(self):
         """
