@@ -8,8 +8,20 @@ specification.
 
 import re
 import os
+import sys
 import glob
 import numpy as np
+
+# If "nidmresults" code is available locally work on the source code (used
+# only for development)
+FSL_EXPORTER_DIR = os.path.dirname(os.path.realpath(__file__))
+NIDM_FSL_DIR = os.path.dirname(FSL_EXPORTER_DIR)
+NIDM_RESULTS_FSL_DIR = os.path.dirname(NIDM_FSL_DIR)
+NIDM_RESULTS_SRC_DIR = os.path.join(
+    os.path.dirname(NIDM_RESULTS_FSL_DIR), "nidmresults")
+if os.path.isdir(NIDM_RESULTS_SRC_DIR):
+    sys.path.append(NIDM_RESULTS_SRC_DIR)
+
 from nidmresults.exporter import NIDMExporter
 from nidmresults.objects.constants import *
 from nidmresults.objects.modelfitting import *
