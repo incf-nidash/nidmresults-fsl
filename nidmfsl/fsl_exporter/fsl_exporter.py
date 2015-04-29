@@ -567,7 +567,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         """
         mask_file = os.path.join(analysis_dir, 'mask.nii.gz')
         mask_map = MaskMap(self.export_dir, mask_file,
-                           self.coord_space)
+                           self.coord_space, False)
         return mask_map
 
     def _get_grand_mean(self, mask_file, analysis_dir):
