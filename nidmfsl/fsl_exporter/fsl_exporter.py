@@ -432,8 +432,36 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         design_mat_values = np.loadtxt(design_mat_fid, skiprows=5, ndmin=2)
         design_mat_image = os.path.join(analysis_dir, 'design.png')
 
+        # Regressor names (not taking into account HRF model)
+        regnames_re = r'.*set fmri\(evtitle\d+\).*'
+        ev_names = re.findall(regnames_re, self.design_txt)
+
+        orig_ev = dict()
+        for ev_name in ev_names:
+            regname_re = r'.*set fmri\(evtitle(?P<num>\d+)\)\s*"(?P<name>.*)"'
+            info_search = re.compile(regname_re)
+            info_found = info_search.search(ev_name)
+            num = info_found.group('num')
+            name = info_found.group('name')
+            orig_ev[int(num)] = name
+
+        real_ev = list()
+        for ev_num, ev_name in orig_ev.items():
+            real_ev.append(ev_name)
+
+            # Add one regressor name if there is an extra column for a temporal
+            # derivative
+            tempo_deriv_re = \
+                r'.*set fmri\(deriv_yn'+str(ev_num)+'\) (?P<info>[\d]+).*'
+            tempo_deriv = bool(self._search_in_fsf(tempo_deriv_re))
+
+            if tempo_deriv:
+                real_ev.append(ev_name+'*temporal_derivative')
+
+            # FIXME: other hrf models (FIR...)
+
         design_matrix = DesignMatrix(design_mat_values, design_mat_image,
-                                     self.export_dir)
+                                     self.export_dir, real_ev)
         return design_matrix
 
     def _get_data(self):
