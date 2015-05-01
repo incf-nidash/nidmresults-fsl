@@ -606,7 +606,11 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         if standard_space:
             custom_re = \
                 r'.*set fmri\(alternateReference_yn\) (?P<info>[\d]+).*'
-            custom_space = (self._search_in_fsf(custom_re) == "1")
+            custom_space = self._search_in_fsf(custom_re, True)
+            if custom_space is not None:
+                custom_space = (custom_space == "1")
+            else:
+                custom_space = False
 
             if custom_space is not None:
                 custom_standard = (custom_space == "1")
@@ -631,14 +635,17 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
         return coordinate_system
 
-    def _search_in_fsf(self, regexp):
+    def _search_in_fsf(self, regexp, return_not_found=False):
         """
         Look for information matching regular expression 'regexp' in the design
         file of the current study.
         """
         info_search = re.compile(regexp)
         info_found = info_search.search(self.design_txt)
-        info = info_found.group('info')
+        if not info_found and return_not_found:
+            info = None
+        else:
+            info = info_found.group('info')
         return info
 
     def _get_display_mask(self):
