@@ -204,7 +204,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
                     # Contrast weights
                     weights_re = r'.*set fmri\(con_real' + con_num +\
-                        '\.\d+\) (?P<info>\d+)'
+                        '\.\d+\) (?P<info>-?\d+)'
                     weight_search = re.compile(weights_re)
                     contrast_weights = str(
                         re.findall(weight_search,
