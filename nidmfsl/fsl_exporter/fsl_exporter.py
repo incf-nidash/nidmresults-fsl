@@ -318,14 +318,17 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     stat_num_t = ""
 
                 # Find corresponding contrast estimation activity
+                con_id = None
                 for contrasts in self.contrasts.values():
                     for contrast in contrasts:
-                        s = re.compile('cope\d+')
+                        s = re.compile('cope\d+\.nii\.gz')
                         con_num = s.search(contrast.contrast_map.file)
                         con_num = con_num.group()
-                        con_num = con_num.replace('cope', '')
+                        con_num = con_num.replace('cope', '')\
+                                         .replace('.nii.gz', '')
                         if con_num == stat_num:
                             con_id = contrast.estimation.id
+                assert con_id is not None
 
                 # Inference activity
                 inference_act = InferenceActivity(
