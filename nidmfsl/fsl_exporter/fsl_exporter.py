@@ -56,7 +56,13 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         self.design_file = os.path.join(self.feat_dir, 'design.fsf')
         # FIXME: maybe not always "4"?
         feat_post_log_file = os.path.join(self.feat_dir, 'logs', 'feat4_post')
-        self.feat_post_log = open(feat_post_log_file, 'r')
+        # FIXME: this file is sometimes missing, can the connectivity info
+        # be retreive from somewhere else??
+        if os.path.isfile(feat_post_log_file):
+            self.feat_post_log = open(feat_post_log_file, 'r')
+        else:
+            self.feat_post_log = None
+
         self.version = kwargs.pop('version')
         self.coord_space = None
         self.contrast_names_by_num = dict()
@@ -71,7 +77,8 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         self.design_txt = design_file_open.read()
 
         # Load feat post log file
-        self.feat_post_log = self.feat_post_log.read()
+        if self.feat_post_log is not None:
+            self.feat_post_log = self.feat_post_log.read()
 
         fmri_level_re = r'.*set fmri\(level\) (?P<info>\d+).*'
         fmri_level = int(self._search_in_fsf(fmri_level_re))
@@ -637,39 +644,45 @@ class FSLtoNIDMExporter(NIDMExporter, object):
     def _get_display_mask(self):
         """
         Parse FSL result directory to retreive information about display mask.
-        Return an object of type ResidualMeanSquares.
         """
         # FIXME this should be updated with actual contrast masking file
         mask_file = os.path.join(self.feat_dir, 'mask.nii.gz')
         return mask_file
 
     def _get_num_peaks(self):
-        num_peak_search = re.compile(r'.* --num=(?P<numpeak>\d+)+ .*')
-        num_peak_found = num_peak_search.search(self.feat_post_log)
-        if num_peak_found:
-            num_peak = int(num_peak_found.group('numpeak'))
-        else:
-            num_peak_search = re.compile(r'.* -n=(?P<numpeak>\d+)+ .*')
+        if self.feat_post_log is not None:
+            num_peak_search = re.compile(r'.* --num=(?P<numpeak>\d+)+ .*')
             num_peak_found = num_peak_search.search(self.feat_post_log)
             if num_peak_found:
                 num_peak = int(num_peak_found.group('numpeak'))
             else:
-                # If not specified, default value is inf?
-                # (cf. http://fsl.fmrib.ox.ac.uk/fsl/fslwiki/Cluster)
-                # Is it ok to say no limit with -1 (as for Inf
-                # we would need float...)
-                # FIXME: for now omitted if not explicitely defined
-                num_peak = None
+                num_peak_search = re.compile(r'.* -n=(?P<numpeak>\d+)+ .*')
+                num_peak_found = num_peak_search.search(self.feat_post_log)
+                if num_peak_found:
+                    num_peak = int(num_peak_found.group('numpeak'))
+                else:
+                    # If not specified, default value is inf?
+                    # (cf. http://fsl.fmrib.ox.ac.uk/fsl/fslwiki/Cluster)
+                    # Is it ok to say no limit with -1 (as for Inf
+                    # we would need float...)
+                    # FIXME: for now omitted if not explicitely defined
+                    num_peak = None
+        else:
+            num_peak = None
         return num_peak
 
     def _get_peak_dist(self):
-        peak_dist_search = re.compile(r'.* --peakdist=(?P<peakdist>\d+)+ .*')
-        peak_dist_found = peak_dist_search.search(self.feat_post_log)
-        if peak_dist_found:
-            peak_dist = float(peak_dist_found.group('peakdist'))
+        if self.feat_post_log is not None:
+            peak_dist_search = re.compile(
+                r'.* --peakdist=(?P<peakdist>\d+)+ .*')
+            peak_dist_found = peak_dist_search.search(self.feat_post_log)
+            if peak_dist_found:
+                peak_dist = float(peak_dist_found.group('peakdist'))
+            else:
+                # If not specified, default value is zero (cf.
+                # http://fsl.fmrib.ox.ac.uk/fsl/fslwiki/Cluster)
+                peak_dist = 0.0
         else:
-            # If not specified, default value is zero (cf.
-            # http://fsl.fmrib.ox.ac.uk/fsl/fslwiki/Cluster)
             peak_dist = 0.0
 
         return peak_dist
@@ -679,11 +692,14 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         Parse FSL result directory to retreive peak connectivity within a
         cluster.
         """
-        conn_re = r'.* --connectivity=(?P<connectivity>\d+)+ .*'
-        connectivity_search = re.compile(conn_re)
-        connectivity = int(
-            connectivity_search.search(
-                self.feat_post_log).group('connectivity'))
+        if self.feat_post_log is not None:
+            conn_re = r'.* --connectivity=(?P<connectivity>\d+)+ .*'
+            connectivity_search = re.compile(conn_re)
+            connectivity = int(
+                connectivity_search.search(
+                    self.feat_post_log).group('connectivity'))
+        else:
+            connectivity = None
 
         return connectivity
 
