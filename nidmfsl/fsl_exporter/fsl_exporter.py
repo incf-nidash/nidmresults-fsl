@@ -472,11 +472,11 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 min_duration = min(min_duration, np.amin(aa[:, 2], axis=None))
 
             if max_duration <= 1:
-                design_type = "event"
+                design_type = NIDM_EVENT_RELATED_DESIGN
             elif min_duration > 1:
-                design_type = "block"
+                design_type = NIDM_BLOCK_BASED_DESIGN
             else:
-                design_type = "mixed"
+                design_type = NIDM_MIXED_DESIGN
 
             # HRF model (only look at first ev)
             m = re.search(
