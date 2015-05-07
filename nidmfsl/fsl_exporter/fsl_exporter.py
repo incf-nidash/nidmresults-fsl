@@ -10,7 +10,9 @@ import re
 import os
 import sys
 import glob
+import json
 import numpy as np
+import subprocess
 
 # If "nidmresults" code is available locally work on the source code (used
 # only for development)
@@ -471,7 +473,6 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             # FIXME: other hrf models (FIR...)
 
         design_matrix = DesignMatrix(design_mat_values, design_mat_image,
-                                     self.export_dir, real_ev)
         return design_matrix
 
     def _get_data(self):
@@ -723,16 +724,63 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
         smoothness_file = os.path.join(analysis_dir, 'stats', 'smoothness')
 
-        # Load DLH, VOLUME and RESELS
-        smoothness = np.loadtxt(smoothness_file, usecols=[1])
+        # Load DLH, VOLUME, RESELS and noise FWHM
+        with open(smoothness_file, "r") as fp:
+            smoothness_txt = fp.read()
 
-        search_space = SearchSpace(search_space_file=search_space_file,
-                                   search_volume=int(smoothness[1]),
-                                   resel_size_in_voxels=float(smoothness[2]),
-                                   dlh=float(smoothness[0]),
-                                   random_field_stationarity=True,
-                                   coord_space=self.coord_space,
-                                   export_dir=self.export_dir)
+        sm_reg = \
+            r"FWHMx = (?P<FWHMx_vx>\d+\.?\d*) voxels, " + \
+            r"FWHMy = (?P<FWHMy_vx>\d+\.?\d*) voxels, " + \
+            r"FWHMz = (?P<FWHMz_vx>\d+\.?\d*) voxels\n" + \
+            r"FWHMx = (?P<FWHMx_mm>\d+\.?\d*) mm, " + \
+            r"FWHMy = (?P<FWHMy_mm>\d+\.?\d*) mm, " + \
+            r"FWHMz = (?P<FWHMz_mm>\d+\.?\d*) mm\n" + \
+            r"DLH (?P<DLH>\d+\.?\d*) voxels\^\-3\n" + \
+            r"VOLUME (?P<volume>\d+) voxels\n" + \
+            r"RESELS (?P<vox_per_resels>\d+\.?\d*) voxels per resel"
+
+        sm_match = re.search(sm_reg, smoothness_txt, re.DOTALL)
+
+        if sm_match:
+            d = sm_match.groupdict()
+        else:
+            # smoothness was estimated without the "-V" option, recompute
+            log_file = os.path.join(self.feat_dir, 'logs', 'feat3_stats')
+            with open(log_file, "r") as fp:
+                log_txt = fp.read()
+
+            cmd_match = re.search(r"(?P<cmd>smoothest.*)\n", log_txt)
+            cmd = cmd_match.group("cmd")
+            cmd = cmd.replace("stats/smoothness", "stats/smoothness_v")
+            cmd = cmd.replace("smoothest", "smoothest -V")
+            subprocess.call("cd "+analysis_dir+";"+cmd, shell=True)
+
+            with open(smoothness_file+"_v", "r") as fp:
+                smoothness_txt = fp.read()
+
+            sm_match = re.search(sm_reg, smoothness_txt, re.DOTALL)
+            d = sm_match.groupdict()
+
+        vol_in_units = float(d['volume'])*np.prod(
+            json.loads(self.coord_space.voxel_size))
+        vol_in_resels = float(d['volume'])/float(d['vox_per_resels'])
+        noise_fwhm_in_voxels = json.dumps(
+            [float(d['FWHMx_vx']), float(d['FWHMy_vx']), float(d['FWHMz_vx'])])
+        noise_fwhm_in_units = json.dumps(
+            [float(d['FWHMx_mm']), float(d['FWHMy_mm']), float(d['FWHMz_mm'])])
+
+        search_space = SearchSpace(
+            search_space_file=search_space_file,
+            vol_in_voxels=int(d['volume']),
+            vol_in_units=vol_in_units,
+            vol_in_resels=vol_in_resels,
+            resel_size_in_voxels=float(d['vox_per_resels']),
+            dlh=float(d['DLH']),
+            random_field_stationarity=True,
+            noise_fwhm_in_voxels=noise_fwhm_in_voxels,
+            noise_fwhm_in_units=noise_fwhm_in_units,
+            coord_space=self.coord_space,
+            export_dir=self.export_dir)
 
         return search_space
 
