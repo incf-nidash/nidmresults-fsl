@@ -10,6 +10,6 @@ before_install:
  - git config --global user.name "TravisCI"
  - git config --global user.email "travis@dummy.com"
  # Create subtree nidm from main nidm repository
- - git remote add nidm https://github.com/cmaumet/nidm.git
+ - git remote add nidm https://github.com/incf-nidash/nidm.git
  - git fetch nidm
- - git subtree add --prefix nidm nidm/fsl_ex_thresh --squash
+ - git subtree add --prefix nidm nidm/master --squash
