@@ -397,29 +397,39 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     peak_criteria = None
                     clus_criteria = None
 
-                # Display mask
-                # FIXME deal with the case in which we are contrast masking by
-                #  more than one contrast
-                # contrast_masking_search = re.compile(r'.*set
-                # fmri\(conmask'+contrast_num+'_(?P<maskingconnum>\d+)\)
-                # (?P<domask>\d+).*')
-                # contrast_masking_found =
-                # contrast_masking_search.search(self.design_txt)
-                # do_contrast_masking =
-                # float(contrast_masking_found.group('domask'))
-                # if do_contrast_masking:
-                #     contrast_masking_num =
-                # contrast_masking_found.group('maskingconnum')
-                #     contrast_masking_file =
-                # else:
-                #     contrast_masking_num = None
-                # FIXME: We need an example with more than one contrast to code
-                # contrast masking
-                contrast_masking_file = self._get_display_mask()
-                display_mask = DisplayMaskMap(
-                    stat_num,
-                    contrast_masking_file, self.coord_space,
-                    self.export_dir)
+                # FIXME: for now only based on conmask1_1
+                m = re.search(
+                    r"set fmri\(conmask1_1\) (?P<con_maskg>\d+)",
+                    self.design_txt)
+                assert m is not None
+                contrast_masking = bool(int(m.group("con_maskg")))
+
+                if contrast_masking:
+                    # Display mask
+                    # FIXME deal with the case in which we are contrast masking by
+                    #  more than one contrast
+                    # contrast_masking_search = re.compile(r'.*set
+                    # fmri\(conmask'+contrast_num+'_(?P<maskingconnum>\d+)\)
+                    # (?P<domask>\d+).*')
+                    # contrast_masking_found =
+                    # contrast_masking_search.search(self.design_txt)
+                    # do_contrast_masking =
+                    # float(contrast_masking_found.group('domask'))
+                    # if do_contrast_masking:
+                    #     contrast_masking_num =
+                    # contrast_masking_found.group('maskingconnum')
+                    #     contrast_masking_file =
+                    # else:
+                    #     contrast_masking_num = None
+                    # FIXME: We need an example with more than one contrast to code
+                    # contrast masking
+                    contrast_masking_file = self._get_display_mask()
+                    display_mask = DisplayMaskMap(
+                        stat_num,
+                        contrast_masking_file, self.coord_space,
+                        self.export_dir)
+                else:
+                    display_mask = None
 
                 # Search space
                 search_space = self._get_search_space(analysis_dir)
