@@ -496,9 +496,19 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             elif hrf == 6:  # 6 : FIR basis functions
                 hrf_model = NIDM_FINITE_IMPULSE_RESPONSE_HRB
 
+            # Drift model
+            m = re.search(
+                r"set fmri\(paradigm_hp\) (?P<cut_off>\d+)", self.design_txt)
+            assert m is not None
+            cut_off = int(m.group("cut_off"))
+
+            drift_model = DriftModel(
+                FSL_GAUSSIAN_RUNNING_LINE_DRIFT_MODEL, cut_off)
+
         else:
             design_type = None
             hrf_model = None
+            drift_model = None
 
         real_ev = list()
         for ev_num, ev_name in orig_ev.items():
@@ -517,7 +527,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
         design_matrix = DesignMatrix(design_mat_values, design_mat_image,
                                      self.export_dir, real_ev, design_type,
-                                     hrf_model)
+                                     hrf_model, drift_model)
         return design_matrix
 
     def _get_data(self):
