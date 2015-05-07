@@ -457,6 +457,28 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             name = info_found.group('name')
             orig_ev[int(num)] = name
 
+        # Onset files
+        if self.first_level:
+            # FIXME: deal with other options than "custom"
+            onsets_re = r'.*set fmri\(custom(?P<num>\d+)\)\s*"(?P<file>.*)".*'
+            r = re.compile(onsets_re)
+            onsets = [m.groupdict() for m in r.finditer(self.design_txt)]
+            max_duration = 0
+            min_duration = 36000
+            for onset in onsets:
+                aa = np.loadtxt(onset['file'])
+                max_duration = max(max_duration, np.amax(aa[:, 2], axis=None))
+                min_duration = min(min_duration, np.amin(aa[:, 2], axis=None))
+
+            if max_duration <= 1:
+                design_type = "event"
+            elif min_duration > 1:
+                design_type = "block"
+            else:
+                design_type = "mixed"
+        else:
+            design_type = None
+
         real_ev = list()
         for ev_num, ev_name in orig_ev.items():
             real_ev.append(ev_name)
@@ -473,6 +495,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             # FIXME: other hrf models (FIR...)
 
         design_matrix = DesignMatrix(design_mat_values, design_mat_image,
+                                     self.export_dir, real_ev, design_type)
         return design_matrix
 
     def _get_data(self):
