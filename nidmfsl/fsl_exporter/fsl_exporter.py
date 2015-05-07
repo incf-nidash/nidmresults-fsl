@@ -457,8 +457,9 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             name = info_found.group('name')
             orig_ev[int(num)] = name
 
-        # Onset files
+        # For first-level fMRI only
         if self.first_level:
+            # Design-type: event, mixed or block
             # FIXME: deal with other options than "custom"
             onsets_re = r'.*set fmri\(custom(?P<num>\d+)\)\s*"(?P<file>.*)".*'
             r = re.compile(onsets_re)
@@ -476,8 +477,28 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 design_type = "block"
             else:
                 design_type = "mixed"
+
+            # HRF model (only look at first ev)
+            m = re.search(
+                r"set fmri\(convolve1\) (?P<hrf>\d)", self.design_txt)
+            assert m is not None
+            hrf = int(m.group("hrf"))
+            if hrf == 1:    # 1: Gaussian
+                hrf_model = NIDM_GAUSSIAN_HRF
+            elif hrf == 2:  # 2 : Gamma
+                hrf_model = NIDM_GAMMA_HRF
+            elif hrf == 3:  # 3 : Double-Gamma HRF
+                hrf_model = FSL_FSLS_GAMMA_DIFFERENCE_HRF
+            elif hrf == 4:  # 4 : Gamma basis functions
+                hrf_model = NIDM_GAMMA_HRB
+            elif hrf == 5:  # 5 : Sine basis functions
+                hrf_model = NIDM_SINE_BASIS_SET
+            elif hrf == 6:  # 6 : FIR basis functions
+                hrf_model = NIDM_FINITE_IMPULSE_RESPONSE_HRB
+
         else:
             design_type = None
+            hrf_model = None
 
         real_ev = list()
         for ev_num, ev_name in orig_ev.items():
@@ -495,7 +516,8 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             # FIXME: other hrf models (FIR...)
 
         design_matrix = DesignMatrix(design_mat_values, design_mat_image,
-                                     self.export_dir, real_ev, design_type)
+                                     self.export_dir, real_ev, design_type,
+                                     hrf_model)
         return design_matrix
 
     def _get_data(self):
