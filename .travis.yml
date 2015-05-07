@@ -8,6 +8,7 @@ script:  python test/test_fsl_export.py
 # Update subtree nidm from main nidm repository
 before_install: 
  - git config --global user.name "TravisCI"
+ - git config --global user.email "travis@dummy.com"
  # Create subtree nidm from main nidm repository
  - git remote add nidm https://github.com/cmaumet/nidm.git
  - git fetch nidm
