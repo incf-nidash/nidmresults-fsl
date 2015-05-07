@@ -510,7 +510,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             m = re.search(
                 r"set fmri\(paradigm_hp\) (?P<cut_off>\d+)", self.design_txt)
             assert m is not None
-            cut_off = int(m.group("cut_off"))
+            cut_off = float(m.group("cut_off"))
 
             drift_model = DriftModel(
                 FSL_GAUSSIAN_RUNNING_LINE_DRIFT_MODEL, cut_off)
