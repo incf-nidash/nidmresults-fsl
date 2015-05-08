@@ -13,6 +13,7 @@ import glob
 import json
 import numpy as np
 import subprocess
+import warnings
 
 # If "nidmresults" code is available locally work on the source code (used
 # only for development)
@@ -811,28 +812,44 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         else:
             # smoothness was estimated without the "-V" option, recompute
             log_file = os.path.join(self.feat_dir, 'logs', 'feat3_stats')
-            with open(log_file, "r") as fp:
-                log_txt = fp.read()
 
-            cmd_match = re.search(r"(?P<cmd>smoothest.*)\n", log_txt)
-            cmd = cmd_match.group("cmd")
-            cmd = cmd.replace("stats/smoothness", "stats/smoothness_v")
-            cmd = cmd.replace("smoothest", "smoothest -V")
-            subprocess.call("cd "+analysis_dir+";"+cmd, shell=True)
+            if not os.path.isfile(log_file):
+                warnings.warn("Log file feat3_stats not found, noise FWHM " +
+                              "will not be reported")
+                noise_fwhm_in_voxels = None
+                noise_fwhm_in_units = None
 
-            with open(smoothness_file+"_v", "r") as fp:
-                smoothness_txt = fp.read()
+                # Load DLH, VOLUME and RESELS
+                d = dict()
+                d['DLH'], d['volume'], d['vox_per_resels'] = \
+                    np.loadtxt(smoothness_file, usecols=[1])
+            else:
+                with open(log_file, "r") as fp:
+                    log_txt = fp.read()
 
-            sm_match = re.search(sm_reg, smoothness_txt, re.DOTALL)
-            d = sm_match.groupdict()
+                cmd_match = re.search(r"(?P<cmd>smoothest.*)\n", log_txt)
+                cmd = cmd_match.group("cmd")
+                cmd = cmd.replace("stats/smoothness", "stats/smoothness_v")
+                cmd = cmd.replace("smoothest", "smoothest -V")
+                subprocess.call("cd "+analysis_dir+";"+cmd, shell=True)
+
+                with open(smoothness_file+"_v", "r") as fp:
+                    smoothness_txt = fp.read()
+
+                sm_match = re.search(sm_reg, smoothness_txt, re.DOTALL)
+                d = sm_match.groupdict()
 
         vol_in_units = float(d['volume'])*np.prod(
             json.loads(self.coord_space.voxel_size))
         vol_in_resels = float(d['volume'])/float(d['vox_per_resels'])
-        noise_fwhm_in_voxels = json.dumps(
-            [float(d['FWHMx_vx']), float(d['FWHMy_vx']), float(d['FWHMz_vx'])])
-        noise_fwhm_in_units = json.dumps(
-            [float(d['FWHMx_mm']), float(d['FWHMy_mm']), float(d['FWHMz_mm'])])
+
+        if os.path.isfile(log_file):
+            noise_fwhm_in_voxels = json.dumps(
+                [float(d['FWHMx_vx']), float(d['FWHMy_vx']),
+                 float(d['FWHMz_vx'])])
+            noise_fwhm_in_units = json.dumps(
+                [float(d['FWHMx_mm']), float(d['FWHMy_mm']),
+                 float(d['FWHMz_mm'])])
 
         search_space = SearchSpace(
             search_space_file=search_space_file,
