@@ -843,7 +843,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             json.loads(self.coord_space.voxel_size))
         vol_in_resels = float(d['volume'])/float(d['vox_per_resels'])
 
-        if os.path.isfile(log_file):
+        if 'FWHMx_vx' in d:
             noise_fwhm_in_voxels = json.dumps(
                 [float(d['FWHMx_vx']), float(d['FWHMy_vx']),
                  float(d['FWHMz_vx'])])
