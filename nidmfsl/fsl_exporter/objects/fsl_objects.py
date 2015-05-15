@@ -25,6 +25,8 @@ class Software(NIDMObject):
         self.feat_version = feat_version
         self.name = "FSL"
         self.id = NIIRI[str(uuid.uuid4())]
+        self.type = NLX_FSL
+        self.prov_type = PROV['Agent']
         # Retreive FSL version from feat version
         # (cf. https://github.com/incf-nidash/nidm-results_fsl/issues/3)
         if feat_version == "6.00":
@@ -52,12 +54,11 @@ class Software(NIDMObject):
         """
         Create prov entities and activities.
         """
-        self.p.agent(self.id,
-                     other_attributes=(
-                         (PROV['type'], NLX_FSL),
-                         (PROV['type'], PROV['SoftwareAgent']),
-                         (PROV['label'], self.name),
-                         (NIDM_SOFTWARE_VERSION, self.version),
-                         (FSL_FEAT_VERSION, self.feat_version)))
+        self.add_attributes((
+            (PROV['type'], NLX_FSL),
+            (PROV['type'], PROV['SoftwareAgent']),
+            (PROV['label'], self.name),
+            (NIDM_SOFTWARE_VERSION, self.version),
+            (FSL_FEAT_VERSION, self.feat_version)))
 
         return self.p

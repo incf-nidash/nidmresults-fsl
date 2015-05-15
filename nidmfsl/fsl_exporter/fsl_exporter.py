@@ -41,6 +41,8 @@ class FSLtoNIDMExporter(NIDMExporter, object):
     """
 
     def __init__(self, *args, **kwargs):
+        super(FSLtoNIDMExporter, self).__init__()
+
         self.feat_dir = kwargs.pop('feat_dir')
 
         nidm_dirs = glob.glob(os.path.join(self.feat_dir, 'nidm****'))
@@ -105,7 +107,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         """
         Overload of parent _add_namespaces to add FSL namespace.
         """
-        super(FSLtoNIDMExporter, self).__init__()
+        super(FSLtoNIDMExporter, self)._add_namespaces()
         self.doc.add_namespace(FSL)
 
     def _find_software(self):
