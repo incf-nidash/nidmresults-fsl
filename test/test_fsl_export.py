@@ -34,7 +34,7 @@ if not os.path.isdir(NIDM_DIR):
     from nidmfsl.fsl_exporter.fsl_exporter import FSLtoNIDMExporter
 
 NIDM_RESULTS_DIR = os.path.join(NIDM_DIR, "nidm", "nidm-results")
-TERM_RESULTS_DIR = os.path.join(NIDM_RESULTS_DIR, "terms")
+TERM_RESULTS_DIRNAME = "terms"
 TEST_DIR = os.path.dirname(os.path.abspath(__file__))
 TEST_DIR_001 = os.path.join(TEST_DIR, 'example001')
 TEST_DIR_002 = os.path.join(TEST_DIR, 'example002')
@@ -50,9 +50,13 @@ path = os.path.join(NIDM_RESULTS_DIR, "test")
 sys.path.append(path)
 
 
-from TestResultDataModel import TestResultDataModel
+from TestResultDataModel import TestResultDataModel, ExampleGraph
 from TestCommons import *
 from CheckConsistency import *
+
+# from ddt import ddt, data, unpack => FIXME we should use this and for a given
+# example to test have a json file attached describing the name of the ground
+# truth and whether this is a complete testing or inclusive testing
 
 
 class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
@@ -102,36 +106,47 @@ class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
 
     def setUp(self):
         # Retreive owl file for NIDM-Results
-        owl_file = os.path.join(TERM_RESULTS_DIR, 'nidm-results.owl')
+        owl_file = os.path.join(NIDM_RESULTS_DIR, TERM_RESULTS_DIRNAME,
+                                'nidm-results.owl')
         import_files = glob.glob(
             os.path.join(os.path.dirname(owl_file),
                          os.pardir, os.pardir, "imports", '*.ttl'))
 
         TestResultDataModel.setUp(self, owl_file, import_files)
-        self.ttl_001 = os.path.join(TEST_DIR_001, 'FSL_example.ttl')
-        self.ttl_002 = os.path.join(TEST_DIR_002, 'FSL_example.ttl')
-        self.ttl_003 = os.path.join(TEST_DIR_003, 'FSL_example.ttl')
 
-        self.graphs = list()
+        self.ex_graphs = list()
 
-        # RDF obtained by the FSL export
-        self.graphs.append(Graph())
-        # self.ttl_001 = os.path.join(self.test_dir, 'fsl', 'export',
-            # 'test01', 'fsl_nidm.ttl');
-        self.graphs[0].parse(self.ttl_001, format='turtle')
+        self.ex_graphs.append(ExampleGraph(
+            os.path.join(TEST_DIR_001, 'FSL_example.ttl'),
+            os.path.join(
+                NIDM_RESULTS_DIR, 'fsl', "example001", 'fsl_nidm.ttl'),
+            False))
 
-        self.graphs.append(Graph())
-        self.graphs[1].parse(self.ttl_002, format='turtle')
+        self.ex_graphs.append(ExampleGraph(
+            os.path.join(TEST_DIR_002, 'FSL_example.ttl'),
+            os.path.join(
+                NIDM_RESULTS_DIR, 'fsl', "example002", 'fsl_nidm.ttl'),
+            True))
 
-        self.graphs.append(Graph())
-        self.graphs[2].parse(self.ttl_003, format='turtle')
+        self.ex_graphs.append(ExampleGraph(
+            os.path.join(TEST_DIR_003, 'FSL_example.ttl'),
+            os.path.join(
+                NIDM_RESULTS_DIR, 'fsl', "example003", 'fsl_nidm.ttl'),
+            True))
+
+        # self.graphs.append(Graph())
+        # self.graphs[1].parse(self.ttl_002, format='turtle')
+
+        # self.graphs.append(Graph())
+        # self.graphs[2].parse(self.ttl_003, format='turtle')
 
         # Move in test dir (storage of prov file)
         # fsl_test_dir = os.path.join(RELPATH, 'test')
     def test01_class_consistency_with_owl(self):
-        for graph in self.graphs:
+        for ex in self.ex_graphs:
             # FIXME: change example name depending on graph
-            my_exception = self.owl.check_class_names(graph, "FSL example00")
+            my_exception = self.owl.check_class_names(
+                ex.graph, "FSL example00")
 
             # FIXME (error message display should be simplified when only one
             # example...)
@@ -143,8 +158,9 @@ class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
                 raise Exception(error_msg)
 
     def test02_attributes_consistency_with_owl(self):
-        for graph in self.graphs:
-            my_exception = self.owl.check_attributes(graph, "FSL example001")
+        for ex in self.ex_graphs:
+            my_exception = self.owl.check_attributes(
+                ex.graph, "FSL example001")
 
             # FIXME (error message display should be simplified when only one
             # example...)
@@ -159,62 +175,25 @@ class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
                         in my_exception[1].items():
                     error_msg += unrecognised_range + \
                         " (from " + ', '.join(example_names) + ")"
-            if error_msg:
-                raise Exception(error_msg)
+
+        if error_msg:
+            raise Exception(error_msg)
 
     # FIXME: If terms PR is accepted then these tests should be moved to
     # TestResultDataModel.py
-    def test03_ex1_auditory_singlesub_full_graph(self):
+    def test_examples(self):
         """
         Test03: Comparing that the ttl file generated by FSL and the expected
         ttl file (generated manually) are identical
         """
-        ground_truth_dir = os.path.join(NIDM_RESULTS_DIR, 'fsl', "example001")
-        ground_truth_ttl = os.path.join(ground_truth_dir, 'fsl_nidm.ttl')
-        logging.info("Ground truth ttl: " + ground_truth_ttl)
+        for ex in self.ex_graphs:
+            logging.info("Ground truth ttl: " + ex.gt_ttl_file)
 
-        # RDF obtained by the ground truth export
-        gt = Graph()
-        gt.parse(ground_truth_ttl, format='turtle')
+            # RDF obtained by the ground truth export
+            gt = Graph()
+            gt.parse(ex.gt_ttl_file, format='turtle')
 
-        self.compare_full_graphs(gt, self.graphs[0])
-
-        if self.my_execption:
-            raise Exception(self.my_execption)
-
-    def test_voxelwise_threshold_fwe05(self):
-        """
-        Check that minimal set of relations needed to describe FWE p<0.05
-        voxel-wise thresholding is present.
-        """
-        ground_truth_dir = os.path.join(NIDM_RESULTS_DIR, 'fsl', "example002")
-        ground_truth_ttl = os.path.join(ground_truth_dir, 'fsl_nidm.ttl')
-        logging.info("Ground truth ttl: " + ground_truth_ttl)
-
-        # RDF obtained by the ground truth export
-        gt = Graph()
-        gt.parse(ground_truth_ttl, format='turtle')
-
-        self.compare_full_graphs(gt, self.graphs[1], True)
-
-        if self.my_execption:
-            raise Exception(self.my_execption)
-
-    def test_voxelwise_threshold_unc05(self):
-        """
-        Check that minimal set of relations needed to describe p<0.05
-        uncorrected voxel-wise thresholding is present.
-        """
-
-        ground_truth_dir = os.path.join(NIDM_RESULTS_DIR, 'fsl', "example003")
-        ground_truth_ttl = os.path.join(ground_truth_dir, 'fsl_nidm.ttl')
-        logging.info("Ground truth ttl: " + ground_truth_ttl)
-
-        # RDF obtained by the ground truth export
-        gt = Graph()
-        gt.parse(ground_truth_ttl, format='turtle')
-
-        self.compare_full_graphs(gt, self.graphs[2], True)
+            self.compare_full_graphs(gt, ex.graph, ex.exact_comparison)
 
         if self.my_execption:
             raise Exception(self.my_execption)
