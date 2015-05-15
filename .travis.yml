@@ -16,3 +16,4 @@ before_install:
  - git remote add nidm https://github.com/incf-nidash/nidm.git
  - git fetch nidm
  - git subtree add --prefix nidm nidm/master --squash
+ - git subtree add --prefix nidm_releases/1.0.0 nidm/tags/NIDM-Results_1.0.0 --squash
