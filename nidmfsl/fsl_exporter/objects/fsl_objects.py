@@ -12,6 +12,7 @@ import uuid
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
 
+
 class Software(NIDMObject):
     # FIXME software should be generic and then overloaded
 
@@ -24,38 +25,40 @@ class Software(NIDMObject):
         self.feat_version = feat_version
         self.name = "FSL"
         self.id = NIIRI[str(uuid.uuid4())]
-        # Retreive FSL version from feat version 
+        self.type = NLX_FSL
+        self.prov_type = PROV['Agent']
+        # Retreive FSL version from feat version
         # (cf. https://github.com/incf-nidash/nidm-results_fsl/issues/3)
         if feat_version == "6.00":
-            self.version = "fsl-5_0_x"
+            self.version = "5.0.x"
         elif feat_version == "5.98":
-            self.version = "fsl-4_1_x"
+            self.version = "4.1.x"
         elif feat_version == "5.92":
-            self.version = "fsl-4_0_x"
+            self.version = "4.0.x"
         elif feat_version == "5.91":
-            self.version = "fsl-4_0_1"
+            self.version = "4.0.1"
         elif feat_version == "5.90":
-            self.version = "fsl-4_0"
+            self.version = "4.0"
         elif feat_version == "5.61":
-            self.version = "fsl-3_3"
+            self.version = "3.3"
         elif feat_version == "5.4":
-            self.version = "fsl-3_2_1"
+            self.version = "3.2.1"
         elif feat_version == "5.1":
-            self.version = "fsl-3_1_1_x"
+            self.version = "3.1.1.x"
         else:
-            logging.debug("FSL version unknow for feat version: \""+\
-                feat_version+"\"")
-            self.version = "fsl-unknown"
+            logging.debug("FSL version unknow for feat version: \"" +
+                          feat_version + "\"")
+            self.version = "unknown"
 
     def export(self):
         """
         Create prov entities and activities.
         """
-        self.p.agent(self.id, 
-            other_attributes=((PROV['type'], NIDM[self.name]), 
-                            (PROV['type'], PROV['SoftwareAgent']),
-                            (PROV['label'],self.name),
-                            (NIDM['softwareVersion'],self.version),
-                            (FSL['featVersion'], self.feat_version)))
+        self.add_attributes((
+            (PROV['type'], NLX_FSL),
+            (PROV['type'], PROV['SoftwareAgent']),
+            (PROV['label'], self.name),
+            (NIDM_SOFTWARE_VERSION, self.version),
+            (FSL_FEAT_VERSION, self.feat_version)))
 
         return self.p
