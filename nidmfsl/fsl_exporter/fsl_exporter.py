@@ -438,6 +438,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 search_space = self._get_search_space(analysis_dir)
 
                 inference = Inference(
+                    self.version,
                     inference_act, height_thresh,
                     extent_thresh, peak_criteria, clus_criteria,
                     display_mask, exc_set, clusters, search_space,
