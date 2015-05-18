@@ -94,8 +94,14 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             # stat_dir = list([os.path.join(self.feat_dir, 'stats')])
             self.analysis_dirs = list([self.feat_dir])
         else:
+            # If feat was called with the GUI then the analysis directory is in
+            # the nested cope folder
             self.analysis_dirs = glob.glob(
                 os.path.join(self.feat_dir, 'cope*.feat'))
+
+            if not self.analysis_dirs:
+                self.analysis_dirs = list([self.feat_dir])
+
             # cope_dirs
             # print cope_dirs
             # stat_dir = os.path.join(self.feat_dir, 'cope1.feat', 'stats')
