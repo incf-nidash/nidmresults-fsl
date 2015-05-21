@@ -94,8 +94,14 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             # stat_dir = list([os.path.join(self.feat_dir, 'stats')])
             self.analysis_dirs = list([self.feat_dir])
         else:
+            # If feat was called with the GUI then the analysis directory is in
+            # the nested cope folder
             self.analysis_dirs = glob.glob(
                 os.path.join(self.feat_dir, 'cope*.feat'))
+
+            if not self.analysis_dirs:
+                self.analysis_dirs = list([self.feat_dir])
+
             # cope_dirs
             # print cope_dirs
             # stat_dir = os.path.join(self.feat_dir, 'cope1.feat', 'stats')
@@ -172,119 +178,118 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             dof_file = open(os.path.join(stat_dir, 'dof'), 'r')
             dof = float(dof_file.read())
 
-            for analysis_dir in self.analysis_dirs:
-                exc_sets = glob.glob(os.path.join(analysis_dir,
-                                                  'thresh_z*.nii.gz'))
+            exc_sets = glob.glob(os.path.join(analysis_dir,
+                                              'thresh_z*.nii.gz'))
 
-                contrasts = dict()
-                for filename in exc_sets:
-                    s = re.compile('zf?stat\d+')
-                    zstatnum = s.search(filename)
-                    zstatnum = zstatnum.group()
+            contrasts = dict()
+            for filename in exc_sets:
+                s = re.compile('zf?stat\d+')
+                zstatnum = s.search(filename)
+                zstatnum = zstatnum.group()
 
-                    if zstatnum.startswith("zstat"):
-                        stat_type = "T"
-                        con_num = zstatnum.replace('zstat', '')
-                    elif zstatnum.startswith("zfstat"):
-                        stat_type = "F"
-                        con_num = zstatnum.replace('zfstat', '')
+                if zstatnum.startswith("zstat"):
+                    stat_type = "T"
+                    con_num = zstatnum.replace('zstat', '')
+                elif zstatnum.startswith("zfstat"):
+                    stat_type = "F"
+                    con_num = zstatnum.replace('zfstat', '')
 
-                    # If more than one excursion set is reported, we need to
-                    # use an index in the file names of the file exported in
-                    # nidm
-                    if len(exc_sets) > 1:
-                        stat_num = "_" + \
-                            stat_type.upper() + "{0:0>3}".format(con_num)
-                    else:
-                        stat_num = ""
+                # If more than one excursion set is reported, we need to
+                # use an index in the file names of the file exported in
+                # nidm
+                if len(exc_sets) > 1:
+                    stat_num = "_" + \
+                        stat_type.upper() + "{0:0>3}".format(con_num)
+                else:
+                    stat_num = ""
 
-                    # Contrast name
-                    name_re = r'.*set fmri\(conname_real\.' + con_num +\
-                        '\) "(?P<info>[\w\s><]+)".*'
-                    contrast_name = self._search_in_fsf(name_re)
-                    self.contrast_names_by_num[con_num] = contrast_name
+                # Contrast name
+                name_re = r'.*set fmri\(conname_real\.' + con_num +\
+                    '\) "(?P<info>[\w\s><]+)".*'
+                contrast_name = self._search_in_fsf(name_re)
+                self.contrast_names_by_num[con_num] = contrast_name
 
-                    # Contrast estimation activity
-                    estimation = ContrastEstimation(con_num, contrast_name)
+                # Contrast estimation activity
+                estimation = ContrastEstimation(con_num, contrast_name)
 
-                    # Contrast weights
-                    weights_re = r'.*set fmri\(con_real' + con_num +\
-                        '\.\d+\) (?P<info>-?\d+)'
-                    weight_search = re.compile(weights_re)
-                    contrast_weights = str(
-                        re.findall(weight_search,
-                                   self.design_txt)).replace("'", '')
+                # Contrast weights
+                weights_re = r'.*set fmri\(con_real' + con_num +\
+                    '\.\d+\) (?P<info>-?\d+)'
+                weight_search = re.compile(weights_re)
+                contrast_weights = str(
+                    re.findall(weight_search,
+                               self.design_txt)).replace("'", '')
 
-                    weights = ContrastWeights(stat_num, contrast_name,
-                                              contrast_weights, stat_type)
+                weights = ContrastWeights(stat_num, contrast_name,
+                                          contrast_weights, stat_type)
 
-                    # Find which parameter estimates were used to compute the
-                    # contrast
-                    pe_ids = list()
-                    pe_index = 1
-                    contrast_weights = contrast_weights.replace(' ', '')
-                    contrast_weights = contrast_weights.replace('[', '')
-                    contrast_weights = contrast_weights.replace(']', '')
-                    contrast_weights = contrast_weights.split(',')
+                # Find which parameter estimates were used to compute the
+                # contrast
+                pe_ids = list()
+                pe_index = 1
+                contrast_weights = contrast_weights.replace(' ', '')
+                contrast_weights = contrast_weights.replace('[', '')
+                contrast_weights = contrast_weights.replace(']', '')
+                contrast_weights = contrast_weights.split(',')
 
-                    # Whenever a "1" is found in contrast_weights, the
-                    # parameter estimate map identified by the corresponding
-                    # index is in use
-                    for beta_index in contrast_weights:
-                        if int(beta_index) == 1:
-                            for model_fitting in self.model_fittings.values():
-                                for pe in model_fitting.param_estimates:
-                                    s = re.compile('pe\d+')
-                                    pe_num = s.search(pe.file)
-                                    pe_num = pe_num.group()
-                                    pe_num = pe_num.replace('pe', '')
-                                    if pe_num == pe_index:
-                                        pe_ids.append(pe.id)
-                        pe_index += 1
+                # Whenever a "1" is found in contrast_weights, the
+                # parameter estimate map identified by the corresponding
+                # index is in use
+                for beta_index in contrast_weights:
+                    if int(beta_index) == 1:
+                        for model_fitting in self.model_fittings.values():
+                            for pe in model_fitting.param_estimates:
+                                s = re.compile('pe\d+')
+                                pe_num = s.search(pe.file)
+                                pe_num = pe_num.group()
+                                pe_num = pe_num.replace('pe', '')
+                                if pe_num == pe_index:
+                                    pe_ids.append(pe.id)
+                    pe_index += 1
 
-                    # Convert to immutable tuple to be used as key
-                    pe_ids = tuple(pe_ids)
+                # Convert to immutable tuple to be used as key
+                pe_ids = tuple(pe_ids)
 
-                    # Contrast Map
-                    con_file = os.path.join(stat_dir,
-                                            'cope' + str(con_num) + '.nii.gz')
-                    contrast_map = ContrastMap(con_file, stat_num,
-                                               contrast_name, self.coord_space,
-                                               self.export_dir)
+                # Contrast Map
+                con_file = os.path.join(stat_dir,
+                                        'cope' + str(con_num) + '.nii.gz')
+                contrast_map = ContrastMap(con_file, stat_num,
+                                           contrast_name, self.coord_space,
+                                           self.export_dir)
 
-                    # Contrast Variance and Standard Error Maps
-                    varcontrast_file = os.path.join(
-                        stat_dir,
-                        'varcope' + str(con_num) + '.nii.gz')
-                    is_variance = True
-                    std_err_map = ContrastStdErrMap(
-                        stat_num,
-                        varcontrast_file, is_variance, self.coord_space,
-                        self.coord_space, self.export_dir)
+                # Contrast Variance and Standard Error Maps
+                varcontrast_file = os.path.join(
+                    stat_dir,
+                    'varcope' + str(con_num) + '.nii.gz')
+                is_variance = True
+                std_err_map = ContrastStdErrMap(
+                    stat_num,
+                    varcontrast_file, is_variance, self.coord_space,
+                    self.coord_space, self.export_dir)
 
-                    # Statistic Map
-                    stat_file = os.path.join(
-                        stat_dir,
-                        stat_type.lower() + 'stat' + str(con_num) + '.nii.gz')
-                    stat_map = StatisticMap(
-                        stat_file, stat_type, stat_num,
-                        contrast_name, dof, self.coord_space,
-                        self.export_dir)
+                # Statistic Map
+                stat_file = os.path.join(
+                    stat_dir,
+                    stat_type.lower() + 'stat' + str(con_num) + '.nii.gz')
+                stat_map = StatisticMap(
+                    stat_file, stat_type, stat_num,
+                    contrast_name, dof, self.coord_space,
+                    self.export_dir)
 
-                    # Z-Statistic Map
-                    z_stat_file = os.path.join(
-                        stat_dir,
-                        'zstat' + str(con_num) + '.nii.gz')
-                    z_stat_map = StatisticMap(
-                        z_stat_file, 'Z', stat_num,
-                        contrast_name, dof, self.coord_space,
-                        self.export_dir)
+                # Z-Statistic Map
+                z_stat_file = os.path.join(
+                    stat_dir,
+                    'zstat' + str(con_num) + '.nii.gz')
+                z_stat_map = StatisticMap(
+                    z_stat_file, 'Z', stat_num,
+                    contrast_name, dof, self.coord_space,
+                    self.export_dir)
 
-                    con = Contrast(
-                        con_num, contrast_name, weights, estimation,
-                        contrast_map, std_err_map, stat_map, z_stat_map)
+                con = Contrast(
+                    con_num, contrast_name, weights, estimation,
+                    contrast_map, std_err_map, stat_map, z_stat_map)
 
-                    contrasts.setdefault((mf_id, pe_ids), list()).append(con)
+                contrasts.setdefault((mf_id, pe_ids), list()).append(con)
 
         return contrasts
 
