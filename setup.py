@@ -1,21 +1,26 @@
 from setuptools import setup, find_packages
+from pip.req import parse_requirements
 
 readme = open('README.md').read()
+
+install_reqs = parse_requirements('requirements.txt')
+
+requirements = [str(ir.req) for ir in install_reqs]
 
 requirements = [
     'prov',
     'nibabel',
     'numpy',
-    'nidmresults'    
+    'nidmresults'
 ]
 
 setup(
-    name = "nidmfsl",
-    version = "0.1.0",
-    author = "Camille Maumet",
-    author_email = "c.m.j.maumet@warwick.ac.uk",
-    description = ("Export of FSL statistical results using NIDM"
-        " as specified at http://nidm.nidash.org/specs/nidm-results.html."),
+    name="nidmfsl",
+    version="0.1.0",
+    author="Camille Maumet",
+    author_email="c.m.j.maumet@warwick.ac.uk",
+    description=("Export of FSL statistical results using NIDM\
+ as specified at http://nidm.nidash.org/specs/nidm-results.html."),
     license = "BSD",
     keywords = "Prov, NIDM, Provenance",
     scripts=['bin/nidm-results_fsl'],
