@@ -1,1 +1,4 @@
 rdflib==4.1.0
+prov>1.0.0
+nibabel
+numpy

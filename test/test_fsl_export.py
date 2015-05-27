@@ -117,18 +117,21 @@ class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
         self.ex_graphs = list()
 
         self.ex_graphs.append(ExampleGraph(
+            owl_file,
             os.path.join(TEST_DIR_001, 'FSL_example.ttl'),
             os.path.join(
                 NIDM_RESULTS_DIR, 'fsl', "example001", 'fsl_nidm.ttl'),
             False))
 
         self.ex_graphs.append(ExampleGraph(
+            owl_file,
             os.path.join(TEST_DIR_002, 'FSL_example.ttl'),
             os.path.join(
                 NIDM_RESULTS_DIR, 'fsl', "example002", 'fsl_nidm.ttl'),
             True))
 
         self.ex_graphs.append(ExampleGraph(
+            owl_file,
             os.path.join(TEST_DIR_003, 'FSL_example.ttl'),
             os.path.join(
                 NIDM_RESULTS_DIR, 'fsl', "example003", 'fsl_nidm.ttl'),
@@ -145,7 +148,7 @@ class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
     def test01_class_consistency_with_owl(self):
         for ex in self.ex_graphs:
             # FIXME: change example name depending on graph
-            my_exception = self.owl.check_class_names(
+            my_exception = ex.owl.check_class_names(
                 ex.graph, "FSL example00")
 
             # FIXME (error message display should be simplified when only one
@@ -159,7 +162,7 @@ class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
 
     def test02_attributes_consistency_with_owl(self):
         for ex in self.ex_graphs:
-            my_exception = self.owl.check_attributes(
+            my_exception = ex.owl.check_attributes(
                 ex.graph, "FSL example001")
 
             # FIXME (error message display should be simplified when only one
