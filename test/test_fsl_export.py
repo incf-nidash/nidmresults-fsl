@@ -97,22 +97,8 @@ class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
             os.path.join(os.path.dirname(owl_file),
                          os.pardir, os.pardir, "imports", '*.ttl'))
 
-        TestResultDataModel.setUp(self, owl_file, import_files)
-
-        self.ex_graphs = dict()
-
-        for ttl_name in test_files:
-            ttl = TEST_DIR+ttl_name
-            test_dir = os.path.dirname(ttl)
-            with open(os.path.join(test_dir, 'config.json')) as data_file:
-                metadata = json.load(data_file)
-            gt_file = [os.path.join(NIDM_RESULTS_DIR, x)
-                       for x in metadata["ground_truth"]]
-            inclusive = metadata["inclusive"]
-            name = ttl.replace(TEST_DIR, "")
-
-            self.ex_graphs[ttl_name] = ExampleGraph(
-                name, owl_file, ttl, gt_file, inclusive)
+        TestResultDataModel.setUp(self, owl_file, import_files, test_files,
+                                  TEST_DIR, NIDM_RESULTS_DIR)
 
     @data(*test_files)
     def test_class_consistency_with_owl(self, ttl):
