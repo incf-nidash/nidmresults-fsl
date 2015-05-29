@@ -4,8 +4,9 @@ python:
 # command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
 install: 
  - pip install -r requirements.txt
- # vcrpy is only needed for testing
+ # Packages only needed for testing
  - pip install vcrpy
+ - pip install ddt
 # command to run tests, e.g. python setup.py test
 script:  python test/test_fsl_export.py 
 # Update subtree nidm from main nidm repository
@@ -13,7 +14,7 @@ before_install:
  - git config --global user.name "TravisCI"
  - git config --global user.email "travis@dummy.com"
  # Create subtree nidm from main nidm repository
- - git remote add nidm https://github.com/cmaumet/nidm.git
+ - git remote add nidm https://github.com/incf-nidash/nidm.git
  - git fetch nidm
- - git subtree add --prefix nidm nidm/minimal_examples_for_unit_testing --squash
+ - git subtree add --prefix nidm nidm/master --squash
  - git subtree add --prefix nidm_releases/1.0.0 nidm tags/NIDM-Results_1.0.0 --squash

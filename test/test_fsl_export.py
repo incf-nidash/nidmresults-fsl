@@ -12,6 +12,7 @@ from rdflib.graph import Graph
 import shutil
 import sys
 import glob
+import json
 
 import logging
 logger = logging.getLogger(__name__)
@@ -36,15 +37,7 @@ if not os.path.isdir(NIDM_DIR):
 NIDM_RESULTS_DIR = os.path.join(NIDM_DIR, "nidm", "nidm-results")
 TERM_RESULTS_DIRNAME = "terms"
 TEST_DIR = os.path.dirname(os.path.abspath(__file__))
-TEST_DIR_001 = os.path.join(TEST_DIR, 'example001')
-TEST_DIR_002 = os.path.join(TEST_DIR, 'example002')
-TEST_DIR_003 = os.path.join(TEST_DIR, 'example003')
-DATA_DIR_001 = os.path.join(RELPATH, 'test', 'data', 'fmri_one_contrast.feat')
-DATA_DIR_002 = os.path.join(
-    RELPATH, 'test', 'data', 'fmri_one_contrast_voxelwise.feat')
-DATA_DIR_003 = os.path.join(
-    RELPATH, 'test', 'data', 'fmri_one_contrast_unc_voxelwise.feat')
-
+TEST_DATA_DIR = os.path.join(TEST_DIR, "data")
 
 path = os.path.join(NIDM_RESULTS_DIR, "test")
 sys.path.append(path)
@@ -54,33 +47,34 @@ from TestResultDataModel import TestResultDataModel, ExampleGraph
 from TestCommons import *
 from CheckConsistency import *
 
-# from ddt import ddt, data, unpack => FIXME we should use this and for a given
-# example to test have a json file attached describing the name of the ground
-# truth and whether this is a complete testing or inclusive testing
+from ddt import ddt, data
+
+# Find all test examples to be compared with ground truth
+test_files = glob.glob(os.path.join(TEST_DIR, 'ex*', '*.ttl'))
+# For test name readability remove path to test file
+test_files = [x.replace(TEST_DIR, "") for x in test_files]
+logging.info("Test files:\n\t" + "\n\t".join(test_files))
 
 
+@ddt
 class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
-
-    """
-    Tests based on the analysis of single-subject fmri fluency data as
-    described at
-    http://fsl.fmrib.ox.ac.uk/fslcourse/lectures/practicals/feat1/index.html
-    but with only *1 contrast: Generation*
-    """
 
     @classmethod
     def setUpClass(cls):
-        # *** Once for all, run the export and convert provn to ttl
-        for test_dir, data_dir in [(TEST_DIR_001, DATA_DIR_001),
-                                   (TEST_DIR_002, DATA_DIR_002),
-                                   (TEST_DIR_003, DATA_DIR_003)]:
-
-            #  Turtle file obtained with FSL NI-DM export tool
-            provn = os.path.join(test_dir, 'FSL_example.provn')
-            ttl = os.path.join(test_dir, 'FSL_example.ttl')
+        # *** Once for all, run the export
+        for ttl_name in test_files:
+            ttl = TEST_DIR+ttl_name
+            test_dir = os.path.dirname(ttl)
 
             # If test data is available (usually if the test is run locally)
             # then compute a fresh export
+            with open(os.path.join(test_dir, 'config.json')) as data_file:
+                metadata = json.load(data_file)
+            data_dir = os.path.join(TEST_DATA_DIR, metadata["data_dir"])
+
+            #  Turtle file obtained with FSL NI-DM export tool
+            provn = ttl.replace(".ttl", ".provn")
+
             if os.path.isdir(data_dir):
                 logging.debug("Computing NIDM FSL export")
 
@@ -95,15 +89,6 @@ class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
                 shutil.copy(os.path.join(export_dir, 'nidm.ttl'),
                             os.path.join(ttl))
 
-            # Equivalent turtle file converted using the ProvStore API
-            # Local file to save the turtle export (and avoid multiple calls to
-            # ProvStore)
-            # ttl = os.path.join(test_dir, 'FSL_example.ttl');
-            # ttl_url = get_turtle(provn)
-            # ttl_fid = open(ttl, 'w')
-            # ttl_fid.write(urllib2.urlopen(ttl_url).read())
-            # ttl_fid.close()
-
     def setUp(self):
         # Retreive owl file for NIDM-Results
         owl_file = os.path.join(NIDM_RESULTS_DIR, TERM_RESULTS_DIRNAME,
@@ -112,237 +97,44 @@ class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
             os.path.join(os.path.dirname(owl_file),
                          os.pardir, os.pardir, "imports", '*.ttl'))
 
-        TestResultDataModel.setUp(self, owl_file, import_files)
+        TestResultDataModel.setUp(self, owl_file, import_files, test_files,
+                                  TEST_DIR, NIDM_RESULTS_DIR)
 
-        self.ex_graphs = list()
+    @data(*test_files)
+    def test_class_consistency_with_owl(self, ttl):
+        """
+        Test: Check that the classes used in the ttl file are defined in the
+        owl file.
+        """
+        ex = self.ex_graphs[ttl]
+        ex.owl.check_class_names(ex.graph, ex.name, True)
 
-        self.ex_graphs.append(ExampleGraph(
-            owl_file,
-            os.path.join(TEST_DIR_001, 'FSL_example.ttl'),
-            os.path.join(
-                NIDM_RESULTS_DIR, 'fsl', "example001", 'fsl_nidm.ttl'),
-            False))
+    @data(*test_files)
+    def test_attributes_consistency_with_owl(self, ttl):
+        """
+        Test: Check that the attributes used in the ttl file comply with their
+        definition (range, domain) specified in the owl file.
+        """
+        ex = self.ex_graphs[ttl]
+        ex.owl.check_attributes(ex.graph, "FSL example001", True)
 
-        self.ex_graphs.append(ExampleGraph(
-            owl_file,
-            os.path.join(TEST_DIR_002, 'FSL_example.ttl'),
-            os.path.join(
-                NIDM_RESULTS_DIR, 'fsl', "example002", 'fsl_nidm.ttl'),
-            True))
-
-        self.ex_graphs.append(ExampleGraph(
-            owl_file,
-            os.path.join(TEST_DIR_003, 'FSL_example.ttl'),
-            os.path.join(
-                NIDM_RESULTS_DIR, 'fsl', "example003", 'fsl_nidm.ttl'),
-            True))
-
-        # self.graphs.append(Graph())
-        # self.graphs[1].parse(self.ttl_002, format='turtle')
-
-        # self.graphs.append(Graph())
-        # self.graphs[2].parse(self.ttl_003, format='turtle')
-
-        # Move in test dir (storage of prov file)
-        # fsl_test_dir = os.path.join(RELPATH, 'test')
-    def test01_class_consistency_with_owl(self):
-        for ex in self.ex_graphs:
-            # FIXME: change example name depending on graph
-            my_exception = ex.owl.check_class_names(
-                ex.graph, "FSL example00")
-
-            # FIXME (error message display should be simplified when only one
-            # example...)
-            if my_exception:
-                error_msg = ""
-                for unrecognised_class_name, examples in my_exception.items():
-                    error_msg += unrecognised_class_name + \
-                        " (from " + ', '.join(examples) + ")"
-                raise Exception(error_msg)
-
-    def test02_attributes_consistency_with_owl(self):
-        for ex in self.ex_graphs:
-            my_exception = ex.owl.check_attributes(
-                ex.graph, "FSL example001")
-
-            # FIXME (error message display should be simplified when only one
-            # example...)
-            error_msg = ""
-            if my_exception[0]:
-                for unrecognised_attribute, example_names \
-                        in my_exception[0].items():
-                    error_msg += unrecognised_attribute + \
-                        " (from " + ', '.join(example_names) + ")"
-            if my_exception[1]:
-                for unrecognised_range, example_names \
-                        in my_exception[1].items():
-                    error_msg += unrecognised_range + \
-                        " (from " + ', '.join(example_names) + ")"
-
-        if error_msg:
-            raise Exception(error_msg)
-
-    # FIXME: If terms PR is accepted then these tests should be moved to
-    # TestResultDataModel.py
-    def test_examples(self):
+    @data(*test_files)
+    def test_examples_match_ground_truth(self, ttl):
         """
         Test03: Comparing that the ttl file generated by FSL and the expected
         ttl file (generated manually) are identical
         """
-        for ex in self.ex_graphs:
-            logging.info("Ground truth ttl: " + ex.gt_ttl_file)
+
+        ex = self.ex_graphs[ttl]
+
+        for gt_file in ex.gt_ttl_files:
+            logging.info("Ground truth ttl: " + gt_file)
 
             # RDF obtained by the ground truth export
             gt = Graph()
-            gt.parse(ex.gt_ttl_file, format='turtle')
+            gt.parse(gt_file, format='turtle')
 
-            self.compare_full_graphs(gt, ex.graph, ex.exact_comparison)
-
-        if self.my_execption:
-            raise Exception(self.my_execption)
-
-    @classmethod
-    def tearDownClass(cls):
-        # Delete temporarily written out ttl file
-        os.path.join(TEST_DIR_001, 'FSL_example.ttl')
-        # os.remove(ttl_001)
-
-    # '''Test02: Test availability of attributes needed to perform a
-    #  meta-analysis as specified in use-case *1* at:
-    #  http://wiki.incf.org/mediawiki/index.php/Queries'''
-    # def test02_metaanalysis_usecase1(self):
-    #     prefixInfo = """
-    # prefix prov: <http://www.w3.org/ns/prov#>
-    # prefix fsl: <http://www.fil.ion.ucl.ac.uk/fsl/ns/#>
-    #     prefix nidm: <http://nidm.nidash.org/>
-
-    #     """
-    # Look for:
-    # - "location" of "Contrast map",
-    # - "location" of "Contrast variance map",
-    # - "prov:type" in "nidm" namespace of the analysis software.
-    #     query = prefixInfo+"""
-    #     SELECT ?cfile ?efile ?stype WHERE {
-    #      ?aid a fsl:contrast ;
-    #           prov:wasAssociatedWith ?sid.
-    #      ?sid a prov:Agent;
-    #           a prov:SoftwareAgent;
-    #           a ?stype .
-    #      FILTER regex(str(?stype), "nidm")
-    #      ?cid a nidm:contrastMap ;
-    #           prov:wasGeneratedBy ?aid ;
-    #           prov:atLocation ?cfile .
-    #      ?eid a nidm:contrastStandardErrorMap ;
-    #           prov:wasGeneratedBy ?aid ;
-    #           prov:atLocation ?efile .
-    #     }
-    #     """
-
-    #     if not self.successful_retreive(self.graphs[0].query(query),
-        # 'ContrastMap and ContrastStandardErrorMap'):
-    #         raise Exception(self.my_execption)
-
-    # '''Test03: Test availability of attributes needed to perform a
-    # meta-analysis as specified in use-case *2* at:
-    # http://wiki.incf.org/mediawiki/index.php/Queries'''
-    # def test03_metaanalysis_usecase2(self):
-    #     prefixInfo = """
-    # prefix prov: <http://www.w3.org/ns/prov#>
-    # prefix fsl: <http://www.fil.ion.ucl.ac.uk/fsl/ns/#>
-    #     prefix nidm: <http://nidm.nidash.org/>
-
-    #     """
-
-    # Look for:
-    # - "location" of "Contrast map",
-    # - "prov:type" in "nidm" namespace of the analysis software.
-    #     query = prefixInfo+"""
-    #     SELECT ?cfile ?efile ?stype WHERE {
-    #      ?aid a fsl:contrast ;
-    #           prov:wasAssociatedWith ?sid.
-    #      ?sid a prov:Agent;
-    #           a prov:SoftwareAgent;
-    #           a ?stype .
-    #      FILTER regex(str(?stype), "nidm")
-    #      ?cid a nidm:contrastMap ;
-    #           prov:wasGeneratedBy ?aid ;
-    #           prov:atLocation ?cfile .
-    #     }
-    #     """
-
-    #     if not self.successful_retreive(self.graphs[0].query(query),
-        # 'ContrastMap and ContrastStandardErrorMap'):
-    #         raise Exception(self.my_execption)
-
-    # '''Test04: Test availability of attributes needed to perform a
-    # meta-analysis as specified in use-case *3* at:
-    # http://wiki.incf.org/mediawiki/index.php/Queries'''
-    # def test04_metaanalysis_usecase3(self):
-    #     prefixInfo = """
-    # prefix prov: <http://www.w3.org/ns/prov#>
-    # prefix fsl: <http://www.fil.ion.ucl.ac.uk/fsl/ns/#>
-    #     prefix nidm: <http://nidm.nidash.org/>
-
-    #     """
-
-    # Look for:
-    # - "location" of "Statistical map",
-    # - "nidm:errorDegreesOfFreedom" in "Statistical map".
-    #     query = prefixInfo+"""
-    #     SELECT ?sfile ?dof WHERE {
-    #      ?sid a nidm:statisticalMap ;
-    #           prov:atLocation ?sfile ;
-    #           nidm:errorDegreesOfFreedom ?dof .
-    #     }
-    #     """
-
-    #     if not self.successful_retreive(self.graphs[0].query(query),
-        # 'ContrastMap and ContrastStandardErrorMap'):
-    #         raise Exception(self.my_execption)
-
-    # '''Test05: Test availability of attributes needed to perform a
-    # meta-analysis as specified in use-case *4* at:
-    # http://wiki.incf.org/mediawiki/index.php/Queries'''
-    # def test05_metaanalysis_usecase4(self):
-    #     prefixInfo = """
-    # prefix prov: <http://www.w3.org/ns/prov#>
-    # prefix fsl: <http://www.fil.ion.ucl.ac.uk/fsl/ns/#>
-    #     prefix nidm: <http://nidm.nidash.org/>
-
-    #     """
-
-    # Look for:
-    # - For each "Peak" "equivZStat" and"coordinate1"
-    # (and optionally "coordinate2" and "coordinate3"),
-    # - "clusterSizeInVoxels" of "height threshold"
-    # - "value" of "extent threshold"
-    #     query = prefixInfo+"""
-    #     SELECT ?equivz ?coord1 ?coord2 ?coord3 ?ethresh ?hthresh WHERE {
-    #      ?pid a fsl:peakLevelStatistic ;
-    #         prov:atLocation ?cid ;
-    #         nidm:equivalentZStatistic ?equivz ;
-    #         prov:wasDerivedFrom ?clid .
-    #      ?cid a nidm:coordinate;
-    #         nidm:coordinate1 ?coord1 .
-    #         OPTIONAL { ?cid nidm:coordinate2 ?coord2 }
-    #         OPTIONAL { ?cid nidm:coordinate3 ?coord3 }
-    #      ?iid a nidm:inference .
-    #      ?esid a fsl:excursionSet;
-    #         prov:wasGeneratedBy ?iid .
-    #      ?setid a fsl:setLevelStatistic;
-    #         prov:wasDerivedFrom ?esid .
-    #      ?clid a fsl:clusterLevelStatistic;
-    #         prov:wasDerivedFrom ?setid .
-    #      ?tid a nidm:extentThreshold ;
-    #         nidm:clusterSizeInVoxels ?ethresh .
-    #      ?htid a nidm:heightThreshold ;
-    #         prov:value ?hthresh .
-    #     }
-    #     """
-
-    #     if not self.successful_retreive(self.graphs[0].query(query),
-        # 'ContrastMap and ContrastStandardErrorMap'):
-    #         raise Exception(self.my_execption)
+            self.compare_full_graphs(gt, ex.graph, ex.exact_comparison, True)
 
 if __name__ == '__main__':
     unittest.main()
