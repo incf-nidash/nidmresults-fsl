@@ -7,16 +7,16 @@ install_reqs = parse_requirements('requirements.txt')
 
 requirements = [str(ir.req) for ir in install_reqs]
 
-requirements = [
-    'prov',
-    'nibabel',
-    'numpy',
-    'nidmresults'
-]
+# requirements = [
+#     'prov',
+#     'nibabel',
+#     'numpy',
+#     'nidmresults'
+# ]
 
 setup(
     name="nidmfsl",
-    version="0.1.0",
+    version="0.1.2",
     author="Camille Maumet",
     author_email="c.m.j.maumet@warwick.ac.uk",
     description=("Export of FSL statistical results using NIDM\
@@ -35,4 +35,5 @@ setup(
         "Topic :: Utilities",
         "License :: OSI Approved :: MIT License",
     ],
+    install_requires=requirements
 )
