@@ -1,8 +1,15 @@
-NIDM export for FSL
+NIDM-Results export for FSL
 ===================
 
 Export of FSL statistical results using the NeuroImaging Data Model
-(NIDM-Results) development version as specified in `specifications`_.
+(`NIDM Results`_).
+
+Install
+-----
+
+::
+
+    $ pip install nidmfsl
 
 Usage
 -----
@@ -14,11 +21,15 @@ Usage
 Requirements
 ------------
 
--  `prov toolbox`_
+-  `rdflib`_
+-  `prov`_
 -  `nibabel`_
 -  `numpy`_
+-  `nidmresults`_
 
-.. _specifications: http://nidm.nidash.org/specs/nidm-results.html
-.. _prov toolbox: https://github.com/trungdong/prov
+.. _NIDM Results: http://nidm.nidash.org/specs/nidm-results.html
+.. _prov: https://github.com/trungdong/prov
 .. _nibabel: http://nipy.org/nibabel/
 .. _numpy: http://www.numpy.org/
+.. _nidmresults: https://github.com/incf-nidash/nidmresults/
+.. _rdflib: http://rdflib.readthedocs.org/en/latest/
