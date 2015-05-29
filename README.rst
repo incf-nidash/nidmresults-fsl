@@ -1,11 +1,11 @@
 NIDM-Results export for FSL
-===================
+===========================
 
 Export of FSL statistical results using the NeuroImaging Data Model
 (`NIDM Results`_).
 
 Install
------
+-------
 
 ::
 
