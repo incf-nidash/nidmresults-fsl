@@ -9,7 +9,7 @@ Usage
 
 ::
 
-    $ python nidm-results_fsl.py /path/to/feat/directory
+    $ nidmfsl /path/to/feat/directory
 
 Requirements
 ------------

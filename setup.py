@@ -16,7 +16,7 @@ setup(
  as specified at http://nidm.nidash.org/specs/nidm-results.html."),
     license = "BSD",
     keywords = "Prov, NIDM, Provenance",
-    scripts=['bin/nidm-results_fsl'],
+    scripts=['bin/nidmfsl'],
     # packages=['nidmfsl', 'test'],
     packages=find_packages(),
     package_dir={
