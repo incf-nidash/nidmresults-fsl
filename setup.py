@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 from pip.req import parse_requirements
 
-readme = open('README.md').read()
+readme = open('README.rst').read()
 
 install_reqs = parse_requirements('requirements.txt')
 
