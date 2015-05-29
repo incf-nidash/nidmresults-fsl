@@ -9,7 +9,7 @@ requirements = [str(ir.req) for ir in install_reqs]
 
 setup(
     name="nidmfsl",
-    version="0.1.2",
+    version="0.1.0",
     author="Camille Maumet",
     author_email="c.m.j.maumet@warwick.ac.uk",
     description=("Export of FSL statistical results using NIDM\
