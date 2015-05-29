@@ -51,6 +51,8 @@ from ddt import ddt, data
 
 # Find all test examples to be compared with ground truth
 test_files = glob.glob(os.path.join(TEST_DIR, 'ex*', '*.ttl'))
+# For test name readability remove path to test file
+test_files = [x.replace(TEST_DIR, "") for x in test_files]
 logging.info("Test files:\n\t" + "\n\t".join(test_files))
 
 
@@ -60,7 +62,8 @@ class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
     @classmethod
     def setUpClass(cls):
         # *** Once for all, run the export
-        for ttl in test_files:
+        for ttl_name in test_files:
+            ttl = TEST_DIR+ttl_name
             test_dir = os.path.dirname(ttl)
 
             # If test data is available (usually if the test is run locally)
@@ -98,16 +101,18 @@ class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
 
         self.ex_graphs = dict()
 
-        for ttl in test_files:
+        for ttl_name in test_files:
+            ttl = TEST_DIR+ttl_name
             test_dir = os.path.dirname(ttl)
             with open(os.path.join(test_dir, 'config.json')) as data_file:
                 metadata = json.load(data_file)
             gt_file = [os.path.join(NIDM_RESULTS_DIR, x)
                        for x in metadata["ground_truth"]]
             inclusive = metadata["inclusive"]
+            name = ttl.replace(TEST_DIR, "")
 
-            self.ex_graphs[ttl] = ExampleGraph(
-                owl_file, ttl, gt_file, inclusive)
+            self.ex_graphs[ttl_name] = ExampleGraph(
+                name, owl_file, ttl, gt_file, inclusive)
 
     @data(*test_files)
     def test_class_consistency_with_owl(self, ttl):
@@ -115,22 +120,8 @@ class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
         Test: Check that the classes used in the ttl file are defined in the
         owl file.
         """
-
         ex = self.ex_graphs[ttl]
-
-        # for ex in self.ex_graphs:
-        # FIXME: change example name depending on graph
-        my_exception = ex.owl.check_class_names(
-            ex.graph, "FSL example00")
-
-        # FIXME (error message display should be simplified as only one
-        # example...)
-        if my_exception:
-            error_msg = ""
-            for unrecognised_class_name, examples in my_exception.items():
-                error_msg += unrecognised_class_name + \
-                    " (from " + ', '.join(examples) + ")"
-            raise Exception(error_msg)
+        ex.owl.check_class_names(ex.graph, ex.name, True)
 
     @data(*test_files)
     def test_attributes_consistency_with_owl(self, ttl):
@@ -138,31 +129,9 @@ class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
         Test: Check that the attributes used in the ttl file comply with their
         definition (range, domain) specified in the owl file.
         """
-
         ex = self.ex_graphs[ttl]
+        ex.owl.check_attributes(ex.graph, "FSL example001", True)
 
-        my_exception = ex.owl.check_attributes(
-            ex.graph, "FSL example001")
-
-        # FIXME (error message display should be simplified as only one
-        # example...)
-        error_msg = ""
-        if my_exception[0]:
-            for unrecognised_attribute, example_names \
-                    in my_exception[0].items():
-                error_msg += unrecognised_attribute + \
-                    " (from " + ', '.join(example_names) + ")"
-        if my_exception[1]:
-            for unrecognised_range, example_names \
-                    in my_exception[1].items():
-                error_msg += unrecognised_range + \
-                    " (from " + ', '.join(example_names) + ")"
-
-        if error_msg:
-            raise Exception(error_msg)
-
-    # FIXME: If terms PR is accepted then these tests should be moved to
-    # TestResultDataModel.py
     @data(*test_files)
     def test_examples_match_ground_truth(self, ttl):
         """
@@ -179,10 +148,7 @@ class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
             gt = Graph()
             gt.parse(gt_file, format='turtle')
 
-            self.compare_full_graphs(gt, ex.graph, ex.exact_comparison)
-
-            if self.my_execption:
-                raise Exception(self.my_execption)
+            self.compare_full_graphs(gt, ex.graph, ex.exact_comparison, True)
 
 if __name__ == '__main__':
     unittest.main()
