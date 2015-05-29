@@ -4,8 +4,9 @@ python:
 # command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
 install: 
  - pip install -r requirements.txt
- # vcrpy is only needed for testing
+ # Packages only needed for testing
  - pip install vcrpy
+ - pip install ddt
 # command to run tests, e.g. python setup.py test
 script:  python test/test_fsl_export.py 
 # Update subtree nidm from main nidm repository
