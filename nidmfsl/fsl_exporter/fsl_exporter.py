@@ -205,7 +205,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
                 # Contrast name
                 name_re = r'.*set fmri\(conname_real\.' + con_num +\
-                    '\) "(?P<info>[\w\s><]+)".*'
+                    '\) "(?P<info>[^"]+)".*'
                 contrast_name = self._search_in_fsf(name_re)
                 self.contrast_names_by_num[con_num] = contrast_name
 
