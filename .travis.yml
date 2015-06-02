@@ -22,6 +22,6 @@ before_install:
  - git subtree add --prefix nidm nidm/master --squash
  - git subtree add --prefix nidm_releases/1.0.0 nidm tags/NIDM-Results_1.0.0 --squash
 # Create subtree nidmresults from main nidmresults repository
- - git remote add nidmresults https://github.com/incf-nidash/nidmresults.git
+ - git remote add nidmresults https://github.com/cmaumet/nidmresults.git
  - git fetch nidmresults
- - git subtree add --prefix nidmresults nidmresults/master --squash
+ - git subtree add --prefix nidmresults nidmresults/scipy_requirement --squash
