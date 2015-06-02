@@ -822,8 +822,12 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             log_file = os.path.join(self.feat_dir, 'logs', 'feat3_stats')
 
             if not os.path.isfile(log_file):
-                warnings.warn("Log file feat3_stats not found, noise FWHM " +
-                              "will not be reported")
+                log_file = os.path.join(self.feat_dir, 'logs', 'feat3_film')
+
+            if not os.path.isfile(log_file):
+                warnings.warn(
+                    "Log file feat3_stats/feat3_film not found, " +
+                    "noise FWHM will not be reported")
                 noise_fwhm_in_voxels = None
                 noise_fwhm_in_units = None
 
