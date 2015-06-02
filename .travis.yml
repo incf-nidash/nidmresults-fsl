@@ -15,6 +15,7 @@ install:
 script:  
  - python test/test_install.py  
  - python test/test_fsl_export.py 
+ - cat debug.log
 # Update subtree nidm from main nidm repository
 before_install: 
  - git config --global user.name "TravisCI"

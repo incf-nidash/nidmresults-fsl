@@ -17,7 +17,8 @@ import json
 import logging
 logger = logging.getLogger(__name__)
 # Display log messages in console
-logging.basicConfig(level=logging.INFO, format='%(levelname)s - %(message)s')
+logging.basicConfig(filename='debug.log', level=logging.DEBUG, filemode='w',
+                    format='%(levelname)s - %(message)s')
 
 RELPATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
