@@ -25,3 +25,4 @@ before_install:
  - git fetch nidm
  - git subtree add --prefix nidm nidm/fix_nidmresults_110_gt --squash
  - git subtree add --prefix nidm_releases/1.0.0 nidm tags/NIDM-Results_1.0.0 --squash
+ - git subtree add --prefix nidm_releases/1.1.0 nidm tags/NIDM-Results_1.1.0 --squash
