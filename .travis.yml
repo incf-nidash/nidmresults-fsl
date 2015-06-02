@@ -12,7 +12,9 @@ install:
  - python nidmresults/setup.py install
  - python setup.py install
 # command to run tests, e.g. python setup.py test
-script:  python test/test_fsl_export.py 
+script:  
+ - python test/test_install.py  
+ - python test/test_fsl_export.py 
 # Update subtree nidm from main nidm repository
 before_install: 
  - git config --global user.name "TravisCI"
