@@ -43,7 +43,7 @@ path = os.path.join(NIDM_RESULTS_DIR, "test")
 sys.path.append(path)
 
 
-from TestResultDataModel import TestResultDataModel, ExampleGraph
+from TestResultDataModel import TestResultDataModel
 from TestCommons import *
 from CheckConsistency import *
 
