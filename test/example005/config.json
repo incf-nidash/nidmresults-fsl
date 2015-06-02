@@ -1,0 +1,6 @@
+{
+    "ground_truth": ["fsl/example002/fsl_nidm.ttl"],
+    "inclusive": true,
+    "data_dir": "fmri_one_contrast_voxelwise.feat",
+    "version": "dev"    
+}
