@@ -7,22 +7,19 @@ specification. The path to feat directory must be passed as first argument.
 @copyright: University of Warwick 2013-2014
 """
 
-import sys
 import os
 from nidmfsl.fsl_exporter.fsl_exporter import FSLtoNIDMExporter
+import argparse
 
 if __name__ == "__main__":
-    # Remove first argument (script name)
-    num_args = len(sys.argv)-1
-    sys.argv.pop(0)
-    args = sys.argv
+    parser = argparse.ArgumentParser(
+        description='NIDM-Results exporter for FSL.')
+    parser.add_argument('feat_dir', help='Path to feat directory.')
 
-    usage = "Usage: nidmfsl path/to/feat/dir"
+    args = parser.parse_args()
 
-    if num_args != 1:
-        raise Exception(usage)
-
-    feat_dir = args[0]
+    feat_dir = args.feat_dir
+    print feat_dir
     if not os.path.isdir(feat_dir):
         raise Exception("Unknown directory: "+str(feat_dir))
 
