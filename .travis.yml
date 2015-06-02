@@ -9,7 +9,7 @@ install:
  - pip install vcrpy
  - pip install ddt
  # Install current version of nidmfsl
- - python nidmresults/setup.py install
+ - pip install git+https://github.com/incf-nidash/nidmresults.git
  - python setup.py install
 # command to run tests, e.g. python setup.py test
 script:  
@@ -24,7 +24,3 @@ before_install:
  - git fetch nidm
  - git subtree add --prefix nidm nidm/master --squash
  - git subtree add --prefix nidm_releases/1.0.0 nidm tags/NIDM-Results_1.0.0 --squash
-# Create subtree nidmresults from main nidmresults repository
- - git remote add nidmresults https://github.com/cmaumet/nidmresults.git
- - git fetch nidmresults
- - git subtree add --prefix nidmresults nidmresults/scipy_requirement --squash
