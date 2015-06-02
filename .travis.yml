@@ -5,7 +5,7 @@ python:
 install: 
  - pip --version 
  # Install current version of nidmresults
- - pip install git+https://github.com/incf-nidash/nidmresults.git#egg=nidmresults
+ - pip install git+https://github.com/cmaumet/nidmresults.git@nidmresults110#egg=nidmresults
 # Install current version of nidmfsl
  - python setup.py install
  # Packages only needed for testing
@@ -21,7 +21,7 @@ before_install:
  - git config --global user.name "TravisCI"
  - git config --global user.email "travis@dummy.com"
  # Create subtree nidm from main nidm repository
- - git remote add nidm https://github.com/incf-nidash/nidm.git
+ - git remote add nidm https://github.com/cmaumet/nidm.git
  - git fetch nidm
- - git subtree add --prefix nidm nidm/master --squash
+ - git subtree add --prefix nidm nidm/fix_nidmresults_110_gt --squash
  - git subtree add --prefix nidm_releases/1.0.0 nidm tags/NIDM-Results_1.0.0 --squash
