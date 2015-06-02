@@ -4,13 +4,13 @@ python:
 # command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
 install: 
  - pip --version 
- - pip install -r requirements.txt
+ # Install current version of nidmresults
+ - pip install git+https://github.com/cmaumet/nidmresults.git@scipy_requirement
+# Install current version of nidmfsl
+ - python setup.py install
  # Packages only needed for testing
  - pip install vcrpy
  - pip install ddt
- # Install current version of nidmfsl
- - pip install git+https://github.com/cmaumet/nidmresults.git@scipy_requirement
- - python setup.py install
 # command to run tests, e.g. python setup.py test
 script:  
  - python test/test_install.py  
