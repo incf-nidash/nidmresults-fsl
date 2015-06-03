@@ -501,17 +501,30 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             onsets = [m.groupdict() for m in r.finditer(self.design_txt)]
             max_duration = 0
             min_duration = 36000
-            for onset in onsets:
-                aa = np.loadtxt(onset['file'])
-                max_duration = max(max_duration, np.amax(aa[:, 2], axis=None))
-                min_duration = min(min_duration, np.amin(aa[:, 2], axis=None))
 
-            if max_duration <= 1:
-                design_type = NIDM_EVENT_RELATED_DESIGN
-            elif min_duration > 1:
-                design_type = NIDM_BLOCK_BASED_DESIGN
+            for onset in onsets:
+                if os.path.isfile(onset['file']):
+                    aa = np.loadtxt(onset['file'])
+                    max_duration = max(
+                        max_duration, np.amax(aa[:, 2], axis=None))
+                    min_duration = min(
+                        min_duration, np.amin(aa[:, 2], axis=None))
+                else:
+                    missing_onset_file = onset['file']
+                    max_duration = None
+
+            if max_duration is not None:
+                if max_duration <= 1:
+                    design_type = NIDM_EVENT_RELATED_DESIGN
+                elif min_duration > 1:
+                    design_type = NIDM_BLOCK_BASED_DESIGN
+                else:
+                    design_type = NIDM_MIXED_DESIGN
             else:
-                design_type = NIDM_MIXED_DESIGN
+                warnings.warn(
+                    "Onset file " + missing_onset_file + " not found, " +
+                    "design type will not be reported")
+                design_type = None
 
             # HRF model (only look at first ev)
             m = re.search(
