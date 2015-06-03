@@ -5,7 +5,7 @@ python:
 install: 
  - pip --version 
  # Install current version of nidmresults
- - pip install git+https://github.com/incf-nidash/nidmresults.git#egg=nidmresults
+ - pip install git+https://github.com/cmaumet/nidmresults.git@missing_onset_file#egg=nidmresults
 # Install current version of nidmfsl
  - python setup.py install
  # Packages only needed for testing
