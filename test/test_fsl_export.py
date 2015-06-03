@@ -17,7 +17,8 @@ import json
 import logging
 logger = logging.getLogger(__name__)
 # Display log messages in console
-logging.basicConfig(level=logging.INFO, format='%(levelname)s - %(message)s')
+logging.basicConfig(filename='debug.log', level=logging.DEBUG, filemode='w',
+                    format='%(levelname)s - %(message)s')
 
 RELPATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -43,7 +44,7 @@ path = os.path.join(NIDM_RESULTS_DIR, "test")
 sys.path.append(path)
 
 
-from TestResultDataModel import TestResultDataModel, ExampleGraph
+from TestResultDataModel import TestResultDataModel
 from TestCommons import *
 from CheckConsistency import *
 
@@ -71,6 +72,7 @@ class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
             with open(os.path.join(test_dir, 'config.json')) as data_file:
                 metadata = json.load(data_file)
             data_dir = os.path.join(TEST_DATA_DIR, metadata["data_dir"])
+            version = metadata["version"]
 
             #  Turtle file obtained with FSL NI-DM export tool
             provn = ttl.replace(".ttl", ".provn")
@@ -80,7 +82,7 @@ class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
 
                 # Export to NIDM using FSL export tool
                 # fslnidm = FSL_NIDM(feat_dir=DATA_DIR_001);
-                fslnidm = FSLtoNIDMExporter(feat_dir=data_dir, version="1.0.0")
+                fslnidm = FSLtoNIDMExporter(feat_dir=data_dir, version=version)
                 fslnidm.parse()
                 export_dir = fslnidm.export()
                 # Copy provn export to test directory
