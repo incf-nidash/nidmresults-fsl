@@ -1,0 +1,6 @@
+{
+    "ground_truth": ["test/minimal_examples/f_test/nidm.ttl"],
+    "inclusive": true,
+    "data_dir": "ftest.feat",
+    "version": "dev"    
+}
