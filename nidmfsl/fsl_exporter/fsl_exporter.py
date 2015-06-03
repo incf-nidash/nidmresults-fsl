@@ -292,7 +292,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                         stat_dir, 'sigmasquareds.nii.gz')
 
                     expl_mean_sq_map = ContrastExplainedMeanSquareMap(
-                        stat_file, sigma_sq_file, stat_num, contrast_name,
+                        stat_file, sigma_sq_file, stat_num,
                         self.coord_space, self.export_dir)
 
                     std_err_map_or_mean_sq_map = expl_mean_sq_map
