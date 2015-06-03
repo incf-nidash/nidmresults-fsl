@@ -1,4 +1,4 @@
-nidmresults
+nidmresults==0.2.0
 rdflib>=4.2.0
 prov>=1.0.0
 nibabel
