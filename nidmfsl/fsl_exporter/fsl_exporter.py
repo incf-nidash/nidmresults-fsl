@@ -250,23 +250,6 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 # Convert to immutable tuple to be used as key
                 pe_ids = tuple(pe_ids)
 
-                # Contrast Map
-                con_file = os.path.join(stat_dir,
-                                        'cope' + str(con_num) + '.nii.gz')
-                contrast_map = ContrastMap(con_file, stat_num,
-                                           contrast_name, self.coord_space,
-                                           self.export_dir)
-
-                # Contrast Variance and Standard Error Maps
-                varcontrast_file = os.path.join(
-                    stat_dir,
-                    'varcope' + str(con_num) + '.nii.gz')
-                is_variance = True
-                std_err_map = ContrastStdErrMap(
-                    stat_num,
-                    varcontrast_file, is_variance, self.coord_space,
-                    self.coord_space, self.export_dir)
-
                 # Statistic Map
                 stat_file = os.path.join(
                     stat_dir,
@@ -285,9 +268,41 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     contrast_name, dof, self.coord_space,
                     self.export_dir)
 
+                if stat_type is "T":
+                    # Contrast Map
+                    con_file = os.path.join(stat_dir,
+                                            'cope' + str(con_num) + '.nii.gz')
+                    contrast_map = ContrastMap(con_file, stat_num,
+                                               contrast_name, self.coord_space,
+                                               self.export_dir)
+
+                    # Contrast Variance and Standard Error Maps
+                    varcontrast_file = os.path.join(
+                        stat_dir, 'varcope' + str(con_num) + '.nii.gz')
+                    is_variance = True
+                    std_err_map = ContrastStdErrMap(
+                        stat_num,
+                        varcontrast_file, is_variance, self.coord_space,
+                        self.coord_space, self.export_dir)
+                    std_err_map_or_mean_sq_map = std_err_map
+                elif stat_type is "F":
+                    contrast_map = None
+
+                    sigma_sq_file = os.path.join(
+                        stat_dir, 'sigmasquareds.nii.gz')
+
+                    expl_mean_sq_map = ContrastExplainedMeanSquareMap(
+                        stat_file, sigma_sq_file, stat_num, contrast_name,
+                        self.coord_space, self.export_dir)
+
+                    std_err_map_or_mean_sq_map = expl_mean_sq_map
+                else:
+                    raise Exception("Unknown statistic type: "+stat_type)
+
                 con = Contrast(
                     con_num, contrast_name, weights, estimation,
-                    contrast_map, std_err_map, stat_map, z_stat_map)
+                    contrast_map, std_err_map_or_mean_sq_map, stat_map,
+                    z_stat_map)
 
                 contrasts.setdefault((mf_id, pe_ids), list()).append(con)
 
@@ -331,10 +346,11 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 con_id = None
                 for contrasts in self.contrasts.values():
                     for contrast in contrasts:
-                        s = re.compile('cope\d+\.nii\.gz')
-                        con_num = s.search(contrast.contrast_map.file)
+                        s = re.compile('zf?stat\d+')
+                        con_num = s.search(contrast.z_stat_map.file)
                         con_num = con_num.group()
-                        con_num = con_num.replace('cope', '')\
+                        con_num = con_num.replace('zstat', '')\
+                                         .replace('zfstat', '')\
                                          .replace('.nii.gz', '')
                         if con_num == stat_num:
                             con_id = contrast.estimation.id
