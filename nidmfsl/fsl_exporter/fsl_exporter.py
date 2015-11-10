@@ -506,7 +506,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
             for onset in onsets:
                 if os.path.isfile(onset['file']):
-                    aa = np.loadtxt(onset['file'])
+                    aa = np.loadtxt(onset['file'], ndmin=2)
                     max_duration = max(
                         max_duration, np.amax(aa[:, 2], axis=None))
                     min_duration = min(
