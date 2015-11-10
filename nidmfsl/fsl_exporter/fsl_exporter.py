@@ -504,6 +504,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             max_duration = 0
             min_duration = 36000
 
+            missing_onset_file = list()
             for onset in onsets:
                 if os.path.isfile(onset['file']):
                     aa = np.loadtxt(onset['file'], ndmin=2)
@@ -512,7 +513,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     min_duration = min(
                         min_duration, np.amin(aa[:, 2], axis=None))
                 else:
-                    missing_onset_file = onset['file']
+                    missing_onset_file.append(onset['file'])
                     max_duration = None
 
             if max_duration is not None:
@@ -524,8 +525,8 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     design_type = NIDM_MIXED_DESIGN
             else:
                 warnings.warn(
-                    "Onset file " + missing_onset_file + " not found, " +
-                    "design type will not be reported")
+                    "Onset file(s) " + ", ".join(missing_onset_file) +
+                    " not found. " + "Design type will not be reported")
                 design_type = None
 
             # HRF model (only look at first ev)
