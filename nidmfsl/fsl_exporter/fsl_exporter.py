@@ -922,7 +922,11 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             if not os.path.isfile(cluster_file):
                 cluster_file = None
             else:
-                cluster_table = np.loadtxt(cluster_file, skiprows=1, ndmin=2)
+                with warnings.catch_warnings():
+                    # Ignore "Empty input file" for no significant cluster
+                    warnings.simplefilter("ignore")
+                    cluster_table = np.loadtxt(
+                        cluster_file, skiprows=1, ndmin=2)
 
             # Cluster list (positions in mm)
             cluster_std_file = os.path.join(
@@ -932,8 +936,11 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 cluster_std_file = None
                 # cluster_std_table = np.zeros_like(cluster_table)*float('nan')
             else:
-                cluster_std_table = np.loadtxt(cluster_std_file, skiprows=1,
-                                               ndmin=2)
+                with warnings.catch_warnings():
+                    # Ignore "Empty input file" for no significant cluster
+                    warnings.simplefilter("ignore")
+                    cluster_std_table = np.loadtxt(
+                        cluster_std_file, skiprows=1, ndmin=2)
 
             # Peaks
             peak_file = os.path.join(
@@ -941,14 +948,21 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             if not os.path.isfile(peak_file):
                 peak_file = None
             else:
-                peak_table = np.loadtxt(peak_file, skiprows=1, ndmin=2)
+                with warnings.catch_warnings():
+                    # Ignore "Empty input file" for no significant peak
+                    warnings.simplefilter("ignore")
+                    peak_table = np.loadtxt(peak_file, skiprows=1, ndmin=2)
 
             peak_std_file = os.path.join(analysis_dir,
                                          'lmax_zstat' + stat_num + '_std.txt')
             if not os.path.isfile(peak_std_file):
                 peak_std_file = None
             else:
-                peak_std_table = np.loadtxt(peak_std_file, skiprows=1, ndmin=2)
+                with warnings.catch_warnings():
+                    # Ignore "Empty input file" for no significant peak
+                    warnings.simplefilter("ignore")
+                    peak_std_table = np.loadtxt(
+                        peak_std_file, skiprows=1, ndmin=2)
 
             peaks = dict()
             prev_cluster = -1
