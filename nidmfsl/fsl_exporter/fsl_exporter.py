@@ -430,7 +430,8 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
                 if contrast_masking:
                     # Display mask
-                    # FIXME deal with the case in which we are contrast masking by
+                    # FIXME deal with the case in which we are contrast masking
+                    # by
                     #  more than one contrast
                     # contrast_masking_search = re.compile(r'.*set
                     # fmri\(conmask'+contrast_num+'_(?P<maskingconnum>\d+)\)
@@ -445,7 +446,8 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     #     contrast_masking_file =
                     # else:
                     #     contrast_masking_num = None
-                    # FIXME: We need an example with more than one contrast to code
+                    # FIXME: We need an example with more than one contrast to
+                    # code
                     # contrast masking
                     contrast_masking_file = self._get_display_mask()
                     display_mask = DisplayMaskMap(
