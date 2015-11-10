@@ -10,7 +10,6 @@ import logging
 import uuid
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.DEBUG)
 
 
 class Software(NIDMObject):
