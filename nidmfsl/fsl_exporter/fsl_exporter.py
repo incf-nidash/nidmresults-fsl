@@ -430,7 +430,8 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
                 if contrast_masking:
                     # Display mask
-                    # FIXME deal with the case in which we are contrast masking by
+                    # FIXME deal with the case in which we are contrast masking
+                    # by
                     #  more than one contrast
                     # contrast_masking_search = re.compile(r'.*set
                     # fmri\(conmask'+contrast_num+'_(?P<maskingconnum>\d+)\)
@@ -445,7 +446,8 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     #     contrast_masking_file =
                     # else:
                     #     contrast_masking_num = None
-                    # FIXME: We need an example with more than one contrast to code
+                    # FIXME: We need an example with more than one contrast to
+                    # code
                     # contrast masking
                     contrast_masking_file = self._get_display_mask()
                     display_mask = DisplayMaskMap(
@@ -922,7 +924,11 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             if not os.path.isfile(cluster_file):
                 cluster_file = None
             else:
-                cluster_table = np.loadtxt(cluster_file, skiprows=1, ndmin=2)
+                with warnings.catch_warnings():
+                    # Ignore "Empty input file" for no significant cluster
+                    warnings.simplefilter("ignore")
+                    cluster_table = np.loadtxt(
+                        cluster_file, skiprows=1, ndmin=2)
 
             # Cluster list (positions in mm)
             cluster_std_file = os.path.join(
@@ -932,8 +938,11 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 cluster_std_file = None
                 # cluster_std_table = np.zeros_like(cluster_table)*float('nan')
             else:
-                cluster_std_table = np.loadtxt(cluster_std_file, skiprows=1,
-                                               ndmin=2)
+                with warnings.catch_warnings():
+                    # Ignore "Empty input file" for no significant cluster
+                    warnings.simplefilter("ignore")
+                    cluster_std_table = np.loadtxt(
+                        cluster_std_file, skiprows=1, ndmin=2)
 
             # Peaks
             peak_file = os.path.join(
@@ -941,14 +950,21 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             if not os.path.isfile(peak_file):
                 peak_file = None
             else:
-                peak_table = np.loadtxt(peak_file, skiprows=1, ndmin=2)
+                with warnings.catch_warnings():
+                    # Ignore "Empty input file" for no significant peak
+                    warnings.simplefilter("ignore")
+                    peak_table = np.loadtxt(peak_file, skiprows=1, ndmin=2)
 
             peak_std_file = os.path.join(analysis_dir,
                                          'lmax_zstat' + stat_num + '_std.txt')
             if not os.path.isfile(peak_std_file):
                 peak_std_file = None
             else:
-                peak_std_table = np.loadtxt(peak_std_file, skiprows=1, ndmin=2)
+                with warnings.catch_warnings():
+                    # Ignore "Empty input file" for no significant peak
+                    warnings.simplefilter("ignore")
+                    peak_std_table = np.loadtxt(
+                        peak_std_file, skiprows=1, ndmin=2)
 
             peaks = dict()
             prev_cluster = -1

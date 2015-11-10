@@ -15,42 +15,257 @@
 @prefix xml: <http://www.w3.org/XML/1998/namespace> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
-<http://iri.nidash.org/0403776e-8fdd-4cd5-ade8-3dde0ff3fe1b> a nidm:NIDM_0000062,
+<http://iri.nidash.org/04e37d12-1d6a-41f6-96ff-81478cb1c30a> a nidm:NIDM_0000140,
         prov:Entity ;
-    rdfs:label "Peak 0004_4" ;
-    nidm:NIDM_0000092 "5.61"^^xsd:float ;
-    nidm:NIDM_0000116 "1.01163307731e-08"^^xsd:float ;
-    prov:atLocation <http://iri.nidash.org/7bacdec5-0b11-43f1-ad4c-c4a21d8d11cb> ;
-    prov:wasDerivedFrom <http://iri.nidash.org/328c2644-fce0-4b88-8a7c-304566e3fc05> .
+    rdfs:label "Center of gravity 2" ;
+    prov:atLocation niiri:d3e43cdb-0e5f-4ba0-9371-21192b327325 ;
+    prov:wasDerivedFrom <http://iri.nidash.org/08464d03-3a2c-45c8-b102-17ba9c85e553> .
 
-<http://iri.nidash.org/11a6f9c6-03da-48be-9cb3-cf6deebdb325> a nidm:NIDM_0000062,
-        prov:Entity ;
-    rdfs:label "Peak 0004_5" ;
-    nidm:NIDM_0000092 "5.6"^^xsd:float ;
-    nidm:NIDM_0000116 "1.07175902597e-08"^^xsd:float ;
-    prov:atLocation <http://iri.nidash.org/52a6c1c7-e688-4f98-ada8-838d93d99a5d> ;
-    prov:wasDerivedFrom <http://iri.nidash.org/328c2644-fce0-4b88-8a7c-304566e3fc05> .
-
-<http://iri.nidash.org/1eb50775-5d2b-4c8b-afb6-b121240b77ff> a nidm:NIDM_0000062,
+<http://iri.nidash.org/0785fd1d-2305-498a-9423-fd9309d9af48> a nidm:NIDM_0000062,
         prov:Entity ;
     rdfs:label "Peak 0004_1" ;
     nidm:NIDM_0000092 "5.79"^^xsd:float ;
     nidm:NIDM_0000116 "3.51932127884e-09"^^xsd:float ;
-    prov:atLocation <http://iri.nidash.org/76803c90-95bb-439c-8b13-baec8779cc96> ;
-    prov:wasDerivedFrom <http://iri.nidash.org/328c2644-fce0-4b88-8a7c-304566e3fc05> .
+    prov:atLocation <http://iri.nidash.org/160e45e1-49a0-480a-863c-e162f4ca0ccf> ;
+    prov:wasDerivedFrom niiri:f3988841-eee1-4279-b17d-9596c3e387f3 .
 
-<http://iri.nidash.org/230b62e7-d91b-4903-9d65-31736316a81a> a nidm:NIDM_0000140,
+<http://iri.nidash.org/0d3c2a89-056d-417b-b979-2cc4d5f6d9b3> a nidm:NIDM_0000061,
         prov:Entity ;
-    rdfs:label "Center of gravity 2" ;
-    prov:atLocation niiri:a51a724a-2e65-4a51-80da-9b680f90dec2 ;
-    prov:wasDerivedFrom <http://iri.nidash.org/73e0b764-ff5e-400a-a967-8f8f42d742b1> .
+    rdfs:label "Parameter estimate 2" ;
+    nidm:NIDM_0000104 niiri:ee0cc721-eb90-47b7-8e8e-d2cc1923463c ;
+    nfo:fileName "pe2.nii.gz"^^xsd:string ;
+    prov:wasGeneratedBy <http://iri.nidash.org/8f3da601-bf22-47a6-a90c-aaa7fcb006f6> .
 
-<http://iri.nidash.org/24bd0529-b564-4ebf-86f7-55fd3149830d> a nidm:NIDM_0000068,
+<http://iri.nidash.org/195ce29b-de32-4dd9-9584-6dbc2e502702> a nidm:NIDM_0000013,
+        prov:Entity ;
+    rdfs:label "Contrast Standard Error Map" ;
+    crypto:sha512 "8529f3ff9f10da8f332ced9d579990321475c1498b56d79ede560ba2eccf6d68718757dc7af78eb1e86617a41e6c9f55161f756d184e2b0fb06c3d419dc99856"^^xsd:string ;
+    dct:format "image/nifti"^^xsd:string ;
+    nidm:NIDM_0000104 niiri:ee0cc721-eb90-47b7-8e8e-d2cc1923463c ;
+    nfo:fileName "ContrastStandardError.nii.gz"^^xsd:string ;
+    prov:atLocation "file://./ContrastStandardError.nii.gz"^^xsd:anyURI ;
+    prov:wasDerivedFrom niiri:db632e0e-98de-4684-8d50-1c2ce384a082 ;
+    prov:wasGeneratedBy niiri:c61842e0-07a2-457e-ba3d-c076afb82541 .
+
+<http://iri.nidash.org/19d1a13f-caa9-4aec-8609-60ac15c61ead> a nidm:NIDM_0000062,
+        prov:Entity ;
+    rdfs:label "Peak 0004_5" ;
+    nidm:NIDM_0000092 "5.6"^^xsd:float ;
+    nidm:NIDM_0000116 "1.07175902597e-08"^^xsd:float ;
+    prov:atLocation niiri:a03728a9-6eb2-49a2-8458-0be480976a91 ;
+    prov:wasDerivedFrom niiri:f3988841-eee1-4279-b17d-9596c3e387f3 .
+
+<http://iri.nidash.org/2ce48873-81c2-4a50-b926-0fc7acc6d39e> a nidm:NIDM_0000062,
+        prov:Entity ;
+    rdfs:label "Peak 0003_1" ;
+    nidm:NIDM_0000092 "5.61"^^xsd:float ;
+    nidm:NIDM_0000116 "1.01163307731e-08"^^xsd:float ;
+    prov:atLocation <http://iri.nidash.org/216e2b56-5264-4ab0-92a6-b624eb0905a4> ;
+    prov:wasDerivedFrom niiri:a778c7e2-d2e2-43aa-be45-c421a977b484 .
+
+<http://iri.nidash.org/2d4afd24-e26b-424f-9131-4dc4688eebb2> a nidm:NIDM_0000033,
+        prov:Entity ;
+    rdfs:label "Grand Mean Map" ;
+    crypto:sha512 "7a2703cea740e27a5170fb19e4a09b5e815e4b7e477bc75958404d675aa408f53f747892a2ef4472f933cf5f12cd21cea99d5f5e551938081636fb6d4049473e"^^xsd:string ;
+    dct:format "image/nifti"^^xsd:string ;
+    nidm:NIDM_0000104 niiri:ee0cc721-eb90-47b7-8e8e-d2cc1923463c ;
+    nidm:NIDM_0000107 "9597.359375"^^xsd:float ;
+    nfo:fileName "GrandMean.nii.gz"^^xsd:string,
+        "mean_func.nii.gz"^^xsd:string ;
+    prov:atLocation "file://./GrandMean.nii.gz"^^xsd:anyURI ;
+    prov:wasGeneratedBy <http://iri.nidash.org/8f3da601-bf22-47a6-a90c-aaa7fcb006f6> .
+
+<http://iri.nidash.org/2d626649-317f-4715-9e62-40fe033a8e58> a nidm:NIDM_0000062,
+        prov:Entity ;
+    rdfs:label "Peak 0001_4" ;
+    nidm:NIDM_0000092 "2.54"^^xsd:float ;
+    nidm:NIDM_0000116 "0.00554262344308"^^xsd:float ;
+    prov:atLocation <http://iri.nidash.org/82b39cb1-e7ae-4331-9283-141b7dc72d2a> ;
+    prov:wasDerivedFrom niiri:cdafe12b-7479-486e-9e4d-b4cba51a8666 .
+
+<http://iri.nidash.org/2e3c3858-5c49-4627-b7c7-13049666d3aa> a nidm:NIDM_0000061,
+        prov:Entity ;
+    rdfs:label "Parameter estimate 4" ;
+    nidm:NIDM_0000104 niiri:ee0cc721-eb90-47b7-8e8e-d2cc1923463c ;
+    nfo:fileName "pe4.nii.gz"^^xsd:string ;
+    prov:wasGeneratedBy <http://iri.nidash.org/8f3da601-bf22-47a6-a90c-aaa7fcb006f6> .
+
+<http://iri.nidash.org/34fd5718-5da1-4273-9658-8b177042d125> a nidm:NIDM_0000076,
+        prov:Entity ;
+    rdfs:label "Statistic Map: Generation" ;
+    crypto:sha512 "b6286d36e678c23622b5b0486f0efb5b274f9a5e2a3ee6aceb6a0338f7745fb8a4d8f72b8af22c4ffb40c860bfb65940c87b03a7336cdf1a665f9cb07a5c2527"^^xsd:string ;
+    dct:format "image/nifti"^^xsd:string ;
+    nidm:NIDM_0000085 "Generation"^^xsd:string ;
+    nidm:NIDM_0000091 "1.0"^^xsd:float ;
+    nidm:NIDM_0000093 "102.0"^^xsd:float ;
+    nidm:NIDM_0000104 niiri:ee0cc721-eb90-47b7-8e8e-d2cc1923463c ;
+    nidm:NIDM_0000123 obo:STATO_0000176 ;
+    nfo:fileName "TStatistic.nii.gz"^^xsd:string,
+        "tstat1.nii.gz"^^xsd:string ;
+    prov:atLocation "file://./TStatistic.nii.gz"^^xsd:anyURI ;
+    prov:wasGeneratedBy niiri:c61842e0-07a2-457e-ba3d-c076afb82541 .
+
+<http://iri.nidash.org/3f8a3327-874f-4721-8651-ef68f5d898f2> a nidm:NIDM_0000140,
+        prov:Entity ;
+    rdfs:label "Center of gravity 3" ;
+    prov:atLocation <http://iri.nidash.org/173aed6a-9dbd-4ea0-90ce-dd27d0273600> ;
+    prov:wasDerivedFrom niiri:a778c7e2-d2e2-43aa-be45-c421a977b484 .
+
+<http://iri.nidash.org/467d1af4-bc2f-4ac1-bcf3-2310d4cf2aeb> a nidm:NIDM_0000002,
+        prov:Entity ;
+    rdfs:label "Contrast Map: Generation" ;
+    crypto:sha512 "4c755c0ae6088f8001e0458f89e51fea0e2719b5dc747fed6f617ae12ad5c6a643e1afcb886bcabaaac7911f5e69086c1bd084af9f75dae75913d44a783151f6"^^xsd:string ;
+    dct:format "image/nifti"^^xsd:string ;
+    nidm:NIDM_0000085 "Generation"^^xsd:string ;
+    nidm:NIDM_0000104 niiri:ee0cc721-eb90-47b7-8e8e-d2cc1923463c ;
+    nfo:fileName "Contrast.nii.gz"^^xsd:string,
+        "cope1.nii.gz"^^xsd:string ;
+    prov:atLocation "file://./Contrast.nii.gz"^^xsd:anyURI ;
+    prov:wasGeneratedBy niiri:c61842e0-07a2-457e-ba3d-c076afb82541 .
+
+<http://iri.nidash.org/4f8218e7-57d1-4691-abbb-0950ead8d120> a nidm:NIDM_0000062,
+        prov:Entity ;
+    rdfs:label "Peak 0004_6" ;
+    nidm:NIDM_0000092 "5.56"^^xsd:float ;
+    nidm:NIDM_0000116 "1.34887325753e-08"^^xsd:float ;
+    prov:atLocation <http://iri.nidash.org/1c448ac1-933b-472e-a55f-b5db3c29c52f> ;
+    prov:wasDerivedFrom niiri:f3988841-eee1-4279-b17d-9596c3e387f3 .
+
+<http://iri.nidash.org/64fdb9ab-6685-4f84-a383-7ac002872023> a nidm:NIDM_0000062,
+        prov:Entity ;
+    rdfs:label "Peak 0003_2" ;
+    nidm:NIDM_0000092 "5.12"^^xsd:float ;
+    nidm:NIDM_0000116 "1.52767828276e-07"^^xsd:float ;
+    prov:atLocation <http://iri.nidash.org/43febca8-6a4e-4324-bb06-14a856d96dc1> ;
+    prov:wasDerivedFrom niiri:a778c7e2-d2e2-43aa-be45-c421a977b484 .
+
+<http://iri.nidash.org/71d6f232-7eff-47c2-bc66-da57d83de23e> a nidm:NIDM_0000061,
+        prov:Entity ;
+    rdfs:label "Parameter estimate 3" ;
+    nidm:NIDM_0000104 niiri:ee0cc721-eb90-47b7-8e8e-d2cc1923463c ;
+    nfo:fileName "pe3.nii.gz"^^xsd:string ;
+    prov:wasGeneratedBy <http://iri.nidash.org/8f3da601-bf22-47a6-a90c-aaa7fcb006f6> .
+
+<http://iri.nidash.org/76008591-ea0b-4ecc-bde3-35e88deec8c3> a nidm:NIDM_0000062,
+        prov:Entity ;
+    rdfs:label "Peak 0002_2" ;
+    nidm:NIDM_0000092 "4.43"^^xsd:float ;
+    nidm:NIDM_0000116 "4.71165441196e-06"^^xsd:float ;
+    prov:atLocation niiri:af7b6184-cbbe-4352-b4e1-fdb1dce5a1f4 ;
+    prov:wasDerivedFrom <http://iri.nidash.org/08464d03-3a2c-45c8-b102-17ba9c85e553> .
+
+<http://iri.nidash.org/7b4c0a56-7a7f-4cd1-bada-1ec43193d25f> a nidm:NIDM_0000062,
+        prov:Entity ;
+    rdfs:label "Peak 0003_6" ;
+    nidm:NIDM_0000092 "4.12"^^xsd:float ;
+    nidm:NIDM_0000116 "1.89436199505e-05"^^xsd:float ;
+    prov:atLocation <http://iri.nidash.org/956c7818-7a17-47e2-b40e-8938148dd15f> ;
+    prov:wasDerivedFrom niiri:a778c7e2-d2e2-43aa-be45-c421a977b484 .
+
+<http://iri.nidash.org/8a5d428d-fbf2-4687-bd05-0fc58b69980d> a obo:STATO_0000323,
+        prov:Entity ;
+    rdfs:label "Contrast Weights: Generation" ;
+    nidm:NIDM_0000085 "Generation"^^xsd:string ;
+    nidm:NIDM_0000123 obo:STATO_0000176 ;
+    prov:value "[1, 0, 0, 0]"^^xsd:string .
+
+<http://iri.nidash.org/8e932026-122d-4e9e-9d8c-64daa75e07cc> a nidm:NIDM_0000062,
+        prov:Entity ;
+    rdfs:label "Peak 0001_3" ;
+    nidm:NIDM_0000092 "3.03"^^xsd:float ;
+    nidm:NIDM_0000116 "0.00122276869359"^^xsd:float ;
+    prov:atLocation <http://iri.nidash.org/9d9f5b96-3982-4128-8bb9-20f583b89d13> ;
+    prov:wasDerivedFrom niiri:cdafe12b-7479-486e-9e4d-b4cba51a8666 .
+
+<http://iri.nidash.org/8f6508ad-0067-41ec-99f9-c55d8c8240b3> a nidm:NIDM_0000140,
+        prov:Entity ;
+    rdfs:label "Center of gravity 4" ;
+    prov:atLocation <http://iri.nidash.org/1e759d6b-85f7-4155-bfb4-38e253b1e14f> ;
+    prov:wasDerivedFrom niiri:f3988841-eee1-4279-b17d-9596c3e387f3 .
+
+niiri:a3fdbeb8-6b66-4f7e-bf84-6c3f3626945b a nidm:NIDM_0000062,
+        prov:Entity ;
+    rdfs:label "Peak 0003_5" ;
+    nidm:NIDM_0000092 "4.22"^^xsd:float ;
+    nidm:NIDM_0000116 "1.22151159252e-05"^^xsd:float ;
+    prov:atLocation <http://iri.nidash.org/9687314e-9316-4e2f-9509-bb5ae0f90b58> ;
+    prov:wasDerivedFrom niiri:a778c7e2-d2e2-43aa-be45-c421a977b484 .
+
+niiri:a43c761c-c419-4b9a-8cb4-9df5d02da858 a nidm:NIDM_0000062,
+        prov:Entity ;
+    rdfs:label "Peak 0002_1" ;
+    nidm:NIDM_0000092 "4.64"^^xsd:float ;
+    nidm:NIDM_0000116 "1.74204589032e-06"^^xsd:float ;
+    prov:atLocation niiri:bd0c4665-af78-49d0-a839-e3e579e32f7f ;
+    prov:wasDerivedFrom <http://iri.nidash.org/08464d03-3a2c-45c8-b102-17ba9c85e553> .
+
+niiri:a6321847-21ea-44da-9399-e0b392c601b2 a nidm:NIDM_0000062,
+        prov:Entity ;
+    rdfs:label "Peak 0004_4" ;
+    nidm:NIDM_0000092 "5.61"^^xsd:float ;
+    nidm:NIDM_0000116 "1.01163307731e-08"^^xsd:float ;
+    prov:atLocation <http://iri.nidash.org/91e66097-83b2-48fa-8b87-937edb3fb7ad> ;
+    prov:wasDerivedFrom niiri:f3988841-eee1-4279-b17d-9596c3e387f3 .
+
+niiri:b3b0d755-7830-45a7-84dc-f7ff4a166bac a nidm:NIDM_0000062,
+        prov:Entity ;
+    rdfs:label "Peak 0003_4" ;
+    nidm:NIDM_0000092 "4.27"^^xsd:float ;
+    nidm:NIDM_0000116 "9.77364837285e-06"^^xsd:float ;
+    prov:atLocation <http://iri.nidash.org/10c83d98-2115-40aa-ab0e-0459103bdf03> ;
+    prov:wasDerivedFrom niiri:a778c7e2-d2e2-43aa-be45-c421a977b484 .
+
+niiri:bbb15c21-803e-40c0-9290-08ab311b03c5 a nidm:NIDM_0000062,
+        prov:Entity ;
+    rdfs:label "Peak 0001_1" ;
+    nidm:NIDM_0000092 "4.61"^^xsd:float ;
+    nidm:NIDM_0000116 "2.01334485483e-06"^^xsd:float ;
+    prov:atLocation niiri:c72a82d2-42c4-4d2b-b3dc-23c06bf96f26 ;
+    prov:wasDerivedFrom niiri:cdafe12b-7479-486e-9e4d-b4cba51a8666 .
+
+niiri:c22c8942-b4c5-4b56-b935-83773fab494e a nidm:NIDM_0000061,
+        prov:Entity ;
+    rdfs:label "Parameter estimate 1" ;
+    nidm:NIDM_0000104 niiri:ee0cc721-eb90-47b7-8e8e-d2cc1923463c ;
+    nfo:fileName "pe1.nii.gz"^^xsd:string ;
+    prov:wasGeneratedBy <http://iri.nidash.org/8f3da601-bf22-47a6-a90c-aaa7fcb006f6> .
+
+niiri:c345dfd5-cdb4-407c-b09f-234f02a62123 a nidm:NIDM_0000140,
+        prov:Entity ;
+    rdfs:label "Center of gravity 1" ;
+    prov:atLocation <http://iri.nidash.org/3d81d600-0603-44ee-833e-145ae6aa611b> ;
+    prov:wasDerivedFrom niiri:cdafe12b-7479-486e-9e4d-b4cba51a8666 .
+
+niiri:cdd25112-357d-43fc-9fe2-ac04325449e2 a nidm:NIDM_0000062,
+        prov:Entity ;
+    rdfs:label "Peak 0001_2" ;
+    nidm:NIDM_0000092 "3.16"^^xsd:float ;
+    nidm:NIDM_0000116 "0.000788845694376"^^xsd:float ;
+    prov:atLocation <http://iri.nidash.org/019c0255-7b4c-47f3-ab67-2f848a488b97> ;
+    prov:wasDerivedFrom niiri:cdafe12b-7479-486e-9e4d-b4cba51a8666 .
+
+niiri:d1b5db2f-3c95-4755-b9e2-b524dfdfbeb7 a nidm:NIDM_0000062,
+        prov:Entity ;
+    rdfs:label "Peak 0003_3" ;
+    nidm:NIDM_0000092 "4.63"^^xsd:float ;
+    nidm:NIDM_0000116 "1.82832866358e-06"^^xsd:float ;
+    prov:atLocation <http://iri.nidash.org/90a0feb8-e155-456d-810d-013468feb66e> ;
+    prov:wasDerivedFrom niiri:a778c7e2-d2e2-43aa-be45-c421a977b484 .
+
+niiri:d4ea4c04-0e02-4a37-ba9b-7b0f07469175 a nidm:NIDM_0000027,
+        prov:Bundle,
+        prov:Entity ;
+    rdfs:label "NIDM-Results" ;
+    nidm:NIDM_0000127 "1.1.0"^^xsd:string ;
+    prov:qualifiedGeneration [ a prov:Generation ;
+            prov:atTime "08:28:21.676225"^^xsd:dateTime ] .
+
+niiri:da855bec-ffe8-4f83-9e03-e5f49e625769 a nidm:NIDM_0000068,
         prov:Entity ;
     rdfs:label "Search Space Mask Map" ;
     crypto:sha512 "cc1a96a6111e5107eb08487e38e6d7f8164b9d1d3f1fc10948bdbcfaea642fe9bfae278c7fc372b65cac7232ea58fd8fb5914014e7b9a5d6200592b12b2a728b"^^xsd:string ;
     dct:format "image/nifti"^^xsd:string ;
-    nidm:NIDM_0000104 <http://iri.nidash.org/4c43621c-250e-4dd7-96b7-e25c9b441348> ;
+    nidm:NIDM_0000104 niiri:ee0cc721-eb90-47b7-8e8e-d2cc1923463c ;
     nidm:NIDM_0000120 true ;
     nidm:NIDM_0000121 "45203"^^xsd:int ;
     nidm:NIDM_0000136 "1938078.625"^^xsd:float ;
@@ -62,385 +277,97 @@
     nfo:fileName "SearchSpaceMask.nii.gz"^^xsd:string,
         "mask.nii.gz"^^xsd:string ;
     prov:atLocation "file://./SearchSpaceMask.nii.gz"^^xsd:anyURI ;
-    prov:wasGeneratedBy <http://iri.nidash.org/813f7c23-0ecb-4ce9-b84d-99a25bca41ad> .
+    prov:wasGeneratedBy <http://iri.nidash.org/55a98fe0-57b3-4836-a75d-87023f0dca57> .
 
-<http://iri.nidash.org/250a5114-490d-433e-aada-2cd028eca914> a nidm:NIDM_0000062,
-        prov:Entity ;
-    rdfs:label "Peak 0001_3" ;
-    nidm:NIDM_0000092 "3.03"^^xsd:float ;
-    nidm:NIDM_0000116 "0.00122276869359"^^xsd:float ;
-    prov:atLocation niiri:ea97eead-fae3-415e-ab04-594256034507 ;
-    prov:wasDerivedFrom <http://iri.nidash.org/3e6c65ba-eca0-4771-a26b-0326e17c6608> .
-
-<http://iri.nidash.org/255da31c-5d2e-42ce-9a07-ede2adad0f11> a nidm:NIDM_0000061,
-        prov:Entity ;
-    rdfs:label "Parameter estimate 4" ;
-    nidm:NIDM_0000104 <http://iri.nidash.org/4c43621c-250e-4dd7-96b7-e25c9b441348> ;
-    nfo:fileName "pe4.nii.gz"^^xsd:string ;
-    prov:wasGeneratedBy <http://iri.nidash.org/29cadaab-d09a-4138-bd65-ea4d37cbf4cf> .
-
-<http://iri.nidash.org/28ed20c5-d6a1-4048-9c54-3efdfc0ef10b> a nidm:NIDM_0000062,
-        prov:Entity ;
-    rdfs:label "Peak 0001_4" ;
-    nidm:NIDM_0000092 "2.54"^^xsd:float ;
-    nidm:NIDM_0000116 "0.00554262344308"^^xsd:float ;
-    prov:atLocation niiri:b21af548-ed50-423f-90af-cb250950c57a ;
-    prov:wasDerivedFrom <http://iri.nidash.org/3e6c65ba-eca0-4771-a26b-0326e17c6608> .
-
-<http://iri.nidash.org/3d965c7f-aa03-4cbe-aa46-c421b88c7927> a nidm:NIDM_0000062,
-        prov:Entity ;
-    rdfs:label "Peak 0001_2" ;
-    nidm:NIDM_0000092 "3.16"^^xsd:float ;
-    nidm:NIDM_0000116 "0.000788845694376"^^xsd:float ;
-    prov:atLocation <http://iri.nidash.org/5843dedf-12fb-43a4-b07c-f4db8fefa6fb> ;
-    prov:wasDerivedFrom <http://iri.nidash.org/3e6c65ba-eca0-4771-a26b-0326e17c6608> .
-
-<http://iri.nidash.org/3f501425-9228-47a7-a3b3-cf03331bb50e> a nidm:NIDM_0000062,
-        prov:Entity ;
-    rdfs:label "Peak 0003_3" ;
-    nidm:NIDM_0000092 "4.63"^^xsd:float ;
-    nidm:NIDM_0000116 "1.82832866358e-06"^^xsd:float ;
-    prov:atLocation niiri:f720117c-71b9-42ab-a3c7-d92b16deba6f ;
-    prov:wasDerivedFrom <http://iri.nidash.org/091f60ea-7454-4fe8-b85e-6928d627126b> .
-
-<http://iri.nidash.org/477ca638-4a56-44e4-b411-08689e602812> a nidm:NIDM_0000062,
-        prov:Entity ;
-    rdfs:label "Peak 0003_5" ;
-    nidm:NIDM_0000092 "4.22"^^xsd:float ;
-    nidm:NIDM_0000116 "1.22151159252e-05"^^xsd:float ;
-    prov:atLocation <http://iri.nidash.org/380e3616-5da9-4001-9259-f230bf8ad82c> ;
-    prov:wasDerivedFrom <http://iri.nidash.org/091f60ea-7454-4fe8-b85e-6928d627126b> .
-
-<http://iri.nidash.org/4794cb77-5256-4b5d-8df7-ba1676097e30> a nidm:NIDM_0000062,
-        prov:Entity ;
-    rdfs:label "Peak 0004_2" ;
-    nidm:NIDM_0000092 "5.63"^^xsd:float ;
-    nidm:NIDM_0000116 "9.01048102797e-09"^^xsd:float ;
-    prov:atLocation niiri:b49cf92a-49b1-454d-b291-67694200a03e ;
-    prov:wasDerivedFrom <http://iri.nidash.org/328c2644-fce0-4b88-8a7c-304566e3fc05> .
-
-<http://iri.nidash.org/5e8287f1-010d-4b7e-ba4f-bf095ab1f2d0> a nidm:NIDM_0000140,
-        prov:Entity ;
-    rdfs:label "Center of gravity 4" ;
-    prov:atLocation <http://iri.nidash.org/689e9b72-cf1b-43ad-9683-f87898c3a631> ;
-    prov:wasDerivedFrom <http://iri.nidash.org/328c2644-fce0-4b88-8a7c-304566e3fc05> .
-
-<http://iri.nidash.org/630467e9-d09c-4e76-b97f-571d8f922bef> a nidm:NIDM_0000140,
-        prov:Entity ;
-    rdfs:label "Center of gravity 1" ;
-    prov:atLocation <http://iri.nidash.org/3982a796-7086-4e52-bedb-b7e93a8bb054> ;
-    prov:wasDerivedFrom <http://iri.nidash.org/3e6c65ba-eca0-4771-a26b-0326e17c6608> .
-
-<http://iri.nidash.org/6f23e971-2a5e-49f4-a106-6291b130447e> a nidm:NIDM_0000027,
-        prov:Bundle,
-        prov:Entity ;
-    rdfs:label "NIDM-Results" ;
-    nidm:NIDM_0000127 "1.1.0"^^xsd:string ;
-    prov:qualifiedGeneration [ a prov:Generation ;
-            prov:atTime "13:48:15.486275"^^xsd:dateTime ] .
-
-<http://iri.nidash.org/7326bb64-4b7f-4d15-97a7-8f7eb8680260> a nidm:NIDM_0000062,
-        prov:Entity ;
-    rdfs:label "Peak 0003_2" ;
-    nidm:NIDM_0000092 "5.12"^^xsd:float ;
-    nidm:NIDM_0000116 "1.52767828276e-07"^^xsd:float ;
-    prov:atLocation <http://iri.nidash.org/110d24c1-c71a-4273-8004-ea1e3c211aa1> ;
-    prov:wasDerivedFrom <http://iri.nidash.org/091f60ea-7454-4fe8-b85e-6928d627126b> .
-
-<http://iri.nidash.org/78a770d9-7a56-4b2f-85a7-62c0a87bb851> a nidm:NIDM_0000002,
-        prov:Entity ;
-    rdfs:label "Contrast Map: Generation" ;
-    crypto:sha512 "4c755c0ae6088f8001e0458f89e51fea0e2719b5dc747fed6f617ae12ad5c6a643e1afcb886bcabaaac7911f5e69086c1bd084af9f75dae75913d44a783151f6"^^xsd:string ;
-    dct:format "image/nifti"^^xsd:string ;
-    nidm:NIDM_0000085 "Generation"^^xsd:string ;
-    nidm:NIDM_0000104 <http://iri.nidash.org/4c43621c-250e-4dd7-96b7-e25c9b441348> ;
-    nfo:fileName "Contrast.nii.gz"^^xsd:string,
-        "cope1.nii.gz"^^xsd:string ;
-    prov:atLocation "file://./Contrast.nii.gz"^^xsd:anyURI ;
-    prov:wasGeneratedBy niiri:ad0d6e4a-4643-4be5-a7ed-f47827c0e7b7 .
-
-<http://iri.nidash.org/7aee2631-503d-4364-9d66-07fd43ee29c1> a nidm:NIDM_0000061,
-        prov:Entity ;
-    rdfs:label "Parameter estimate 2" ;
-    nidm:NIDM_0000104 <http://iri.nidash.org/4c43621c-250e-4dd7-96b7-e25c9b441348> ;
-    nfo:fileName "pe2.nii.gz"^^xsd:string ;
-    prov:wasGeneratedBy <http://iri.nidash.org/29cadaab-d09a-4138-bd65-ea4d37cbf4cf> .
-
-<http://iri.nidash.org/8027b874-2716-4466-9867-4c67c900b910> a nidm:NIDM_0000061,
-        prov:Entity ;
-    rdfs:label "Parameter estimate 3" ;
-    nidm:NIDM_0000104 <http://iri.nidash.org/4c43621c-250e-4dd7-96b7-e25c9b441348> ;
-    nfo:fileName "pe3.nii.gz"^^xsd:string ;
-    prov:wasGeneratedBy <http://iri.nidash.org/29cadaab-d09a-4138-bd65-ea4d37cbf4cf> .
-
-<http://iri.nidash.org/91d7f52c-b972-4766-9eaf-3a82af09ff2f> a nidm:NIDM_0000033,
-        prov:Entity ;
-    rdfs:label "Grand Mean Map" ;
-    crypto:sha512 "7a2703cea740e27a5170fb19e4a09b5e815e4b7e477bc75958404d675aa408f53f747892a2ef4472f933cf5f12cd21cea99d5f5e551938081636fb6d4049473e"^^xsd:string ;
-    dct:format "image/nifti"^^xsd:string ;
-    nidm:NIDM_0000104 <http://iri.nidash.org/4c43621c-250e-4dd7-96b7-e25c9b441348> ;
-    nidm:NIDM_0000107 "9597.359375"^^xsd:float ;
-    nfo:fileName "GrandMean.nii.gz"^^xsd:string,
-        "mean_func.nii.gz"^^xsd:string ;
-    prov:atLocation "file://./GrandMean.nii.gz"^^xsd:anyURI ;
-    prov:wasGeneratedBy <http://iri.nidash.org/29cadaab-d09a-4138-bd65-ea4d37cbf4cf> .
-
-<http://iri.nidash.org/9874f4a4-ecda-4a48-8439-32b8b3ce4621> a nidm:NIDM_0000062,
-        prov:Entity ;
-    rdfs:label "Peak 0002_1" ;
-    nidm:NIDM_0000092 "4.64"^^xsd:float ;
-    nidm:NIDM_0000116 "1.74204589032e-06"^^xsd:float ;
-    prov:atLocation niiri:b9d5981e-f669-43b5-a9c8-67f2b9747e24 ;
-    prov:wasDerivedFrom <http://iri.nidash.org/73e0b764-ff5e-400a-a967-8f8f42d742b1> .
-
-<http://iri.nidash.org/99b17989-54f4-49b0-b2a8-91f1e71ab474> a obo:STATO_0000323,
-        prov:Entity ;
-    rdfs:label "Contrast Weights: Generation" ;
-    nidm:NIDM_0000085 "Generation"^^xsd:string ;
-    nidm:NIDM_0000123 obo:STATO_0000176 ;
-    prov:value "[1, 0, 0, 0]"^^xsd:string .
-
-<http://iri.nidash.org/9d7b9c0a-c58a-4749-b1e7-78d7f1583e2b> a nidm:NIDM_0000076,
-        prov:Entity ;
-    rdfs:label "Statistic Map: Generation" ;
-    crypto:sha512 "b6286d36e678c23622b5b0486f0efb5b274f9a5e2a3ee6aceb6a0338f7745fb8a4d8f72b8af22c4ffb40c860bfb65940c87b03a7336cdf1a665f9cb07a5c2527"^^xsd:string ;
-    dct:format "image/nifti"^^xsd:string ;
-    nidm:NIDM_0000085 "Generation"^^xsd:string ;
-    nidm:NIDM_0000091 "1.0"^^xsd:float ;
-    nidm:NIDM_0000093 "102.0"^^xsd:float ;
-    nidm:NIDM_0000104 <http://iri.nidash.org/4c43621c-250e-4dd7-96b7-e25c9b441348> ;
-    nidm:NIDM_0000123 obo:STATO_0000176 ;
-    nfo:fileName "TStatistic.nii.gz"^^xsd:string,
-        "tstat1.nii.gz"^^xsd:string ;
-    prov:atLocation "file://./TStatistic.nii.gz"^^xsd:anyURI ;
-    prov:wasGeneratedBy niiri:ad0d6e4a-4643-4be5-a7ed-f47827c0e7b7 .
-
-<http://iri.nidash.org/9e9326e2-fba0-485d-a6bf-9f8b5c2e93e1> a nidm:NIDM_0000062,
-        prov:Entity ;
-    rdfs:label "Peak 0003_1" ;
-    nidm:NIDM_0000092 "5.61"^^xsd:float ;
-    nidm:NIDM_0000116 "1.01163307731e-08"^^xsd:float ;
-    prov:atLocation <http://iri.nidash.org/6f7825c0-aa32-4df3-a0e9-9a28e24b3a56> ;
-    prov:wasDerivedFrom <http://iri.nidash.org/091f60ea-7454-4fe8-b85e-6928d627126b> .
-
-niiri:a9fc9a74-b391-4ba0-88e2-68e29752ae6f a nidm:NIDM_0000013,
-        prov:Entity ;
-    rdfs:label "Contrast Standard Error Map" ;
-    crypto:sha512 "8529f3ff9f10da8f332ced9d579990321475c1498b56d79ede560ba2eccf6d68718757dc7af78eb1e86617a41e6c9f55161f756d184e2b0fb06c3d419dc99856"^^xsd:string ;
-    dct:format "image/nifti"^^xsd:string ;
-    nidm:NIDM_0000104 <http://iri.nidash.org/4c43621c-250e-4dd7-96b7-e25c9b441348> ;
-    nfo:fileName "ContrastStandardError.nii.gz"^^xsd:string ;
-    prov:atLocation "file://./ContrastStandardError.nii.gz"^^xsd:anyURI ;
-    prov:wasDerivedFrom niiri:c28741c9-bf07-4014-8c4b-17e0fa1c94bf ;
-    prov:wasGeneratedBy niiri:ad0d6e4a-4643-4be5-a7ed-f47827c0e7b7 .
-
-niiri:b156ed18-4b9b-4ebb-bac3-a058c220e709 a nidm:NIDM_0000061,
-        prov:Entity ;
-    rdfs:label "Parameter estimate 1" ;
-    nidm:NIDM_0000104 <http://iri.nidash.org/4c43621c-250e-4dd7-96b7-e25c9b441348> ;
-    nfo:fileName "pe1.nii.gz"^^xsd:string ;
-    prov:wasGeneratedBy <http://iri.nidash.org/29cadaab-d09a-4138-bd65-ea4d37cbf4cf> .
-
-niiri:bb14d7b7-5542-4d6f-9502-17e014b7abd8 a nidm:NIDM_0000062,
-        prov:Entity ;
-    rdfs:label "Peak 0003_4" ;
-    nidm:NIDM_0000092 "4.27"^^xsd:float ;
-    nidm:NIDM_0000116 "9.77364837285e-06"^^xsd:float ;
-    prov:atLocation <http://iri.nidash.org/27c4f5c4-98c1-4b45-a89f-815fcca40e86> ;
-    prov:wasDerivedFrom <http://iri.nidash.org/091f60ea-7454-4fe8-b85e-6928d627126b> .
-
-niiri:c2d0ab0b-fc54-41b4-97a6-59963318688a a nidm:NIDM_0000062,
-        prov:Entity ;
-    rdfs:label "Peak 0001_1" ;
-    nidm:NIDM_0000092 "4.61"^^xsd:float ;
-    nidm:NIDM_0000116 "2.01334485483e-06"^^xsd:float ;
-    prov:atLocation niiri:d2323a2f-9a17-4a5c-b703-025dac1461d3 ;
-    prov:wasDerivedFrom <http://iri.nidash.org/3e6c65ba-eca0-4771-a26b-0326e17c6608> .
-
-niiri:c705521a-7b75-4a5c-adff-22dc2cc2857d a nidm:NIDM_0000140,
-        prov:Entity ;
-    rdfs:label "Center of gravity 3" ;
-    prov:atLocation <http://iri.nidash.org/2fecaf95-9ffa-429d-a38e-3c4bb0f5266f> ;
-    prov:wasDerivedFrom <http://iri.nidash.org/091f60ea-7454-4fe8-b85e-6928d627126b> .
-
-niiri:c88bb670-3bb2-4ca8-aa1d-8a22bc5732f3 a nidm:NIDM_0000062,
+niiri:f38200fe-8e9f-4b74-841f-6fe427210da1 a nidm:NIDM_0000062,
         prov:Entity ;
     rdfs:label "Peak 0004_3" ;
     nidm:NIDM_0000092 "5.62"^^xsd:float ;
     nidm:NIDM_0000116 "9.54787293672e-09"^^xsd:float ;
-    prov:atLocation niiri:f874c4bb-6598-4fc5-855f-bd2bf1de56fa ;
-    prov:wasDerivedFrom <http://iri.nidash.org/328c2644-fce0-4b88-8a7c-304566e3fc05> .
+    prov:atLocation niiri:acc92529-fc95-4191-b3c7-1356e2e9979a ;
+    prov:wasDerivedFrom niiri:f3988841-eee1-4279-b17d-9596c3e387f3 .
 
-niiri:cf538e73-51fb-4f4d-bfd6-7c8cb52bac57 a nidm:NIDM_0000062,
+niiri:fa1776d1-1804-4a16-be18-796f987b2957 a nidm:NIDM_0000062,
         prov:Entity ;
-    rdfs:label "Peak 0002_2" ;
-    nidm:NIDM_0000092 "4.43"^^xsd:float ;
-    nidm:NIDM_0000116 "4.71165441196e-06"^^xsd:float ;
-    prov:atLocation <http://iri.nidash.org/8ae38aca-cb7e-4a78-9fbc-f357ccf0333c> ;
-    prov:wasDerivedFrom <http://iri.nidash.org/73e0b764-ff5e-400a-a967-8f8f42d742b1> .
+    rdfs:label "Peak 0004_2" ;
+    nidm:NIDM_0000092 "5.63"^^xsd:float ;
+    nidm:NIDM_0000116 "9.01048102797e-09"^^xsd:float ;
+    prov:atLocation niiri:a2541dc7-1e47-4bf0-9829-7ad716ae251d ;
+    prov:wasDerivedFrom niiri:f3988841-eee1-4279-b17d-9596c3e387f3 .
 
-niiri:d6d0d206-c087-4424-af7c-89f04c6aad5c a nidm:NIDM_0000062,
+<http://iri.nidash.org/019c0255-7b4c-47f3-ab67-2f848a488b97> a nidm:NIDM_0000015,
         prov:Entity ;
-    rdfs:label "Peak 0003_6" ;
-    nidm:NIDM_0000092 "4.12"^^xsd:float ;
-    nidm:NIDM_0000116 "1.89436199505e-05"^^xsd:float ;
-    prov:atLocation <http://iri.nidash.org/1f82725a-ced2-4658-b977-1f657de478a8> ;
-    prov:wasDerivedFrom <http://iri.nidash.org/091f60ea-7454-4fe8-b85e-6928d627126b> .
+    rdfs:label "Coordinate 0001_2" ;
+    nidm:NIDM_0000086 "[ -9.14, 30.5, 23.7 ]"^^xsd:string ;
+    nidm:NIDM_0000139 "[ 33, 43, 28 ]"^^xsd:string .
 
-niiri:fad46896-8f97-4b81-bd42-460aa9bb7614 a nidm:NIDM_0000062,
+<http://iri.nidash.org/07a5e4fa-d7a8-4c28-91bf-1179d39f4313> a nidm:NIDM_0000054,
         prov:Entity ;
-    rdfs:label "Peak 0004_6" ;
-    nidm:NIDM_0000092 "5.56"^^xsd:float ;
-    nidm:NIDM_0000116 "1.34887325753e-08"^^xsd:float ;
-    prov:atLocation <http://iri.nidash.org/044594c5-b4a5-4eef-b60c-20a3ed0f8cb6> ;
-    prov:wasDerivedFrom <http://iri.nidash.org/328c2644-fce0-4b88-8a7c-304566e3fc05> .
+    rdfs:label "Mask" ;
+    crypto:sha512 "cc1a96a6111e5107eb08487e38e6d7f8164b9d1d3f1fc10948bdbcfaea642fe9bfae278c7fc372b65cac7232ea58fd8fb5914014e7b9a5d6200592b12b2a728b"^^xsd:string ;
+    dct:format "image/nifti"^^xsd:string ;
+    nidm:NIDM_0000104 niiri:ee0cc721-eb90-47b7-8e8e-d2cc1923463c ;
+    nidm:NIDM_0000106 false ;
+    nfo:fileName "Mask.nii.gz"^^xsd:string,
+        "mask.nii.gz"^^xsd:string ;
+    prov:atLocation "file://./Mask.nii.gz"^^xsd:anyURI ;
+    prov:wasGeneratedBy <http://iri.nidash.org/8f3da601-bf22-47a6-a90c-aaa7fcb006f6> .
 
-<http://iri.nidash.org/044594c5-b4a5-4eef-b60c-20a3ed0f8cb6> a nidm:NIDM_0000015,
+<http://iri.nidash.org/10c83d98-2115-40aa-ab0e-0459103bdf03> a nidm:NIDM_0000015,
+        prov:Entity ;
+    rdfs:label "Coordinate 0003_4" ;
+    nidm:NIDM_0000086 "[ -57.4, 31.8, -2.12 ]"^^xsd:string ;
+    nidm:NIDM_0000139 "[ 46, 45, 22 ]"^^xsd:string .
+
+<http://iri.nidash.org/160e45e1-49a0-480a-863c-e162f4ca0ccf> a nidm:NIDM_0000015,
+        prov:Entity ;
+    rdfs:label "Coordinate 0004_1" ;
+    nidm:NIDM_0000086 "[ -33.7, -66.7, -14.7 ]"^^xsd:string ;
+    nidm:NIDM_0000139 "[ 41, 17, 13 ]"^^xsd:string .
+
+<http://iri.nidash.org/173aed6a-9dbd-4ea0-90ce-dd27d0273600> a nidm:NIDM_0000015,
+        prov:Entity ;
+    rdfs:label "Coordinate 0003" ;
+    nidm:NIDM_0000086 "[ -47.2, 17.3, 9.18 ]"^^xsd:string ;
+    nidm:NIDM_0000139 "[ 43.4, 40.3, 23.9 ]"^^xsd:string .
+
+<http://iri.nidash.org/1acddf16-dee5-4320-8988-d9e96b5867dc> a nidm:NIDM_0000066,
+        prov:Entity ;
+    rdfs:label "Residual Mean Squares Map" ;
+    crypto:sha512 "1327a300eb1e20d42c67abb3c49a47b80ecabfebd13d0ba0aca0560e8bf43891f0e35a958c1afa84e041f62cf0038f58b4ab71f68b0b50d4153210aeed74f4ff"^^xsd:string ;
+    dct:format "image/nifti"^^xsd:string ;
+    nidm:NIDM_0000104 niiri:ee0cc721-eb90-47b7-8e8e-d2cc1923463c ;
+    nfo:fileName "ResidualMeanSquares.nii.gz"^^xsd:string,
+        "sigmasquareds.nii.gz"^^xsd:string ;
+    prov:atLocation "file://./ResidualMeanSquares.nii.gz"^^xsd:anyURI ;
+    prov:wasGeneratedBy <http://iri.nidash.org/8f3da601-bf22-47a6-a90c-aaa7fcb006f6> .
+
+<http://iri.nidash.org/1c448ac1-933b-472e-a55f-b5db3c29c52f> a nidm:NIDM_0000015,
         prov:Entity ;
     rdfs:label "Coordinate 0004_6" ;
     nidm:NIDM_0000086 "[ 0.791, -87.2, 3.23 ]"^^xsd:string ;
     nidm:NIDM_0000139 "[ 32, 10, 16 ]"^^xsd:string .
 
-<http://iri.nidash.org/09a5efd4-d6c0-4cea-8c2a-b66cf734c5f4> a nidm:NIDM_0000018,
-        prov:Collection,
+<http://iri.nidash.org/1e759d6b-85f7-4155-bfb4-38e253b1e14f> a nidm:NIDM_0000015,
         prov:Entity ;
-    rdfs:label "Data" ;
-    nidm:NIDM_0000096 true ;
-    nidm:NIDM_0000124 "10000.0"^^xsd:float .
+    rdfs:label "Coordinate 0004" ;
+    nidm:NIDM_0000086 "[ -7.38, -72.5, -8.5 ]"^^xsd:string ;
+    nidm:NIDM_0000139 "[ 34.0, 14.7, 14.0 ]"^^xsd:string .
 
-<http://iri.nidash.org/110d24c1-c71a-4273-8004-ea1e3c211aa1> a nidm:NIDM_0000015,
+<http://iri.nidash.org/216e2b56-5264-4ab0-92a6-b624eb0905a4> a nidm:NIDM_0000015,
         prov:Entity ;
-    rdfs:label "Coordinate 0003_2" ;
-    nidm:NIDM_0000086 "[ -45.5, 17.8, -6.65 ]"^^xsd:string ;
-    nidm:NIDM_0000139 "[ 43, 41, 20 ]"^^xsd:string .
+    rdfs:label "Coordinate 0003_1" ;
+    nidm:NIDM_0000086 "[ -38.3, 20.7, 13.2 ]"^^xsd:string ;
+    nidm:NIDM_0000139 "[ 41, 41, 25 ]"^^xsd:string .
 
-<http://iri.nidash.org/1146e94a-72ce-44b4-b6a6-fb9557a11c7b> a dctype:Image,
-        prov:Entity ;
-    dct:format "image/png"^^xsd:string ;
-    nfo:fileName "rendered_thresh_zstat1.png"^^xsd:string ;
-    prov:atLocation "file://./rendered_thresh_zstat1.png"^^xsd:anyURI .
-
-<http://iri.nidash.org/1f82725a-ced2-4658-b977-1f657de478a8> a nidm:NIDM_0000015,
-        prov:Entity ;
-    rdfs:label "Coordinate 0003_6" ;
-    nidm:NIDM_0000086 "[ -53.3, 23.3, 12.2 ]"^^xsd:string ;
-    nidm:NIDM_0000139 "[ 45, 42, 25 ]"^^xsd:string .
-
-<http://iri.nidash.org/237c377a-c0dd-4fcc-9957-79e1e1f5c358> a dctype:Image,
+<http://iri.nidash.org/328e9966-1563-48a7-a37d-c40d3cbbaf0e> a dctype:Image,
         prov:Entity ;
     dct:format "image/png"^^xsd:string ;
     nfo:fileName "DesignMatrix.png"^^xsd:string,
         "design.png"^^xsd:string ;
     prov:atLocation "file://./DesignMatrix.png"^^xsd:anyURI .
 
-<http://iri.nidash.org/27c4f5c4-98c1-4b45-a89f-815fcca40e86> a nidm:NIDM_0000015,
-        prov:Entity ;
-    rdfs:label "Coordinate 0003_4" ;
-    nidm:NIDM_0000086 "[ -57.4, 31.8, -2.12 ]"^^xsd:string ;
-    nidm:NIDM_0000139 "[ 46, 45, 22 ]"^^xsd:string .
-
-<http://iri.nidash.org/2faac4d7-2593-42a9-b994-7ce26b5fa665> a nidm:NIDM_0000007,
-        prov:Entity ;
-    rdfs:label "Cluster Connectivity Criterion: 26" ;
-    nidm:NIDM_0000099 nidm:NIDM_0000129 .
-
-<http://iri.nidash.org/2fecaf95-9ffa-429d-a38e-3c4bb0f5266f> a nidm:NIDM_0000015,
-        prov:Entity ;
-    rdfs:label "Coordinate 0003" ;
-    nidm:NIDM_0000086 "[ -47.2, 17.3, 9.18 ]"^^xsd:string ;
-    nidm:NIDM_0000139 "[ 43.4, 40.3, 23.9 ]"^^xsd:string .
-
-<http://iri.nidash.org/370a00d1-485b-4b25-a846-243a8449db10> a fsl:FSL_0000002,
-        prov:Entity ;
-    rdfs:label "FSL's Gaussian Running Line Drift Model" ;
-    fsl:FSL_0000004 "1908.0"^^xsd:float .
-
-<http://iri.nidash.org/380e3616-5da9-4001-9259-f230bf8ad82c> a nidm:NIDM_0000015,
-        prov:Entity ;
-    rdfs:label "Coordinate 0003_5" ;
-    nidm:NIDM_0000086 "[ -34.0, 8.84, 28.3 ]"^^xsd:string ;
-    nidm:NIDM_0000139 "[ 40, 37, 28 ]"^^xsd:string .
-
-<http://iri.nidash.org/3982a796-7086-4e52-bedb-b7e93a8bb054> a nidm:NIDM_0000015,
-        prov:Entity ;
-    rdfs:label "Coordinate 0001" ;
-    nidm:NIDM_0000086 "[ -5.8, 19.1, 38.5 ]"^^xsd:string ;
-    nidm:NIDM_0000139 "[ 32.3, 39.2, 31.0 ]"^^xsd:string .
-
-<http://iri.nidash.org/4a72b140-cceb-4315-8b3b-b672f0bf00ed> a obo:STATO_0000039,
-        nidm:NIDM_0000034,
-        prov:Entity ;
-    rdfs:label "Height Threshold: Z>2.3" ;
-    prov:value "2.3"^^xsd:float .
-
-<http://iri.nidash.org/52a6c1c7-e688-4f98-ada8-838d93d99a5d> a nidm:NIDM_0000015,
-        prov:Entity ;
-    rdfs:label "Coordinate 0004_5" ;
-    nidm:NIDM_0000086 "[ -25.5, -80.4, -15.3 ]"^^xsd:string ;
-    nidm:NIDM_0000139 "[ 39, 13, 12 ]"^^xsd:string .
-
-<http://iri.nidash.org/54fd1f9b-b214-4ee9-9327-cdbb8a44b5da> a nidm:NIDM_0000023,
-        prov:Entity ;
-    nidm:NIDM_0000089 nidm:NIDM_0000074 ;
-    nidm:NIDM_0000094 true ;
-    nidm:NIDM_0000100 obo:STATO_0000357 ;
-    nidm:NIDM_0000101 nidm:NIDM_0000032 ;
-    nidm:NIDM_0000126 nidm:NIDM_0000073 .
-
-<http://iri.nidash.org/5843dedf-12fb-43a4-b07c-f4db8fefa6fb> a nidm:NIDM_0000015,
-        prov:Entity ;
-    rdfs:label "Coordinate 0001_2" ;
-    nidm:NIDM_0000086 "[ -9.14, 30.5, 23.7 ]"^^xsd:string ;
-    nidm:NIDM_0000139 "[ 33, 43, 28 ]"^^xsd:string .
-
-<http://iri.nidash.org/60a7a61c-bf1e-4703-a9fc-7396ce0efc71> a nidm:NIDM_0000063,
-        prov:Entity ;
-    rdfs:label "Peak Definition Criteria" ;
-    nidm:NIDM_0000109 "0.0"^^xsd:float .
-
-<http://iri.nidash.org/689e9b72-cf1b-43ad-9683-f87898c3a631> a nidm:NIDM_0000015,
-        prov:Entity ;
-    rdfs:label "Coordinate 0004" ;
-    nidm:NIDM_0000086 "[ -7.38, -72.5, -8.5 ]"^^xsd:string ;
-    nidm:NIDM_0000139 "[ 34.0, 14.7, 14.0 ]"^^xsd:string .
-
-<http://iri.nidash.org/6f7825c0-aa32-4df3-a0e9-9a28e24b3a56> a nidm:NIDM_0000015,
-        prov:Entity ;
-    rdfs:label "Coordinate 0003_1" ;
-    nidm:NIDM_0000086 "[ -38.3, 20.7, 13.2 ]"^^xsd:string ;
-    nidm:NIDM_0000139 "[ 41, 41, 25 ]"^^xsd:string .
-
-<http://iri.nidash.org/76803c90-95bb-439c-8b13-baec8779cc96> a nidm:NIDM_0000015,
-        prov:Entity ;
-    rdfs:label "Coordinate 0004_1" ;
-    nidm:NIDM_0000086 "[ -33.7, -66.7, -14.7 ]"^^xsd:string ;
-    nidm:NIDM_0000139 "[ 41, 17, 13 ]"^^xsd:string .
-
-<http://iri.nidash.org/7bacdec5-0b11-43f1-ad4c-c4a21d8d11cb> a nidm:NIDM_0000015,
-        prov:Entity ;
-    rdfs:label "Coordinate 0004_4" ;
-    nidm:NIDM_0000086 "[ -48.1, -73.7, -9.24 ]"^^xsd:string ;
-    nidm:NIDM_0000139 "[ 45, 15, 14 ]"^^xsd:string .
-
-<http://iri.nidash.org/7ef56f1e-0f2f-4041-af7b-220e89c41d57> a nidm:NIDM_0000019,
-        prov:Entity ;
-    rdfs:label "Design Matrix" ;
-    dc:description <http://iri.nidash.org/237c377a-c0dd-4fcc-9957-79e1e1f5c358> ;
-    dct:format "text/csv"^^xsd:string ;
-    nidm:NIDM_0000010 nidm:NIDM_0000153 ;
-    nidm:NIDM_0000021 "[\"Gen\", \"Gen*temporal_derivative\", \"Shad\", \"Shad*temporal_derivative\"]"^^xsd:string ;
-    nidm:NIDM_0000088 <http://iri.nidash.org/370a00d1-485b-4b25-a846-243a8449db10> ;
-    nidm:NIDM_0000102 fsl:FSL_0000001 ;
-    nfo:fileName "DesignMatrix.csv"^^xsd:string ;
-    prov:atLocation "file://./DesignMatrix.csv"^^xsd:anyURI .
-
-<http://iri.nidash.org/8ae38aca-cb7e-4a78-9fbc-f357ccf0333c> a nidm:NIDM_0000015,
-        prov:Entity ;
-    rdfs:label "Coordinate 0002_2" ;
-    nidm:NIDM_0000086 "[ -56.7, -53.1, 18.2 ]"^^xsd:string ;
-    nidm:NIDM_0000139 "[ 47, 20, 22 ]"^^xsd:string .
-
-<http://iri.nidash.org/96bf7ba5-797b-4143-a1f1-e56a6a2b86c5> a nidm:NIDM_0000076,
+<http://iri.nidash.org/349f7132-4dc7-413c-b7e2-9ce2d247d701> a nidm:NIDM_0000076,
         prov:Entity ;
     rdfs:label "Z-Statistic Map: Generation" ;
     crypto:sha512 "3a68a4e5963766af86d22a871a4dbca9568a46441a567855b3a84dbd47ea01acea11ed77b37ce85078a219adaa92264296a4548c1ba39b11ff028e8fefd95d03"^^xsd:string ;
@@ -448,175 +375,248 @@ niiri:fad46896-8f97-4b81-bd42-460aa9bb7614 a nidm:NIDM_0000062,
     nidm:NIDM_0000085 "Generation"^^xsd:string ;
     nidm:NIDM_0000091 "1.0"^^xsd:float ;
     nidm:NIDM_0000093 "inf"^^xsd:float ;
-    nidm:NIDM_0000104 <http://iri.nidash.org/4c43621c-250e-4dd7-96b7-e25c9b441348> ;
+    nidm:NIDM_0000104 niiri:ee0cc721-eb90-47b7-8e8e-d2cc1923463c ;
     nidm:NIDM_0000123 obo:STATO_0000376 ;
     nfo:fileName "ZStatistic.nii.gz"^^xsd:string,
         "zstat1.nii.gz"^^xsd:string ;
     prov:atLocation "file://./ZStatistic.nii.gz"^^xsd:anyURI ;
-    prov:wasGeneratedBy niiri:ad0d6e4a-4643-4be5-a7ed-f47827c0e7b7 .
+    prov:wasGeneratedBy niiri:c61842e0-07a2-457e-ba3d-c076afb82541 .
 
-niiri:a3173c73-af8f-4b98-82ea-9628fc87b33f a nidm:NIDM_0000054,
+<http://iri.nidash.org/3d81d600-0603-44ee-833e-145ae6aa611b> a nidm:NIDM_0000015,
         prov:Entity ;
-    rdfs:label "Mask" ;
-    crypto:sha512 "cc1a96a6111e5107eb08487e38e6d7f8164b9d1d3f1fc10948bdbcfaea642fe9bfae278c7fc372b65cac7232ea58fd8fb5914014e7b9a5d6200592b12b2a728b"^^xsd:string ;
-    dct:format "image/nifti"^^xsd:string ;
-    nidm:NIDM_0000104 <http://iri.nidash.org/4c43621c-250e-4dd7-96b7-e25c9b441348> ;
-    nidm:NIDM_0000106 false ;
-    nfo:fileName "Mask.nii.gz"^^xsd:string,
-        "mask.nii.gz"^^xsd:string ;
-    prov:atLocation "file://./Mask.nii.gz"^^xsd:anyURI ;
-    prov:wasGeneratedBy <http://iri.nidash.org/29cadaab-d09a-4138-bd65-ea4d37cbf4cf> .
+    rdfs:label "Coordinate 0001" ;
+    nidm:NIDM_0000086 "[ -5.8, 19.1, 38.5 ]"^^xsd:string ;
+    nidm:NIDM_0000139 "[ 32.3, 39.2, 31.0 ]"^^xsd:string .
 
-niiri:a51a724a-2e65-4a51-80da-9b680f90dec2 a nidm:NIDM_0000015,
+<http://iri.nidash.org/43febca8-6a4e-4324-bb06-14a856d96dc1> a nidm:NIDM_0000015,
         prov:Entity ;
-    rdfs:label "Coordinate 0002" ;
-    nidm:NIDM_0000086 "[ -56.9, -57.1, 9.86 ]"^^xsd:string ;
-    nidm:NIDM_0000139 "[ 47.1, 19.2, 19.7 ]"^^xsd:string .
+    rdfs:label "Coordinate 0003_2" ;
+    nidm:NIDM_0000086 "[ -45.5, 17.8, -6.65 ]"^^xsd:string ;
+    nidm:NIDM_0000139 "[ 43, 41, 20 ]"^^xsd:string .
 
-niiri:a9d6310c-3fde-4f9e-8e51-ddf91da4e18e a nidm:NIDM_0000066,
+<http://iri.nidash.org/448cbd69-b3d2-4288-91e0-3d388cdc3aa5> a obo:STATO_0000039,
+        nidm:NIDM_0000034,
         prov:Entity ;
-    rdfs:label "Residual Mean Squares Map" ;
-    crypto:sha512 "1327a300eb1e20d42c67abb3c49a47b80ecabfebd13d0ba0aca0560e8bf43891f0e35a958c1afa84e041f62cf0038f58b4ab71f68b0b50d4153210aeed74f4ff"^^xsd:string ;
-    dct:format "image/nifti"^^xsd:string ;
-    nidm:NIDM_0000104 <http://iri.nidash.org/4c43621c-250e-4dd7-96b7-e25c9b441348> ;
-    nfo:fileName "ResidualMeanSquares.nii.gz"^^xsd:string,
-        "sigmasquareds.nii.gz"^^xsd:string ;
-    prov:atLocation "file://./ResidualMeanSquares.nii.gz"^^xsd:anyURI ;
-    prov:wasGeneratedBy <http://iri.nidash.org/29cadaab-d09a-4138-bd65-ea4d37cbf4cf> .
+    rdfs:label "Height Threshold: Z>2.3" ;
+    prov:value "2.3"^^xsd:float .
 
-niiri:b21af548-ed50-423f-90af-cb250950c57a a nidm:NIDM_0000015,
+<http://iri.nidash.org/474b99e3-b840-479b-a5d4-b904fc2ae181> a nidm:NIDM_0000023,
+        prov:Entity ;
+    nidm:NIDM_0000089 nidm:NIDM_0000074 ;
+    nidm:NIDM_0000094 true ;
+    nidm:NIDM_0000100 obo:STATO_0000357 ;
+    nidm:NIDM_0000101 nidm:NIDM_0000032 ;
+    nidm:NIDM_0000126 nidm:NIDM_0000073 .
+
+<http://iri.nidash.org/4ecc637a-11c6-4707-9bc0-6f0edc8cd34a> a nidm:NIDM_0000007,
+        prov:Entity ;
+    rdfs:label "Cluster Connectivity Criterion: 26" ;
+    nidm:NIDM_0000099 nidm:NIDM_0000129 .
+
+<http://iri.nidash.org/6925b7fe-7800-4c7b-b3fb-c5b145ce61de> a fsl:FSL_0000002,
+        prov:Entity ;
+    rdfs:label "FSL's Gaussian Running Line Drift Model" ;
+    fsl:FSL_0000004 "1908.0"^^xsd:float .
+
+<http://iri.nidash.org/70a25bd9-229f-46c5-a9d3-f211094b533f> a dctype:Image,
+        prov:Entity ;
+    dct:format "image/png"^^xsd:string ;
+    nfo:fileName "rendered_thresh_zstat1.png"^^xsd:string ;
+    prov:atLocation "file://./rendered_thresh_zstat1.png"^^xsd:anyURI .
+
+<http://iri.nidash.org/82b39cb1-e7ae-4331-9283-141b7dc72d2a> a nidm:NIDM_0000015,
         prov:Entity ;
     rdfs:label "Coordinate 0001_4" ;
     nidm:NIDM_0000086 "[ -9.64, 40.1, 17.3 ]"^^xsd:string ;
     nidm:NIDM_0000139 "[ 33, 46, 27 ]"^^xsd:string .
 
-niiri:b49cf92a-49b1-454d-b291-67694200a03e a nidm:NIDM_0000015,
-        prov:Entity ;
-    rdfs:label "Coordinate 0004_2" ;
-    nidm:NIDM_0000086 "[ -38.0, -53.9, -21.9 ]"^^xsd:string ;
-    nidm:NIDM_0000139 "[ 42, 21, 12 ]"^^xsd:string .
-
-niiri:b9d5981e-f669-43b5-a9c8-67f2b9747e24 a nidm:NIDM_0000015,
-        prov:Entity ;
-    rdfs:label "Coordinate 0002_1" ;
-    nidm:NIDM_0000086 "[ -56.2, -61.9, 4.03 ]"^^xsd:string ;
-    nidm:NIDM_0000139 "[ 47, 18, 18 ]"^^xsd:string .
-
-niiri:c28741c9-bf07-4014-8c4b-17e0fa1c94bf a nidm:NIDM_0000135,
-        prov:Entity ;
-    crypto:sha512 "7d183bbacc0b99cd1db84174d32445457f532bca9f774fdcc53bc1d0faa5e7d250a1abf03864bd90b30f96f5a7516e0056104a729a565019b0f254a8a7bced1e"^^xsd:string ;
-    dct:format "image/nifti"^^xsd:string ;
-    nfo:fileName "varcope1.nii.gz"^^xsd:string .
-
-niiri:d2323a2f-9a17-4a5c-b703-025dac1461d3 a nidm:NIDM_0000015,
-        prov:Entity ;
-    rdfs:label "Coordinate 0001_1" ;
-    nidm:NIDM_0000086 "[ -8.35, 15.1, 39.6 ]"^^xsd:string ;
-    nidm:NIDM_0000139 "[ 33, 38, 31 ]"^^xsd:string .
-
-niiri:dc07a67d-c2c2-4902-91f0-19d07c1d5fce a obo:OBI_0001265,
-        nidm:NIDM_0000026,
-        prov:Entity ;
-    rdfs:label "Extent Threshold: p<0.05 (FWE)" ;
-    prov:value "0.05"^^xsd:float .
-
-niiri:ea97eead-fae3-415e-ab04-594256034507 a nidm:NIDM_0000015,
-        prov:Entity ;
-    rdfs:label "Coordinate 0001_3" ;
-    nidm:NIDM_0000086 "[ -19.6, 17.4, 34.7 ]"^^xsd:string ;
-    nidm:NIDM_0000139 "[ 36, 39, 30 ]"^^xsd:string .
-
-niiri:f720117c-71b9-42ab-a3c7-d92b16deba6f a nidm:NIDM_0000015,
+<http://iri.nidash.org/90a0feb8-e155-456d-810d-013468feb66e> a nidm:NIDM_0000015,
         prov:Entity ;
     rdfs:label "Coordinate 0003_3" ;
     nidm:NIDM_0000086 "[ -63.4, 3.78, 0.366 ]"^^xsd:string ;
     nidm:NIDM_0000139 "[ 48, 37, 21 ]"^^xsd:string .
 
-niiri:f874c4bb-6598-4fc5-855f-bd2bf1de56fa a nidm:NIDM_0000015,
+<http://iri.nidash.org/91e66097-83b2-48fa-8b87-937edb3fb7ad> a nidm:NIDM_0000015,
+        prov:Entity ;
+    rdfs:label "Coordinate 0004_4" ;
+    nidm:NIDM_0000086 "[ -48.1, -73.7, -9.24 ]"^^xsd:string ;
+    nidm:NIDM_0000139 "[ 45, 15, 14 ]"^^xsd:string .
+
+<http://iri.nidash.org/956c7818-7a17-47e2-b40e-8938148dd15f> a nidm:NIDM_0000015,
+        prov:Entity ;
+    rdfs:label "Coordinate 0003_6" ;
+    nidm:NIDM_0000086 "[ -53.3, 23.3, 12.2 ]"^^xsd:string ;
+    nidm:NIDM_0000139 "[ 45, 42, 25 ]"^^xsd:string .
+
+<http://iri.nidash.org/9687314e-9316-4e2f-9509-bb5ae0f90b58> a nidm:NIDM_0000015,
+        prov:Entity ;
+    rdfs:label "Coordinate 0003_5" ;
+    nidm:NIDM_0000086 "[ -34.0, 8.84, 28.3 ]"^^xsd:string ;
+    nidm:NIDM_0000139 "[ 40, 37, 28 ]"^^xsd:string .
+
+<http://iri.nidash.org/9d9f5b96-3982-4128-8bb9-20f583b89d13> a nidm:NIDM_0000015,
+        prov:Entity ;
+    rdfs:label "Coordinate 0001_3" ;
+    nidm:NIDM_0000086 "[ -19.6, 17.4, 34.7 ]"^^xsd:string ;
+    nidm:NIDM_0000139 "[ 36, 39, 30 ]"^^xsd:string .
+
+niiri:a03728a9-6eb2-49a2-8458-0be480976a91 a nidm:NIDM_0000015,
+        prov:Entity ;
+    rdfs:label "Coordinate 0004_5" ;
+    nidm:NIDM_0000086 "[ -25.5, -80.4, -15.3 ]"^^xsd:string ;
+    nidm:NIDM_0000139 "[ 39, 13, 12 ]"^^xsd:string .
+
+niiri:a1aef6d7-625f-41f7-8e07-0843484157ad a nidm:NIDM_0000019,
+        prov:Entity ;
+    rdfs:label "Design Matrix" ;
+    dc:description <http://iri.nidash.org/328e9966-1563-48a7-a37d-c40d3cbbaf0e> ;
+    dct:format "text/csv"^^xsd:string ;
+    nidm:NIDM_0000010 nidm:NIDM_0000153 ;
+    nidm:NIDM_0000021 "[\"Gen\", \"Gen*temporal_derivative\", \"Shad\", \"Shad*temporal_derivative\"]"^^xsd:string ;
+    nidm:NIDM_0000088 <http://iri.nidash.org/6925b7fe-7800-4c7b-b3fb-c5b145ce61de> ;
+    nidm:NIDM_0000102 fsl:FSL_0000001 ;
+    nfo:fileName "DesignMatrix.csv"^^xsd:string ;
+    prov:atLocation "file://./DesignMatrix.csv"^^xsd:anyURI .
+
+niiri:a2541dc7-1e47-4bf0-9829-7ad716ae251d a nidm:NIDM_0000015,
+        prov:Entity ;
+    rdfs:label "Coordinate 0004_2" ;
+    nidm:NIDM_0000086 "[ -38.0, -53.9, -21.9 ]"^^xsd:string ;
+    nidm:NIDM_0000139 "[ 42, 21, 12 ]"^^xsd:string .
+
+niiri:acc92529-fc95-4191-b3c7-1356e2e9979a a nidm:NIDM_0000015,
         prov:Entity ;
     rdfs:label "Coordinate 0004_3" ;
     nidm:NIDM_0000086 "[ 16.1, -96.6, 5.82 ]"^^xsd:string ;
     nidm:NIDM_0000139 "[ 28, 7, 16 ]"^^xsd:string .
 
-<http://iri.nidash.org/813f7c23-0ecb-4ce9-b84d-99a25bca41ad> a nidm:NIDM_0000049,
+niiri:af7b6184-cbbe-4352-b4e1-fdb1dce5a1f4 a nidm:NIDM_0000015,
+        prov:Entity ;
+    rdfs:label "Coordinate 0002_2" ;
+    nidm:NIDM_0000086 "[ -56.7, -53.1, 18.2 ]"^^xsd:string ;
+    nidm:NIDM_0000139 "[ 47, 20, 22 ]"^^xsd:string .
+
+niiri:bd0c4665-af78-49d0-a839-e3e579e32f7f a nidm:NIDM_0000015,
+        prov:Entity ;
+    rdfs:label "Coordinate 0002_1" ;
+    nidm:NIDM_0000086 "[ -56.2, -61.9, 4.03 ]"^^xsd:string ;
+    nidm:NIDM_0000139 "[ 47, 18, 18 ]"^^xsd:string .
+
+niiri:c72a82d2-42c4-4d2b-b3dc-23c06bf96f26 a nidm:NIDM_0000015,
+        prov:Entity ;
+    rdfs:label "Coordinate 0001_1" ;
+    nidm:NIDM_0000086 "[ -8.35, 15.1, 39.6 ]"^^xsd:string ;
+    nidm:NIDM_0000139 "[ 33, 38, 31 ]"^^xsd:string .
+
+niiri:d3e43cdb-0e5f-4ba0-9371-21192b327325 a nidm:NIDM_0000015,
+        prov:Entity ;
+    rdfs:label "Coordinate 0002" ;
+    nidm:NIDM_0000086 "[ -56.9, -57.1, 9.86 ]"^^xsd:string ;
+    nidm:NIDM_0000139 "[ 47.1, 19.2, 19.7 ]"^^xsd:string .
+
+niiri:db632e0e-98de-4684-8d50-1c2ce384a082 a nidm:NIDM_0000135,
+        prov:Entity ;
+    crypto:sha512 "7d183bbacc0b99cd1db84174d32445457f532bca9f774fdcc53bc1d0faa5e7d250a1abf03864bd90b30f96f5a7516e0056104a729a565019b0f254a8a7bced1e"^^xsd:string ;
+    dct:format "image/nifti"^^xsd:string ;
+    nfo:fileName "varcope1.nii.gz"^^xsd:string .
+
+niiri:ee9c2e8d-73c2-4aa6-8664-728ed8f14379 a nidm:NIDM_0000018,
+        prov:Collection,
+        prov:Entity ;
+    rdfs:label "Data" ;
+    nidm:NIDM_0000096 true ;
+    nidm:NIDM_0000124 "10000.0"^^xsd:float .
+
+niiri:f74fdb60-826b-462c-b75c-5eb0e13a9491 a nidm:NIDM_0000063,
+        prov:Entity ;
+    rdfs:label "Peak Definition Criteria" ;
+    nidm:NIDM_0000109 "0.0"^^xsd:float .
+
+niiri:fb8a22b1-e4ef-4023-8150-68a6b9774527 a obo:OBI_0001265,
+        nidm:NIDM_0000026,
+        prov:Entity ;
+    rdfs:label "Extent Threshold: p<0.05 (FWE)" ;
+    prov:value "0.05"^^xsd:float .
+
+<http://iri.nidash.org/55a98fe0-57b3-4836-a75d-87023f0dca57> a nidm:NIDM_0000049,
         prov:Activity ;
     rdfs:label "Inference: Generation" ;
     nidm:NIDM_0000097 nidm:NIDM_0000060 ;
-    prov:used <http://iri.nidash.org/2faac4d7-2593-42a9-b994-7ce26b5fa665>,
-        <http://iri.nidash.org/4a72b140-cceb-4315-8b3b-b672f0bf00ed>,
-        <http://iri.nidash.org/60a7a61c-bf1e-4703-a9fc-7396ce0efc71>,
-        <http://iri.nidash.org/96bf7ba5-797b-4143-a1f1-e56a6a2b86c5>,
-        niiri:dc07a67d-c2c2-4902-91f0-19d07c1d5fce ;
-    prov:wasAssociatedWith <http://iri.nidash.org/23c11176-cc4b-4e6b-b1e3-05d31070bf2b> .
+    prov:used <http://iri.nidash.org/349f7132-4dc7-413c-b7e2-9ce2d247d701>,
+        <http://iri.nidash.org/448cbd69-b3d2-4288-91e0-3d388cdc3aa5>,
+        <http://iri.nidash.org/4ecc637a-11c6-4707-9bc0-6f0edc8cd34a>,
+        niiri:f74fdb60-826b-462c-b75c-5eb0e13a9491,
+        niiri:fb8a22b1-e4ef-4023-8150-68a6b9774527 ;
+    prov:wasAssociatedWith <http://iri.nidash.org/5e490448-f479-41bc-841c-861b4a4cb321> .
 
-<http://iri.nidash.org/23c11176-cc4b-4e6b-b1e3-05d31070bf2b> a nlx:birnlex_2067,
+<http://iri.nidash.org/08464d03-3a2c-45c8-b102-17ba9c85e553> a nidm:NIDM_0000070,
+        prov:Entity ;
+    rdfs:label "Significant Cluster 0002" ;
+    nidm:NIDM_0000082 "2"^^xsd:int ;
+    nidm:NIDM_0000084 "117"^^xsd:int ;
+    nidm:NIDM_0000115 "0.000621"^^xsd:float ;
+    prov:wasDerivedFrom <http://iri.nidash.org/66f2a148-b3a2-4f60-b25b-c015b6a5abae> .
+
+<http://iri.nidash.org/5e490448-f479-41bc-841c-861b4a4cb321> a nlx:birnlex_2067,
         prov:Agent,
         prov:SoftwareAgent ;
     rdfs:label "FSL" ;
     fsl:FSL_0000005 "6.00"^^xsd:string ;
     nidm:NIDM_0000122 "5.0.x"^^xsd:string .
 
-<http://iri.nidash.org/73e0b764-ff5e-400a-a967-8f8f42d742b1> a nidm:NIDM_0000070,
-        prov:Entity ;
-    rdfs:label "Significant Cluster 0002" ;
-    nidm:NIDM_0000082 "2"^^xsd:int ;
-    nidm:NIDM_0000084 "117"^^xsd:int ;
-    nidm:NIDM_0000115 "0.000621"^^xsd:float ;
-    prov:wasDerivedFrom <http://iri.nidash.org/93e11c5e-0a89-4b52-a6e6-d536db4a20f0> .
-
-<http://iri.nidash.org/93e11c5e-0a89-4b52-a6e6-d536db4a20f0> a nidm:NIDM_0000025,
+<http://iri.nidash.org/66f2a148-b3a2-4f60-b25b-c015b6a5abae> a nidm:NIDM_0000025,
         prov:Entity ;
     rdfs:label "Excursion Set Map" ;
     crypto:sha512 "c74e3c47e4308f27423a195c7c3e70b64b8fd362d612a2543da76bced67f666949b70272033ab3d4b7d0bbbfe22b7da13d56d25521664be0c96454fd180ee4cc"^^xsd:string ;
-    dc:description <http://iri.nidash.org/1146e94a-72ce-44b4-b6a6-fb9557a11c7b> ;
+    dc:description <http://iri.nidash.org/70a25bd9-229f-46c5-a9d3-f211094b533f> ;
     dct:format "image/nifti"^^xsd:string ;
-    nidm:NIDM_0000104 <http://iri.nidash.org/4c43621c-250e-4dd7-96b7-e25c9b441348> ;
+    nidm:NIDM_0000104 niiri:ee0cc721-eb90-47b7-8e8e-d2cc1923463c ;
     nfo:fileName "ExcursionSet.nii.gz"^^xsd:string,
         "thresh_zstat1.nii.gz"^^xsd:string ;
     prov:atLocation "file://./ExcursionSet.nii.gz"^^xsd:anyURI ;
-    prov:wasGeneratedBy <http://iri.nidash.org/813f7c23-0ecb-4ce9-b84d-99a25bca41ad> .
+    prov:wasGeneratedBy <http://iri.nidash.org/55a98fe0-57b3-4836-a75d-87023f0dca57> .
 
-niiri:ad0d6e4a-4643-4be5-a7ed-f47827c0e7b7 a nidm:NIDM_0000001,
+niiri:c61842e0-07a2-457e-ba3d-c076afb82541 a nidm:NIDM_0000001,
         prov:Activity ;
     rdfs:label "Contrast estimation: Generation" ;
-    prov:used niiri:a3173c73-af8f-4b98-82ea-9628fc87b33f,
-        niiri:a9d6310c-3fde-4f9e-8e51-ddf91da4e18e ;
-    prov:wasAssociatedWith <http://iri.nidash.org/23c11176-cc4b-4e6b-b1e3-05d31070bf2b> .
+    prov:used <http://iri.nidash.org/07a5e4fa-d7a8-4c28-91bf-1179d39f4313>,
+        <http://iri.nidash.org/1acddf16-dee5-4320-8988-d9e96b5867dc> ;
+    prov:wasAssociatedWith <http://iri.nidash.org/5e490448-f479-41bc-841c-861b4a4cb321> .
 
-<http://iri.nidash.org/3e6c65ba-eca0-4771-a26b-0326e17c6608> a nidm:NIDM_0000070,
+niiri:cdafe12b-7479-486e-9e4d-b4cba51a8666 a nidm:NIDM_0000070,
         prov:Entity ;
     rdfs:label "Significant Cluster 0001" ;
     nidm:NIDM_0000082 "1"^^xsd:int ;
     nidm:NIDM_0000084 "81"^^xsd:int ;
     nidm:NIDM_0000115 "0.00894"^^xsd:float ;
-    prov:wasDerivedFrom <http://iri.nidash.org/93e11c5e-0a89-4b52-a6e6-d536db4a20f0> .
+    prov:wasDerivedFrom <http://iri.nidash.org/66f2a148-b3a2-4f60-b25b-c015b6a5abae> .
 
-<http://iri.nidash.org/091f60ea-7454-4fe8-b85e-6928d627126b> a nidm:NIDM_0000070,
+<http://iri.nidash.org/8f3da601-bf22-47a6-a90c-aaa7fcb006f6> a nidm:NIDM_0000056,
+        prov:Activity ;
+    rdfs:label "Model Parameters Estimation" ;
+    nidm:NIDM_0000134 obo:STATO_0000372 ;
+    prov:used <http://iri.nidash.org/474b99e3-b840-479b-a5d4-b904fc2ae181>,
+        niiri:a1aef6d7-625f-41f7-8e07-0843484157ad,
+        niiri:ee9c2e8d-73c2-4aa6-8664-728ed8f14379 ;
+    prov:wasAssociatedWith <http://iri.nidash.org/5e490448-f479-41bc-841c-861b4a4cb321> .
+
+niiri:a778c7e2-d2e2-43aa-be45-c421a977b484 a nidm:NIDM_0000070,
         prov:Entity ;
     rdfs:label "Significant Cluster 0003" ;
     nidm:NIDM_0000082 "3"^^xsd:int ;
     nidm:NIDM_0000084 "499"^^xsd:int ;
     nidm:NIDM_0000115 "1.26e-12"^^xsd:float ;
-    prov:wasDerivedFrom <http://iri.nidash.org/93e11c5e-0a89-4b52-a6e6-d536db4a20f0> .
+    prov:wasDerivedFrom <http://iri.nidash.org/66f2a148-b3a2-4f60-b25b-c015b6a5abae> .
 
-<http://iri.nidash.org/29cadaab-d09a-4138-bd65-ea4d37cbf4cf> a nidm:NIDM_0000056,
-        prov:Activity ;
-    rdfs:label "Model Parameters Estimation" ;
-    nidm:NIDM_0000134 obo:STATO_0000372 ;
-    prov:used <http://iri.nidash.org/09a5efd4-d6c0-4cea-8c2a-b66cf734c5f4>,
-        <http://iri.nidash.org/54fd1f9b-b214-4ee9-9327-cdbb8a44b5da>,
-        <http://iri.nidash.org/7ef56f1e-0f2f-4041-af7b-220e89c41d57> ;
-    prov:wasAssociatedWith <http://iri.nidash.org/23c11176-cc4b-4e6b-b1e3-05d31070bf2b> .
-
-<http://iri.nidash.org/328c2644-fce0-4b88-8a7c-304566e3fc05> a nidm:NIDM_0000070,
+niiri:f3988841-eee1-4279-b17d-9596c3e387f3 a nidm:NIDM_0000070,
         prov:Entity ;
     rdfs:label "Significant Cluster 0004" ;
     nidm:NIDM_0000082 "4"^^xsd:int ;
     nidm:NIDM_0000084 "1203"^^xsd:int ;
     nidm:NIDM_0000115 "8.02e-24"^^xsd:float ;
-    prov:wasDerivedFrom <http://iri.nidash.org/93e11c5e-0a89-4b52-a6e6-d536db4a20f0> .
+    prov:wasDerivedFrom <http://iri.nidash.org/66f2a148-b3a2-4f60-b25b-c015b6a5abae> .
 
-<http://iri.nidash.org/4c43621c-250e-4dd7-96b7-e25c9b441348> a nidm:NIDM_0000016,
+niiri:ee0cc721-eb90-47b7-8e8e-d2cc1923463c a nidm:NIDM_0000016,
         prov:Entity ;
     rdfs:label "Coordinate space" ;
     nidm:NIDM_0000090 "[ 64, 64, 42 ]"^^xsd:string ;

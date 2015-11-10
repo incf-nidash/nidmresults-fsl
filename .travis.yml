@@ -23,6 +23,7 @@ before_install:
  # Create subtree nidm from main nidm repository
  - git remote add nidm https://github.com/incf-nidash/nidm.git
  - git fetch nidm
+ - git fetch nidm --tags
  - git subtree add --prefix nidm nidm/master --squash
  - git subtree add --prefix nidm_releases/1.0.0 nidm tags/NIDM-Results_1.0.0 --squash
  - git subtree add --prefix nidm_releases/1.1.0 nidm tags/NIDM-Results_1.1.0 --squash
