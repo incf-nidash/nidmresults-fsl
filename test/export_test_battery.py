@@ -108,3 +108,6 @@ if __name__ == '__main__':
                     os.makedirs(sub_gt_dir)
                 shutil.copy(gt_file, os.path.join(
                     sub_gt_dir, os.path.basename(gt)))
+
+            # delete nidm export folder
+            shutil.rmtree(export_dir)
