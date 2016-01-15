@@ -49,7 +49,7 @@ from ddt import ddt, data
 # Find all test examples to be compared with ground truth
 test_files = glob.glob(os.path.join(TEST_DIR, 'ex*', '*.ttl'))
 # For test name readability remove path to test file
-test_files = [x.replace(TEST_DIR, "") for x in test_files]
+# test_files = [x.replace(TEST_DIR, "") for x in test_files]
 logging.info("Test files:\n\t" + "\n\t".join(test_files))
 
 
@@ -64,8 +64,10 @@ class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
             os.path.join(os.path.dirname(owl_file),
                          os.pardir, os.pardir, "imports", '*.ttl'))
 
+        gt_dir = os.path.join(TEST_DIR, 'ground_truth')
+
         TestResultDataModel.setUp(self, owl_file, import_files, test_files,
-                                  TEST_DIR, NIDM_RESULTS_DIR)
+                                  TEST_DIR, gt_dir)
 
     @data(*test_files)
     def test_class_consistency_with_owl(self, ttl):
@@ -73,7 +75,7 @@ class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
         Test: Check that the classes used in the ttl file are defined in the
         owl file.
         """
-        ex = self.ex_graphs[ttl]
+        ex = self.load_graph(ttl)
         ex.owl.check_class_names(ex.graph, ex.name, True)
 
     @data(*test_files)
@@ -82,7 +84,7 @@ class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
         Test: Check that the attributes used in the ttl file comply with their
         definition (range, domain) specified in the owl file.
         """
-        ex = self.ex_graphs[ttl]
+        ex = self.load_graph(ttl)
         ex.owl.check_attributes(ex.graph, "FSL example001", True)
 
     @data(*test_files)
@@ -92,7 +94,7 @@ class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
         ttl file (generated manually) are identical
         """
 
-        ex = self.ex_graphs[ttl]
+        ex = self.load_graph(ttl)
 
         for gt_file in ex.gt_ttl_files:
             logging.info("Ground truth ttl: " + gt_file)
