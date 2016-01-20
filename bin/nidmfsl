@@ -15,6 +15,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description='NIDM-Results exporter for FSL.')
     parser.add_argument('feat_dir', help='Path to feat directory.')
+    parser.add_argument("-o","--output",help='Directory where to store the NIDM output.')
 
     args = parser.parse_args()
 
@@ -23,7 +24,7 @@ if __name__ == "__main__":
     if not os.path.isdir(feat_dir):
         raise Exception("Unknown directory: "+str(feat_dir))
 
-    fslnidm = FSLtoNIDMExporter(feat_dir=feat_dir, version="1.1.0")
+    fslnidm = FSLtoNIDMExporter(feat_dir=feat_dir, export_dir=args.output, version="1.1.0")
     fslnidm.parse()
     export_dir = fslnidm.export()
 
