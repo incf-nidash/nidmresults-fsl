@@ -45,8 +45,8 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
         self.feat_dir = kwargs.pop('feat_dir')
         self.export_dir = kwargs.pop('export_dir')
-        print "export dir is"+self.export_dir
-        self.design_file = os.path.join(self.feat_dir, 'design.fsf')
+        
+	self.design_file = os.path.join(self.feat_dir, 'design.fsf')
         # FIXME: maybe not always "4"?
         feat_post_log_file = os.path.join(self.feat_dir, 'logs', 'feat4_post')
         # FIXME: this file is sometimes missing, can the connectivity info
