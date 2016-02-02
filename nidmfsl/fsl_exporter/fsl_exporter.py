@@ -608,7 +608,11 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             variance_spatial = SPATIALLY_LOCAL
             dependance_spatial = None
 
-        error_distribution = NIDM_GAUSSIAN_DISTRIBUTION
+        if self.version in ["1.0.0", "1.1.0"]:
+            error_distribution = NIDM_GAUSSIAN_DISTRIBUTION
+        else:
+            error_distribution = STATO_NORMAL_DISTRIBUTION
+
         error_model = ErrorModel(
             error_distribution, variance_homo,
             variance_spatial, dependance, dependance_spatial)
