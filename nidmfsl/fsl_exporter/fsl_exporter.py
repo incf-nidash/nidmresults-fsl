@@ -858,6 +858,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 log_file = os.path.join(self.feat_dir, 'logs', 'feat3_film')
 
             if not os.path.isfile(log_file):
+                # FIXME: not found for fsl_t_test
                 warnings.warn(
                     "Log file feat3_stats/feat3_film not found, " +
                     "noise FWHM will not be reported")
