@@ -40,8 +40,8 @@ class FSLtoNIDMExporter(NIDMExporter, object):
     stored in NIDM-Results and generate a NIDM-Results export.
     """
 
-    def __init__(self, *args, **kwargs):
-        super(FSLtoNIDMExporter, self).__init__()
+    def __init__(self, version, *args, **kwargs):
+        super(FSLtoNIDMExporter, self).__init__(version)
 
         self.feat_dir = kwargs.pop('feat_dir')
 
@@ -67,8 +67,6 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             self.feat_post_log = open(feat_post_log_file, 'r')
         else:
             self.feat_post_log = None
-
-        self.version = kwargs.pop('version')
         self.coord_space = None
         self.contrast_names_by_num = dict()
 
@@ -461,7 +459,6 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 search_space = self._get_search_space(analysis_dir)
 
                 inference = Inference(
-                    self.version,
                     inference_act, height_thresh,
                     extent_thresh, peak_criteria, clus_criteria,
                     display_mask, exc_set, clusters, search_space,

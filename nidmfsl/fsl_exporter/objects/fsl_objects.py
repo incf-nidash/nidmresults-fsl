@@ -49,7 +49,7 @@ class Software(NIDMObject):
                           feat_version + "\"")
             self.version = "unknown"
 
-    def export(self):
+    def export(self, nidm_version):
         """
         Create prov entities and activities.
         """
