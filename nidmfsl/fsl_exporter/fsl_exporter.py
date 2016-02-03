@@ -198,10 +198,10 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 # use an index in the file names of the file exported in
                 # nidm
                 if len(exc_sets) > 1:
-                    stat_num = "_" + \
+                    stat_num_idx = "_" + \
                         stat_type.upper() + "{0:0>3}".format(con_num)
                 else:
-                    stat_num = ""
+                    stat_num_idx = ""
 
                 # Contrast name
                 name_re = r'.*set fmri\(conname_real\.' + str(con_num) +\
@@ -220,7 +220,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     re.findall(weight_search,
                                self.design_txt)).replace("'", '')
 
-                weights = ContrastWeights(stat_num, contrast_name,
+                weights = ContrastWeights(stat_num_idx, contrast_name,
                                           contrast_weights, stat_type)
 
                 # Find which parameter estimates were used to compute the
@@ -255,7 +255,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     stat_dir,
                     stat_type.lower() + 'stat' + str(con_num) + '.nii.gz')
                 stat_map = StatisticMap(
-                    stat_file, stat_type, stat_num,
+                    stat_file, stat_type, stat_num_idx,
                     contrast_name, dof, self.coord_space,
                     self.export_dir)
 
@@ -264,7 +264,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     stat_dir,
                     'zstat' + str(con_num) + '.nii.gz')
                 z_stat_map = StatisticMap(
-                    z_stat_file, 'Z', stat_num,
+                    z_stat_file, 'Z', stat_num_idx,
                     contrast_name, dof, self.coord_space,
                     self.export_dir)
 
@@ -272,7 +272,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     # Contrast Map
                     con_file = os.path.join(stat_dir,
                                             'cope' + str(con_num) + '.nii.gz')
-                    contrast_map = ContrastMap(con_file, stat_num,
+                    contrast_map = ContrastMap(con_file, stat_num_idx,
                                                contrast_name, self.coord_space,
                                                self.export_dir)
 
@@ -281,7 +281,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                         stat_dir, 'varcope' + str(con_num) + '.nii.gz')
                     is_variance = True
                     std_err_map = ContrastStdErrMap(
-                        stat_num,
+                        stat_num_idx,
                         varcontrast_file, is_variance, self.coord_space,
                         self.coord_space, self.export_dir)
                     std_err_map_or_mean_sq_map = std_err_map
@@ -292,7 +292,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                         stat_dir, 'sigmasquareds.nii.gz')
 
                     expl_mean_sq_map = ContrastExplainedMeanSquareMap(
-                        stat_file, sigma_sq_file, stat_num,
+                        stat_file, sigma_sq_file, stat_num_idx,
                         self.coord_space, self.export_dir)
 
                     std_err_map_or_mean_sq_map = expl_mean_sq_map
@@ -937,7 +937,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         for analysis_dir in self.analysis_dirs:
             # Cluster list (positions in voxels)
             cluster_file = os.path.join(analysis_dir,
-                                        'cluster_zstat' + stat_num + '.txt')
+                                        'cluster_zstat' + str(stat_num) + '.txt')
             if not os.path.isfile(cluster_file):
                 cluster_file = None
             else:
@@ -950,7 +950,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             # Cluster list (positions in mm)
             cluster_std_file = os.path.join(
                 analysis_dir,
-                'cluster_zstat' + stat_num + '_std.txt')
+                'cluster_zstat' + str(stat_num) + '_std.txt')
             if not os.path.isfile(cluster_std_file):
                 cluster_std_file = None
                 # cluster_std_table = np.zeros_like(cluster_table)*float('nan')
@@ -963,7 +963,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
             # Peaks
             peak_file = os.path.join(
-                analysis_dir, 'lmax_zstat' + stat_num + '.txt')
+                analysis_dir, 'lmax_zstat' + str(stat_num) + '.txt')
             if not os.path.isfile(peak_file):
                 peak_file = None
             else:
@@ -973,7 +973,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     peak_table = np.loadtxt(peak_file, skiprows=1, ndmin=2)
 
             peak_std_file = os.path.join(analysis_dir,
-                                         'lmax_zstat' + stat_num + '_std.txt')
+                                         'lmax_zstat' + str(stat_num) + '_std.txt')
             if not os.path.isfile(peak_std_file):
                 peak_std_file = None
             else:
