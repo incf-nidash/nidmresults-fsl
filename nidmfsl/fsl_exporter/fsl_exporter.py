@@ -192,6 +192,8 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     stat_type = "F"
                     con_num = zstatnum.replace('zfstat', '')
 
+                con_num = int(con_num)
+
                 # If more than one excursion set is reported, we need to
                 # use an index in the file names of the file exported in
                 # nidm
@@ -202,7 +204,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     stat_num = ""
 
                 # Contrast name
-                name_re = r'.*set fmri\(conname_real\.' + con_num +\
+                name_re = r'.*set fmri\(conname_real\.' + str(con_num) +\
                     '\) "(?P<info>[^"]+)".*'
                 contrast_name = self._search_in_fsf(name_re)
                 self.contrast_names_by_num[con_num] = contrast_name
@@ -211,7 +213,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 estimation = ContrastEstimation(con_num, contrast_name)
 
                 # Contrast weights
-                weights_re = r'.*set fmri\(con_real' + con_num +\
+                weights_re = r'.*set fmri\(con_real' + str(con_num) +\
                     '\.\d+\) (?P<info>-?\d+)'
                 weight_search = re.compile(weights_re)
                 contrast_weights = str(
@@ -315,6 +317,12 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         """
         inferences = dict()
 
+        # Any contrast masking?
+        m = re.search(r"set fmri\(conmask1_1\) (?P<con_maskg>[0|1])",
+                      self.design_txt)
+        assert m is not None
+        contrast_masking = bool(int(m.group("con_maskg")))
+
         for analysis_dir in self.analysis_dirs:
             exc_sets = glob.glob(os.path.join(analysis_dir,
                                               'thresh_z*.nii.gz'))
@@ -331,6 +339,8 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 elif zstatnum.startswith("zfstat"):
                     stat_type = "F"
                     stat_num = zstatnum.replace('zfstat', '')
+
+                stat_num = int(stat_num)
 
                 # If more than one excursion set is reported, we need to use
                 # an index in the file names of the file exported in nidm
@@ -350,6 +360,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                         con_num = con_num.replace('zstat', '')\
                                          .replace('zfstat', '')\
                                          .replace('.nii.gz', '')
+                        con_num = int(con_num)
                         if con_num == stat_num:
                             con_id = contrast.estimation.id
                 assert con_id is not None
@@ -362,9 +373,20 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 # Excursion set
                 visualisation = os.path.join(
                     analysis_dir,
-                    'rendered_thresh_zstat' + stat_num + '.png')
-                zFileImg = os.path.join(analysis_dir,
-                                        'thresh_zstat' + stat_num + '.nii.gz')
+                    'rendered_thresh_zstat' + str(stat_num) + '.png')
+                zFileImg = os.path.join(
+                    analysis_dir,
+                    'thresh_zstat' + str(stat_num) + '.nii.gz')
+
+                # FIXME: When doing contrast masking is the excursion set
+                # stored in thresh_zstat the one after or before contrast
+                # masking?
+                # If before: is there a way to get the excursion set after
+                # contrast masking?
+                # If after: how can we get the contrast masks? cf. report:
+                # "After all thresholding, zstat1 was masked with
+                # thresh_zstat2.
+                # --> fsl_contrast_mask
                 exc_set = ExcursionSet(zFileImg, stat_num_t, visualisation,
                                        self.coord_space, self.export_dir)
 
@@ -419,41 +441,33 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     peak_criteria = None
                     clus_criteria = None
 
-                # FIXME: for now only based on conmask1_1
-                m = re.search(
-                    r"set fmri\(conmask1_1\) (?P<con_maskg>\d+)",
-                    self.design_txt)
-                assert m is not None
-                contrast_masking = bool(int(m.group("con_maskg")))
-
+                # Display mask
+                contrast_masks = list()
+                display_mask = list()
                 if contrast_masking:
-                    # Display mask
-                    # FIXME deal with the case in which we are contrast masking
-                    # by
-                    #  more than one contrast
-                    # contrast_masking_search = re.compile(r'.*set
-                    # fmri\(conmask'+contrast_num+'_(?P<maskingconnum>\d+)\)
-                    # (?P<domask>\d+).*')
-                    # contrast_masking_found =
-                    # contrast_masking_search.search(self.design_txt)
-                    # do_contrast_masking =
-                    # float(contrast_masking_found.group('domask'))
-                    # if do_contrast_masking:
-                    #     contrast_masking_num =
-                    # contrast_masking_found.group('maskingconnum')
-                    #     contrast_masking_file =
-                    # else:
-                    #     contrast_masking_num = None
-                    # FIXME: We need an example with more than one contrast to
-                    # code
-                    # contrast masking
-                    contrast_masking_file = self._get_display_mask()
-                    display_mask = DisplayMaskMap(
-                        stat_num,
-                        contrast_masking_file, self.coord_space,
-                        self.export_dir)
-                else:
-                    display_mask = None
+                    # Find all contrast masking definitions for current stat
+                    con_mask_defs = re.findall(
+                        r"set fmri\(conmask" + str(stat_num) + "_\d+\) 1",
+                        self.design_txt)
+
+                    for con_mask_def in con_mask_defs:
+                        m = re.search(
+                            r"set fmri\(conmask" + str(stat_num) +
+                            "_(?P<c2>\d+)\) 1",
+                            con_mask_def)
+                        assert m is not None
+
+                        c2 = int(m.group("c2"))
+                        if not (stat_num == 1 and c2 == 1):
+                            contrast_masks.append(c2)
+                            conmask_file = os.path.join(
+                                analysis_dir,
+                                'thresh_zstat' + str(c2) + '.nii.gz')
+
+                            display_mask.append(DisplayMaskMap(
+                                stat_num,
+                                conmask_file, c2, self.coord_space,
+                                self.export_dir))
 
                 # Search space
                 search_space = self._get_search_space(analysis_dir)
