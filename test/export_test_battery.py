@@ -55,8 +55,7 @@ if __name__ == '__main__':
     print data_dir
 
     # Find all test examples to be compared with ground truth
-    test_data = glob.glob(os.path.join(data_dir, 'fsl_*'))
-    print test_data
+    test_data_cfg = glob.glob(os.path.join(data_dir, '*/config.json'))
 
     # # For test name readability remove path to test file
     # test_files = [x.replace(TEST_DIR, "") for x in test_files]
@@ -65,70 +64,75 @@ if __name__ == '__main__':
     #     version = metadata["version"]
 
     # *** Once for all, run the export
-    for data_dir in test_data:
-        test_name = os.path.basename(data_dir)
-
-        with open(os.path.join(data_dir, 'config.json')) as data_file:
+    for cfg in test_data_cfg:
+        with open(cfg) as data_file:
             metadata = json.load(data_file)
 
-        versions = metadata["versions"]
+        data_dir = os.path.dirname(cfg)
 
-        for version in versions:
-            version_str = version.replace(".", "")
+        if metadata["software"].lower() == "fsl":
+            test_name = os.path.basename(data_dir)
+            versions = metadata["versions"]
 
-            if os.path.isdir(data_dir):
-                logging.debug("Computing NIDM FSL export")
+            for version in versions:
+                version_str = version.replace(".", "")
 
-                # Export to NIDM using FSL export tool
-                # fslnidm = FSL_NIDM(feat_dir=DATA_DIR_001);
-                fslnidm = FSLtoNIDMExporter(feat_dir=data_dir, version=version)
-                fslnidm.parse()
-                export_dir = fslnidm.export()
-                print export_dir
+                if os.path.isdir(data_dir):
+                    logging.debug("Computing NIDM FSL export")
 
-                # Copy provn export to test directory
-                test_export_dir = os.path.join(
-                    TEST_DIR, 'ex_' + test_name + '_' + version_str)
+                    # Export to NIDM using FSL export tool
+                    # fslnidm = FSL_NIDM(feat_dir=DATA_DIR_001);
+                    fslnidm = FSLtoNIDMExporter(
+                        feat_dir=data_dir, version=version)
+                    fslnidm.parse()
+                    export_dir = fslnidm.export()
+                    print export_dir
 
-                if not os.path.exists(test_export_dir):
-                    os.makedirs(test_export_dir)
-                shutil.copy(os.path.join(export_dir, 'nidm.provn'),
-                            os.path.join(test_export_dir, 'nidm.provn'))
-                shutil.copy(os.path.join(export_dir, 'nidm.ttl'),
-                            os.path.join(test_export_dir, 'nidm.ttl'))
+                    # Copy provn export to test directory
+                    test_export_dir = os.path.join(
+                        TEST_DIR, 'ex_' + test_name + '_' + version_str)
 
-                cfg_file = os.path.join(test_export_dir, 'config.json')
+                    if not os.path.exists(test_export_dir):
+                        os.makedirs(test_export_dir)
+                    shutil.copy(os.path.join(export_dir, 'nidm.provn'),
+                                os.path.join(test_export_dir, 'nidm.provn'))
+                    shutil.copy(os.path.join(export_dir, 'nidm.ttl'),
+                                os.path.join(test_export_dir, 'nidm.ttl'))
 
-                test_metadata = copy.copy(metadata)
-                del test_metadata['versions']
-                test_metadata['version'] = version
+                    cfg_file = os.path.join(test_export_dir, 'config.json')
 
-                with open(cfg_file, 'w') as outfile:
-                    json.dump(test_metadata,
-                              outfile,
-                              sort_keys=True,
-                              indent=4,
-                              separators=(',', ': '))
+                    test_metadata = copy.copy(metadata)
+                    del test_metadata['versions']
+                    del test_metadata['software']
+                    test_metadata['version'] = version
 
-                gt_dir = os.path.join(TEST_DIR, 'ground_truth')
-                if not os.path.exists(gt_dir):
-                    os.makedirs(gt_dir)
+                    with open(cfg_file, 'w') as outfile:
+                        json.dump(test_metadata,
+                                  outfile,
+                                  sort_keys=True,
+                                  indent=4,
+                                  separators=(',', ': '))
 
-                # with open(config_file) as config:
-                #     metadata = json.load(config)
+                    gt_dir = os.path.join(TEST_DIR, 'ground_truth')
+                    if not os.path.exists(gt_dir):
+                        os.makedirs(gt_dir)
 
-                for gt in metadata["ground_truth"]:
-                    gt_file = os.path.join(
-                        data_dir, "..", "ground_truth", version, gt)
-                    version_dir = os.path.join(gt_dir, version)
-                    if not os.path.exists(version_dir):
-                        os.makedirs(version_dir)
+                    # with open(config_file) as config:
+                    #     metadata = json.load(config)
 
-                    sub_gt_dir = os.path.join(version_dir, os.path.dirname(gt))
-                    if not os.path.exists(sub_gt_dir):
-                        os.makedirs(sub_gt_dir)
-                    shutil.copy(gt_file, os.path.join(
-                        sub_gt_dir, os.path.basename(gt)))
+                    for gt in metadata["ground_truth"]:
+                        gt_file = os.path.join(
+                            data_dir, "..", "ground_truth", version, gt)
+                        version_dir = os.path.join(gt_dir, version)
+                        if not os.path.exists(version_dir):
+                            os.makedirs(version_dir)
 
-                # delete nidm export folder
-                shutil.rmtree(export_dir)
+                        sub_gt_dir = os.path.join(
+                            version_dir, os.path.dirname(gt))
+                        if not os.path.exists(sub_gt_dir):
+                            os.makedirs(sub_gt_dir)
+                        shutil.copy(gt_file, os.path.join(
+                            sub_gt_dir, os.path.basename(gt)))
+
+                    # delete nidm export folder
+                    shutil.rmtree(export_dir)
