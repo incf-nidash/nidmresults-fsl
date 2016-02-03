@@ -596,12 +596,12 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
         if self.first_level:
             variance_homo = True
-            dependance = SERIALLY_CORR
+            dependance = OBO_SERIALLY_CORR_COV
             variance_spatial = SPATIALLY_LOCAL
             dependance_spatial = SPATIALLY_REGUL
         else:
             variance_homo = False
-            dependance = INDEPEDENT_CORR
+            dependance = NIDM_INDEPEDENT_ERROR
             variance_spatial = SPATIALLY_LOCAL
             dependance_spatial = None
 
