@@ -42,7 +42,6 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
     def __init__(self, version, *args, **kwargs):
         super(FSLtoNIDMExporter, self).__init__(version)
-
         self.feat_dir = kwargs.pop('feat_dir')
 
         nidm_dirs = glob.glob(os.path.join(self.feat_dir, 'nidm****'))
@@ -619,7 +618,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             variance_spatial = SPATIALLY_LOCAL
             dependance_spatial = None
 
-        if self.version in ["1.0.0", "1.1.0"]:
+        if self.version['num'] in ["1.0.0", "1.1.0"]:
             error_distribution = NIDM_GAUSSIAN_DISTRIBUTION
         else:
             error_distribution = STATO_NORMAL_DISTRIBUTION
