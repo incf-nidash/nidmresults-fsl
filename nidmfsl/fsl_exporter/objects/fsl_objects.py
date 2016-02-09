@@ -4,7 +4,7 @@ FSL-specific classes and classes overloaded to add FSL-specific attributes.
 @author: Camille Maumet <c.m.j.maumet@warwick.ac.uk>
 @copyright: University of Warwick 2013-2014
 """
-from nidmresults.objects.generic import NIDMObject
+from nidmresults.objects.generic import ExporterSoftware, NeuroimagingSoftware
 from nidmresults.objects.constants import *
 import logging
 import uuid
@@ -12,7 +12,7 @@ import uuid
 logger = logging.getLogger(__name__)
 
 
-class Software(NIDMObject):
+class FSLNeuroimagingSoftware(NeuroimagingSoftware):
     # FIXME software should be generic and then overloaded
 
     """
@@ -20,44 +20,56 @@ class Software(NIDMObject):
     """
 
     def __init__(self, feat_version):
-        super(Software, self).__init__()
-        self.feat_version = feat_version
-        self.name = "FSL"
         self.id = NIIRI[str(uuid.uuid4())]
-        self.type = NLX_FSL
-        self.prov_type = PROV['Agent']
+        self.feat_version = feat_version
         # Retreive FSL version from feat version
         # (cf. https://github.com/incf-nidash/nidm-results_fsl/issues/3)
-        if feat_version == "6.00":
-            self.version = "5.0.x"
-        elif feat_version == "5.98":
-            self.version = "4.1.x"
-        elif feat_version == "5.92":
-            self.version = "4.0.x"
-        elif feat_version == "5.91":
-            self.version = "4.0.1"
-        elif feat_version == "5.90":
-            self.version = "4.0"
-        elif feat_version == "5.61":
-            self.version = "3.3"
-        elif feat_version == "5.4":
-            self.version = "3.2.1"
-        elif feat_version == "5.1":
-            self.version = "3.1.1.x"
+        feat_to_fsl_versions = {
+            "6.00":   "5.0.x",
+            "5.98":   "4.1.x",
+            "5.92":   "4.0.x",
+            "5.91":   "4.0.1",
+            "5.90":   "4.0",
+            "5.61":   "3.3",
+            "5.4":    "3.2.1",
+            "5.1":    "3.1.1.x"
+        }
+
+        if feat_version in feat_to_fsl_versions:
+            version = feat_to_fsl_versions[feat_version]
         else:
             logging.debug("FSL version unknow for feat version: \"" +
                           feat_version + "\"")
-            self.version = "unknown"
+            version = "unknown"
+
+        super(FSLNeuroimagingSoftware, self).__init__(NLX_FSL, version)
 
     def export(self, nidm_version):
         """
         Create prov entities and activities.
         """
-        self.add_attributes((
-            (PROV['type'], NLX_FSL),
-            (PROV['type'], PROV['SoftwareAgent']),
-            (PROV['label'], self.name),
-            (NIDM_SOFTWARE_VERSION, self.version),
-            (FSL_FEAT_VERSION, self.feat_version)))
+        super(FSLNeuroimagingSoftware, self).export(nidm_version)
+        self.add_attributes([(FSL_FEAT_VERSION, self.feat_version)])
+
+        return self.p
+
+
+class FSLExporterSoftware(ExporterSoftware):
+    # FIXME software should be generic and then overloaded
+
+    """
+    Class representing a Software entity.
+    """
+
+    def __init__(self):
+        self.id = NIIRI[str(uuid.uuid4())]
+        # FIXME: is there a better way to retreive current version?
+        super(FSLExporterSoftware, self).__init__(NIDM_FSL, "dev")
+
+    def export(self, nidm_version):
+        """
+        Create prov entities and activities.
+        """
+        super(FSLExporterSoftware, self).export(nidm_version)
 
         return self.p

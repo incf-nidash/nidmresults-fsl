@@ -121,9 +121,18 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         version_re = r'.*set fmri\(version\) (?P<info>\d+\.?\d+).*'
         feat_version = self._search_in_fsf(version_re)
 
-        software = Software(feat_version=feat_version)
+        software = FSLNeuroimagingSoftware(feat_version=feat_version)
 
         return software
+
+    def _get_exporter(self):
+        """
+        Return an object of type NIDM-Results Exporter Software describing the
+        exporter used to compute the current analysis.
+        """
+        exporter = FSLExporterSoftware()
+
+        return exporter
 
     def _find_model_fitting(self):
         """
@@ -142,7 +151,8 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             rms_map = self._get_residual_mean_squares_map(stat_dir)
             param_estimates = self._get_param_estimate_maps(stat_dir)
             mask_map = self._get_mask_map(analysis_dir)
-            grand_mean_map = self._get_grand_mean(mask_map.file, analysis_dir)
+            grand_mean_map = self._get_grand_mean(
+                mask_map.file.path, analysis_dir)
 
             activity = self._get_model_parameters_estimations(error_model)
 
@@ -239,7 +249,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                         for model_fitting in self.model_fittings.values():
                             for pe in model_fitting.param_estimates:
                                 s = re.compile('pe\d+')
-                                pe_num = s.search(pe.file)
+                                pe_num = s.search(pe.file.path)
                                 pe_num = pe_num.group()
                                 pe_num = pe_num.replace('pe', '')
                                 if pe_num == pe_index:
@@ -354,7 +364,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 for contrasts in self.contrasts.values():
                     for contrast in contrasts:
                         s = re.compile('zf?stat\d+')
-                        con_num = s.search(contrast.z_stat_map.file)
+                        con_num = s.search(contrast.z_stat_map.file.path)
                         con_num = con_num.group()
                         con_num = con_num.replace('zstat', '')\
                                          .replace('zfstat', '')\
@@ -935,8 +945,9 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
         for analysis_dir in self.analysis_dirs:
             # Cluster list (positions in voxels)
-            cluster_file = os.path.join(analysis_dir,
-                                        'cluster_zstat' + str(stat_num) + '.txt')
+            cluster_file = os.path.join(
+                analysis_dir,
+                'cluster_zstat' + str(stat_num) + '.txt')
             if not os.path.isfile(cluster_file):
                 cluster_file = None
             else:
@@ -971,8 +982,9 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     warnings.simplefilter("ignore")
                     peak_table = np.loadtxt(peak_file, skiprows=1, ndmin=2)
 
-            peak_std_file = os.path.join(analysis_dir,
-                                         'lmax_zstat' + str(stat_num) + '_std.txt')
+            peak_std_file = os.path.join(
+                analysis_dir,
+                'lmax_zstat' + str(stat_num) + '_std.txt')
             if not os.path.isfile(peak_std_file):
                 peak_std_file = None
             else:

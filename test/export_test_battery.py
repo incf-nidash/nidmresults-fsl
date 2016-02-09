@@ -52,7 +52,6 @@ if __name__ == '__main__':
     with open(os.path.join(TEST_DIR, 'config.json')) as data_file:
         metadata = json.load(data_file)
     data_dir = os.path.join(TEST_DATA_DIR, metadata["data"])
-    print data_dir
 
     # Find all test examples to be compared with ground truth
     test_data_cfg = glob.glob(os.path.join(data_dir, '*/config.json'))
