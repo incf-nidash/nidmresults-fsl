@@ -45,6 +45,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         self.feat_dir = kwargs.pop('feat_dir')
         self.export_dir = kwargs.pop('export_dir')
 
+        # If no export directory was specified then call it 'nidm'
         if not self.export_dir:
           nidm_dirs = glob.glob(os.path.join(self.feat_dir, 'nidm****'))
           if nidm_dirs:
