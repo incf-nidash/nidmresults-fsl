@@ -1,0 +1,706 @@
+@prefix nidm_PValueUncorrected: <http://purl.org/nidash/nidm#NIDM_0000160> .
+@prefix nidm_ContrastVarianceMap: <http://purl.org/nidash/nidm#NIDM_0000135> .
+@prefix nidm_withEstimationMethod: <http://purl.org/nidash/nidm#NIDM_0000134> .
+@prefix nidm_voxelUnits: <http://purl.org/nidash/nidm#NIDM_0000133> .
+@prefix nidm_voxelToWorldMapping: <http://purl.org/nidash/nidm#NIDM_0000132> .
+@prefix nidm_voxelSize: <http://purl.org/nidash/nidm#NIDM_0000131> .
+@prefix nidm_version: <http://purl.org/nidash/nidm#NIDM_0000127> .
+@prefix nidm_varianceMapWiseDependence: <http://purl.org/nidash/nidm#NIDM_0000126> .
+@prefix nidm_targetIntensity: <http://purl.org/nidash/nidm#NIDM_0000124> .
+@prefix nidm_statisticType: <http://purl.org/nidash/nidm#NIDM_0000123> .
+@prefix nidm_softwareVersion: <http://purl.org/nidash/nidm#NIDM_0000122> .
+@prefix nidm_numberOfDimensions: <http://purl.org/nidash/nidm#NIDM_0000112> .
+@prefix nidm_maskedMedian: <http://purl.org/nidash/nidm#NIDM_0000107> .
+@prefix nidm_isUserDefined: <http://purl.org/nidash/nidm#NIDM_0000106> .
+@prefix nidm_inWorldCoordinateSystem: <http://purl.org/nidash/nidm#NIDM_0000105> .
+@prefix nidm_inCoordinateSpace: <http://purl.org/nidash/nidm#NIDM_0000104> .
+@prefix nidm_hasHRFBasis: <http://purl.org/nidash/nidm#NIDM_0000102> .
+@prefix nidm_hasErrorDistribution: <http://purl.org/nidash/nidm#NIDM_0000101> .
+@prefix nidm_hasErrorDependence: <http://purl.org/nidash/nidm#NIDM_0000100> .
+@prefix nidm_hasAlternativeHypothesis: <http://purl.org/nidash/nidm#NIDM_0000097> .
+@prefix nidm_grandMeanScaling: <http://purl.org/nidash/nidm#NIDM_0000096> .
+@prefix nidm_errorVarianceHomogeneous: <http://purl.org/nidash/nidm#NIDM_0000094> .
+@prefix nidm_errorDegreesOfFreedom: <http://purl.org/nidash/nidm#NIDM_0000093> .
+@prefix nidm_effectDegreesOfFreedom: <http://purl.org/nidash/nidm#NIDM_0000091> .
+@prefix nidm_dimensionsInVoxels: <http://purl.org/nidash/nidm#NIDM_0000090> .
+@prefix nidm_dependenceMapWiseDependence: <http://purl.org/nidash/nidm#NIDM_0000089> .
+@prefix nidm_hasDriftModel: <http://purl.org/nidash/nidm#NIDM_0000088> .
+@prefix nidm_contrastName: <http://purl.org/nidash/nidm#NIDM_0000085> .
+@prefix nidm_clusterSizeInVoxels: <http://purl.org/nidash/nidm#NIDM_0000084> .
+@prefix nidm_SubjectCoordinateSystem: <http://purl.org/nidash/nidm#NIDM_0000077> .
+@prefix nidm_StatisticMap: <http://purl.org/nidash/nidm#NIDM_0000076> .
+@prefix nidm_RegularizedParameter: <http://purl.org/nidash/nidm#NIDM_0000074> .
+@prefix nidm_IndependentParameter: <http://purl.org/nidash/nidm#NIDM_0000073> .
+@prefix nidm_ResidualMeanSquaresMap: <http://purl.org/nidash/nidm#NIDM_0000066> .
+@prefix nidm_ParameterEstimateMap: <http://purl.org/nidash/nidm#NIDM_0000061> .
+@prefix nidm_OneTailedTest: <http://purl.org/nidash/nidm#NIDM_0000060> .
+@prefix nidm_ModelParametersEstimation: <http://purl.org/nidash/nidm#NIDM_0000056> .
+@prefix nidm_MaskMap: <http://purl.org/nidash/nidm#NIDM_0000054> .
+@prefix nidm_Inference: <http://purl.org/nidash/nidm#NIDM_0000049> .
+@prefix nidm_HeightThreshold: <http://purl.org/nidash/nidm#NIDM_0000034> .
+@prefix nidm_GrandMeanMap: <http://purl.org/nidash/nidm#NIDM_0000033> .
+@prefix nidm_GammaHRF: <http://purl.org/nidash/nidm#NIDM_0000031> .
+@prefix nidm_NIDMResults: <http://purl.org/nidash/nidm#NIDM_0000027> .
+@prefix nidm_ExtentThreshold: <http://purl.org/nidash/nidm#NIDM_0000026> .
+@prefix nidm_ExcursionSetMap: <http://purl.org/nidash/nidm#NIDM_0000025> .
+@prefix nidm_ErrorModel: <http://purl.org/nidash/nidm#NIDM_0000023> .
+@prefix nidm_regressorNames: <http://purl.org/nidash/nidm#NIDM_0000021> .
+@prefix nidm_DisplayMaskMap: <http://purl.org/nidash/nidm#NIDM_0000020> .
+@prefix nidm_DesignMatrix: <http://purl.org/nidash/nidm#NIDM_0000019> .
+@prefix nidm_DataScaling: <http://purl.org/nidash/nidm#NIDM_0000018> .
+@prefix nidm_CoordinateSpace: <http://purl.org/nidash/nidm#NIDM_0000016> .
+@prefix nidm_ContrastStandardErrorMap: <http://purl.org/nidash/nidm#NIDM_0000013> .
+@prefix nidm_ContrastMap: <http://purl.org/nidash/nidm#NIDM_0000002> .
+@prefix nidm_ContrastEstimation: <http://purl.org/nidash/nidm#NIDM_0000001> .
+@prefix fsl_featVersion: <http://purl.org/nidash/fsl#FSL_0000005> .
+@prefix fsl_driftCutoffPeriod: <http://purl.org/nidash/fsl#FSL_0000004> .
+@prefix fsl_GaussianRunningLineDriftModel: <http://purl.org/nidash/fsl#FSL_0000002> .
+@prefix crypto: <http://id.loc.gov/vocabulary/preservation/cryptographicHashFunctions#> .
+@prefix dc: <http://purl.org/dc/elements/1.1/> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix dctype: <http://purl.org/dc/dcmitype/> .
+@prefix fsl: <http://purl.org/nidash/fsl#> .
+@prefix nfo: <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#> .
+@prefix nidm: <http://purl.org/nidash/nidm#> .
+@prefix niiri: <http://iri.nidash.org/> .
+@prefix nlx: <http://neurolex.org/wiki/> .
+@prefix obo: <http://purl.obolibrary.org/obo/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix spm: <http://purl.org/nidash/spm#> .
+@prefix xml: <http://www.w3.org/XML/1998/namespace> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<http://iri.nidash.org/11412608-3d78-40ec-81de-b3b14f598d8b> a nidm_ContrastMap:,
+        prov:Entity ;
+    rdfs:label "Contrast Map: switch vs nonswitch plainonly" ;
+    crypto:sha512 "11b1e842ce307cf0c031034f1f135fc7930d263c2535c1c638f14a214fa2589f81786a67b2de185cf7a523c3051a4eb108d2cee9956ec4bae04e682b57b2696c"^^xsd:string ;
+    dct:format "image/nifti"^^xsd:string ;
+    nidm_contrastName: "switch vs nonswitch plainonly"^^xsd:string ;
+    nidm_inCoordinateSpace: niiri:ee5bb6c6-8818-4ff8-a4c7-de957b078083 ;
+    nfo:fileName "Contrast_T004.nii.gz"^^xsd:string ;
+    prov:atLocation "Contrast_T004.nii.gz"^^xsd:anyURI ;
+    prov:wasGeneratedBy <http://iri.nidash.org/9ee0fdde-2963-4d37-94f0-da33eefe4ca4> .
+
+<http://iri.nidash.org/14ddbb14-42f7-4099-ad7d-341f50c945a8> a nidm_ParameterEstimateMap:,
+        prov:Entity ;
+    rdfs:label "Parameter estimate 1" ;
+    crypto:sha512 "2f5c0840b2ade47ce7172e4871c2d9dbd4b097c74d2d84a235e53c1726629a19bfc38ab5f1a66f2e8374267877135ccaaa7c423bde34422c3cc7994f62776e55"^^xsd:string ;
+    dct:format "image/nifti"^^xsd:string ;
+    nidm_inCoordinateSpace: niiri:ee5bb6c6-8818-4ff8-a4c7-de957b078083 ;
+    nfo:fileName "pe1.nii.gz"^^xsd:string ;
+    prov:wasGeneratedBy niiri:e9d9713b-1bed-46de-b4a7-9ff5d377d986 .
+
+<http://iri.nidash.org/1d06c6d9-20d3-45a0-8ce8-2553300c79c6> a nidm_ExcursionSetMap:,
+        prov:Entity ;
+    rdfs:label "Excursion Set Map" ;
+    crypto:sha512 "13a66c3b17cbef796c83f348e064c7e8f0420bec6ad05d692f9638f76991088507ff82514e4de7a7fc8ec9de0f1d425d39bd7ade7bfb135a9ce44d2ac243791e"^^xsd:string ;
+    dc:description <http://iri.nidash.org/56bae2dc-a4fe-49a6-ae74-2e46e7afc44d> ;
+    dct:format "image/nifti"^^xsd:string ;
+    nidm_inCoordinateSpace: niiri:ee5bb6c6-8818-4ff8-a4c7-de957b078083 ;
+    nfo:fileName "ExcursionSet_T001.nii.gz"^^xsd:string ;
+    prov:atLocation "ExcursionSet_T001.nii.gz"^^xsd:anyURI ;
+    prov:wasGeneratedBy <http://iri.nidash.org/676f0c71-57de-438f-b55b-a2b35c3662b7> .
+
+<http://iri.nidash.org/235549c0-9237-4d85-ad7f-356331c69c53> a nidm_ParameterEstimateMap:,
+        prov:Entity ;
+    rdfs:label "Parameter estimate 3" ;
+    crypto:sha512 "888307e72ac96f0b9a601f45c1ad898f55e305fe24b69948d43b628ef04507fde17bce17d58703f53f76a0620b658713a587ec75a7e7d742904f5c58ef4d5eac"^^xsd:string ;
+    dct:format "image/nifti"^^xsd:string ;
+    nidm_inCoordinateSpace: niiri:ee5bb6c6-8818-4ff8-a4c7-de957b078083 ;
+    nfo:fileName "pe3.nii.gz"^^xsd:string ;
+    prov:wasGeneratedBy niiri:e9d9713b-1bed-46de-b4a7-9ff5d377d986 .
+
+<http://iri.nidash.org/35156866-6fc6-4d86-a9bf-c49aefb8d683> a nidm_StatisticMap:,
+        prov:Entity ;
+    rdfs:label "Statistic Map: switch vs nonswitch mronly" ;
+    crypto:sha512 "ebcb8641dc8b41b7c846b020935e2cef129fe1344afc0823c067f3b2b77a26e35c1dad9c0798d01ad121a57b413602bf331d52add90bb4b26911c1259fd6574a"^^xsd:string ;
+    dct:format "image/nifti"^^xsd:string ;
+    nidm_contrastName: "switch vs nonswitch mronly"^^xsd:string ;
+    nidm_effectDegreesOfFreedom: "1.0"^^xsd:float ;
+    nidm_errorDegreesOfFreedom: "200.0"^^xsd:float ;
+    nidm_inCoordinateSpace: niiri:ee5bb6c6-8818-4ff8-a4c7-de957b078083 ;
+    nidm_statisticType: obo:STATO_0000176 ;
+    nfo:fileName "TStatistic_T003.nii.gz"^^xsd:string ;
+    prov:atLocation "TStatistic_T003.nii.gz"^^xsd:anyURI ;
+    prov:wasGeneratedBy <http://iri.nidash.org/4f307feb-450f-4c55-a3c8-8f9ebc465eb6> .
+
+<http://iri.nidash.org/3aeb756b-cebd-4706-90bf-941dfef2c482> a nidm_ContrastStandardErrorMap:,
+        prov:Entity ;
+    rdfs:label "Contrast Standard Error Map" ;
+    crypto:sha512 "eb88aed738e1d57abc6cea50003688ab4d16bfa7a200a26406309b5e279f2ec7a0dae4345d42be387444dc57657166c33c0f8d4971f846dfe4195b1e58590e47"^^xsd:string ;
+    dct:format "image/nifti"^^xsd:string ;
+    nidm_inCoordinateSpace: niiri:ee5bb6c6-8818-4ff8-a4c7-de957b078083 ;
+    nfo:fileName "ContrastStandardError_T001.nii.gz"^^xsd:string ;
+    prov:atLocation "ContrastStandardError_T001.nii.gz"^^xsd:anyURI ;
+    prov:wasDerivedFrom <http://iri.nidash.org/99dd64dd-59ff-4241-a59b-482bd1cde0ee> ;
+    prov:wasGeneratedBy niiri:da0fd2d2-360a-4b49-b365-8b9e24603279 .
+
+<http://iri.nidash.org/4b11193f-6739-4df0-8af4-b1111330db15> a nidm_StatisticMap:,
+        prov:Entity ;
+    rdfs:label "Statistic Map: switch vs nonswitch plainonly" ;
+    crypto:sha512 "596967622d5dbb91f50ccc7d420079eeb7e567c97dc1e2dda27053ceeb560a03459b55f23ece6476cdf03a3bbd912243d93037abfe214e28ff9304c7205c485d"^^xsd:string ;
+    dct:format "image/nifti"^^xsd:string ;
+    nidm_contrastName: "switch vs nonswitch plainonly"^^xsd:string ;
+    nidm_effectDegreesOfFreedom: "1.0"^^xsd:float ;
+    nidm_errorDegreesOfFreedom: "200.0"^^xsd:float ;
+    nidm_inCoordinateSpace: niiri:ee5bb6c6-8818-4ff8-a4c7-de957b078083 ;
+    nidm_statisticType: obo:STATO_0000176 ;
+    nfo:fileName "TStatistic_T004.nii.gz"^^xsd:string ;
+    prov:atLocation "TStatistic_T004.nii.gz"^^xsd:anyURI ;
+    prov:wasGeneratedBy <http://iri.nidash.org/9ee0fdde-2963-4d37-94f0-da33eefe4ca4> .
+
+<http://iri.nidash.org/4f31fb86-6ab8-40bf-b024-283eb03f16d3> a nidm_ParameterEstimateMap:,
+        prov:Entity ;
+    rdfs:label "Parameter estimate 2" ;
+    crypto:sha512 "6d3e99e9509878a87af5c38651f9b2080b7f5aef99116cd34a62232f7f0a5a270af56a3dd4f62718e28a88e189482a4e108268e1d502e39a861740eb0d09a705"^^xsd:string ;
+    dct:format "image/nifti"^^xsd:string ;
+    nidm_inCoordinateSpace: niiri:ee5bb6c6-8818-4ff8-a4c7-de957b078083 ;
+    nfo:fileName "pe2.nii.gz"^^xsd:string ;
+    prov:wasGeneratedBy niiri:e9d9713b-1bed-46de-b4a7-9ff5d377d986 .
+
+<http://iri.nidash.org/4f464dac-3fbc-4beb-877e-0307cab76c7e> a obo:STATO_0000323,
+        prov:Entity ;
+    rdfs:label "Contrast Weights: switch vs nonswitch" ;
+    nidm_contrastName: "switch vs nonswitch"^^xsd:string ;
+    nidm_statisticType: obo:STATO_0000176 ;
+    prov:value "[1, -1, 1, -1, 0]"^^xsd:string .
+
+<http://iri.nidash.org/529892f3-bf81-4756-9d28-962d4e49bdc4> a nidm_ContrastMap:,
+        prov:Entity ;
+    rdfs:label "Contrast Map: mr vs plain" ;
+    crypto:sha512 "e875f3211c510c143f004708cd0d87fa8a9a7b28ba0a5abb081c5c45684a0eb391f9a43a7fc9475061c8ae5d1ea63584364ba10531a2c54aa7486bf8c1c7ffe2"^^xsd:string ;
+    dct:format "image/nifti"^^xsd:string ;
+    nidm_contrastName: "mr vs plain"^^xsd:string ;
+    nidm_inCoordinateSpace: niiri:ee5bb6c6-8818-4ff8-a4c7-de957b078083 ;
+    nfo:fileName "Contrast_T001.nii.gz"^^xsd:string ;
+    prov:atLocation "Contrast_T001.nii.gz"^^xsd:anyURI ;
+    prov:wasGeneratedBy niiri:da0fd2d2-360a-4b49-b365-8b9e24603279 .
+
+<http://iri.nidash.org/557a814e-63e7-4dce-ae3d-8578eb81b16d> a nidm_ParameterEstimateMap:,
+        prov:Entity ;
+    rdfs:label "Parameter estimate 5" ;
+    crypto:sha512 "0ab5dcbc3d11bfc4b430450bebf6ba575067fe3097d638d313c3abed5d96224c4893d1479b513e905eac32225a4741685abfd8d5ae4e3537f19f1fadf6a49998"^^xsd:string ;
+    dct:format "image/nifti"^^xsd:string ;
+    nidm_inCoordinateSpace: niiri:ee5bb6c6-8818-4ff8-a4c7-de957b078083 ;
+    nfo:fileName "pe5.nii.gz"^^xsd:string ;
+    prov:wasGeneratedBy niiri:e9d9713b-1bed-46de-b4a7-9ff5d377d986 .
+
+<http://iri.nidash.org/55e57535-04fb-4458-b02d-6a83b1e2a494> a nidm_ExcursionSetMap:,
+        prov:Entity ;
+    rdfs:label "Excursion Set Map" ;
+    crypto:sha512 "13a66c3b17cbef796c83f348e064c7e8f0420bec6ad05d692f9638f76991088507ff82514e4de7a7fc8ec9de0f1d425d39bd7ade7bfb135a9ce44d2ac243791e"^^xsd:string ;
+    dc:description <http://iri.nidash.org/3489494f-045e-4321-8ff6-31f4e655e725> ;
+    dct:format "image/nifti"^^xsd:string ;
+    nidm_inCoordinateSpace: niiri:ee5bb6c6-8818-4ff8-a4c7-de957b078083 ;
+    nfo:fileName "ExcursionSet_T002.nii.gz"^^xsd:string ;
+    prov:atLocation "ExcursionSet_T002.nii.gz"^^xsd:anyURI ;
+    prov:wasGeneratedBy <http://iri.nidash.org/25b7d770-d388-4436-be35-a918a009aaa4> .
+
+<http://iri.nidash.org/61708e6c-65c4-4832-bb36-582952bb270e> a nidm_ContrastMap:,
+        prov:Entity ;
+    rdfs:label "Contrast Map: switch vs nonswitch mronly" ;
+    crypto:sha512 "a753a7ac6d955f1f61e9ddfe0d3917ab99556c8017eb264e9208ae1d353cc6feba96197f695d2717a2d5ef302fe55800a42d377b38f27296b7d25815350937c8"^^xsd:string ;
+    dct:format "image/nifti"^^xsd:string ;
+    nidm_contrastName: "switch vs nonswitch mronly"^^xsd:string ;
+    nidm_inCoordinateSpace: niiri:ee5bb6c6-8818-4ff8-a4c7-de957b078083 ;
+    nfo:fileName "Contrast_T003.nii.gz"^^xsd:string ;
+    prov:atLocation "Contrast_T003.nii.gz"^^xsd:anyURI ;
+    prov:wasGeneratedBy <http://iri.nidash.org/4f307feb-450f-4c55-a3c8-8f9ebc465eb6> .
+
+<http://iri.nidash.org/642272ec-12bf-4524-aa13-45fa2d2ec3b6> a nidm_NIDMResults:,
+        prov:Bundle,
+        prov:Entity ;
+    rdfs:label "NIDM-Results" ;
+    nidm_version: "1.2.0"^^xsd:string ;
+    prov:qualifiedGeneration [ a prov:Generation ;
+            prov:activity <http://iri.nidash.org/93ce9177-8182-4eb1-890d-a711e361af17> ;
+            prov:atTime "08:13:17.868913"^^xsd:dateTime ] .
+
+<http://iri.nidash.org/69e8d620-325b-4486-bbc8-2831abcee0ad> a obo:STATO_0000323,
+        prov:Entity ;
+    rdfs:label "Contrast Weights: switch vs nonswitch plainonly" ;
+    nidm_contrastName: "switch vs nonswitch plainonly"^^xsd:string ;
+    nidm_statisticType: obo:STATO_0000176 ;
+    prov:value "[0, 0, 1, -1, 0]"^^xsd:string .
+
+<http://iri.nidash.org/7721bcc2-752d-47f8-84b6-d728af3ec215> a nidm_ContrastStandardErrorMap:,
+        prov:Entity ;
+    rdfs:label "Contrast Standard Error Map" ;
+    crypto:sha512 "918c85446a3c850ce05a405b4a01174b2289f7d6690f1dea95afd2cbc333fb5e3337dc778cbe2c732d59986c2e13e5984cc20407fbaa9f090b3f87105242a574"^^xsd:string ;
+    dct:format "image/nifti"^^xsd:string ;
+    nidm_inCoordinateSpace: niiri:ee5bb6c6-8818-4ff8-a4c7-de957b078083 ;
+    nfo:fileName "ContrastStandardError_T004.nii.gz"^^xsd:string ;
+    prov:atLocation "ContrastStandardError_T004.nii.gz"^^xsd:anyURI ;
+    prov:wasDerivedFrom <http://iri.nidash.org/9e591c3e-9f89-4cf5-9cfe-4ba03a12e0c5> ;
+    prov:wasGeneratedBy <http://iri.nidash.org/9ee0fdde-2963-4d37-94f0-da33eefe4ca4> .
+
+<http://iri.nidash.org/80d0e6af-d5db-41e6-858d-ab51125a33c1> a nidm_StatisticMap:,
+        prov:Entity ;
+    rdfs:label "Statistic Map: switch vs nonswitch" ;
+    crypto:sha512 "befcac56ca8356edd99ba3f77601f4967f338df6a64937f6734fff2a11b52cb00de05756daf5ceca11cac55a2254d957f83f30a8f55260c29ad1291eed89392f"^^xsd:string ;
+    dct:format "image/nifti"^^xsd:string ;
+    nidm_contrastName: "switch vs nonswitch"^^xsd:string ;
+    nidm_effectDegreesOfFreedom: "1.0"^^xsd:float ;
+    nidm_errorDegreesOfFreedom: "200.0"^^xsd:float ;
+    nidm_inCoordinateSpace: niiri:ee5bb6c6-8818-4ff8-a4c7-de957b078083 ;
+    nidm_statisticType: obo:STATO_0000176 ;
+    nfo:fileName "TStatistic_T002.nii.gz"^^xsd:string ;
+    prov:atLocation "TStatistic_T002.nii.gz"^^xsd:anyURI ;
+    prov:wasGeneratedBy niiri:cbacc4ea-7abd-4c1c-81f1-0043e887fd2d .
+
+<http://iri.nidash.org/82c13409-8382-45a0-8b1d-6c3a0e5cd124> a nidm_ParameterEstimateMap:,
+        prov:Entity ;
+    rdfs:label "Parameter estimate 4" ;
+    crypto:sha512 "2ea453332258461a2109626da7646f600cf56c9cf915b6d0b0036bc35139c6598b7ab90f8dc48767d5f2fa1e72f956f7aadbadc28018b05e8914f851c439a4db"^^xsd:string ;
+    dct:format "image/nifti"^^xsd:string ;
+    nidm_inCoordinateSpace: niiri:ee5bb6c6-8818-4ff8-a4c7-de957b078083 ;
+    nfo:fileName "pe4.nii.gz"^^xsd:string ;
+    prov:wasGeneratedBy niiri:e9d9713b-1bed-46de-b4a7-9ff5d377d986 .
+
+<http://iri.nidash.org/8e67bee3-aa92-4f59-a829-58dada10f9a4> a nidm_ContrastStandardErrorMap:,
+        prov:Entity ;
+    rdfs:label "Contrast Standard Error Map" ;
+    crypto:sha512 "e1fc3fc64cc5d126c7e6b8f1db627e94bfae260128f76f47bb41fbbe459c4adf90ca1a79009d7c72f78a49732590004c7f0e4e15fbb314574c365ca0be8841b8"^^xsd:string ;
+    dct:format "image/nifti"^^xsd:string ;
+    nidm_inCoordinateSpace: niiri:ee5bb6c6-8818-4ff8-a4c7-de957b078083 ;
+    nfo:fileName "ContrastStandardError_T002.nii.gz"^^xsd:string ;
+    prov:atLocation "ContrastStandardError_T002.nii.gz"^^xsd:anyURI ;
+    prov:wasDerivedFrom <http://iri.nidash.org/83ce47d5-2af5-4a3e-981c-c96372d4ef33> ;
+    prov:wasGeneratedBy niiri:cbacc4ea-7abd-4c1c-81f1-0043e887fd2d .
+
+niiri:a7d9dc5c-7851-45d2-9e2a-d9d854bc3d84 a nidm_ContrastStandardErrorMap:,
+        prov:Entity ;
+    rdfs:label "Contrast Standard Error Map" ;
+    crypto:sha512 "93825acc7dea216f320817722b3c5c2b98c6ca7877c9cd03f4a869fc0b932bdd5a35712d72179d759d21ed9e33ce2865dfa8e991ce005d57abcc4950a7d7c66f"^^xsd:string ;
+    dct:format "image/nifti"^^xsd:string ;
+    nidm_inCoordinateSpace: niiri:ee5bb6c6-8818-4ff8-a4c7-de957b078083 ;
+    nfo:fileName "ContrastStandardError_T003.nii.gz"^^xsd:string ;
+    prov:atLocation "ContrastStandardError_T003.nii.gz"^^xsd:anyURI ;
+    prov:wasDerivedFrom <http://iri.nidash.org/9f31a2fb-bae4-415b-8bf7-c266db979e70> ;
+    prov:wasGeneratedBy <http://iri.nidash.org/4f307feb-450f-4c55-a3c8-8f9ebc465eb6> .
+
+niiri:c148aa17-a5e6-4d77-a772-6ad5698ab88e a nidm_GrandMeanMap:,
+        prov:Entity ;
+    rdfs:label "Grand Mean Map" ;
+    crypto:sha512 "e41d85264bed70dbb470d1efab2b0985b3cf616d57da623ff05f4282ece5cdf182204c90d19dde658994e0bbc56d8aeed16402df4bee8d0ed94268ce043ffe0f"^^xsd:string ;
+    dct:format "image/nifti"^^xsd:string ;
+    nidm_inCoordinateSpace: niiri:ee5bb6c6-8818-4ff8-a4c7-de957b078083 ;
+    nidm_maskedMedian: "9470.94140625"^^xsd:float ;
+    nfo:fileName "GrandMean.nii.gz"^^xsd:string ;
+    prov:atLocation "GrandMean.nii.gz"^^xsd:anyURI ;
+    prov:wasGeneratedBy niiri:e9d9713b-1bed-46de-b4a7-9ff5d377d986 .
+
+niiri:c41756b0-97a5-4b1b-82b8-b60949964cb5 a obo:STATO_0000323,
+        prov:Entity ;
+    rdfs:label "Contrast Weights: switch vs nonswitch mronly" ;
+    nidm_contrastName: "switch vs nonswitch mronly"^^xsd:string ;
+    nidm_statisticType: obo:STATO_0000176 ;
+    prov:value "[1, -1, 0, 0, 0]"^^xsd:string .
+
+niiri:c518d5dd-0167-4d23-abb9-3fcbd2c8201d a obo:STATO_0000323,
+        prov:Entity ;
+    rdfs:label "Contrast Weights: mr vs plain" ;
+    nidm_contrastName: "mr vs plain"^^xsd:string ;
+    nidm_statisticType: obo:STATO_0000176 ;
+    prov:value "[1, 1, -1, -1, 0]"^^xsd:string .
+
+niiri:cafcb0cc-e177-4ffc-9971-9f71c6d82bfe a nidm_ContrastMap:,
+        prov:Entity ;
+    rdfs:label "Contrast Map: switch vs nonswitch" ;
+    crypto:sha512 "b1935a0dbdeb73e5d166142904748f0aedb70c4d415e2ac741caccca24ebcc0b2fe9c47714fdd3e9b608d29cb120704fbec3677c48e6e3da7756522db56bb539"^^xsd:string ;
+    dct:format "image/nifti"^^xsd:string ;
+    nidm_contrastName: "switch vs nonswitch"^^xsd:string ;
+    nidm_inCoordinateSpace: niiri:ee5bb6c6-8818-4ff8-a4c7-de957b078083 ;
+    nfo:fileName "Contrast_T002.nii.gz"^^xsd:string ;
+    prov:atLocation "Contrast_T002.nii.gz"^^xsd:anyURI ;
+    prov:wasGeneratedBy niiri:cbacc4ea-7abd-4c1c-81f1-0043e887fd2d .
+
+niiri:d6ece820-148a-4213-b57d-ba05cf00defa a nidm_StatisticMap:,
+        prov:Entity ;
+    rdfs:label "Statistic Map: mr vs plain" ;
+    crypto:sha512 "dad20c974f8c0f52af202dd50b38839946900712c604672fd791ee33ff38ab02ce912c597197c7efaa7cee3ee3080db359ebfe89128aae5cd3e6b05b9ba6c197"^^xsd:string ;
+    dct:format "image/nifti"^^xsd:string ;
+    nidm_contrastName: "mr vs plain"^^xsd:string ;
+    nidm_effectDegreesOfFreedom: "1.0"^^xsd:float ;
+    nidm_errorDegreesOfFreedom: "200.0"^^xsd:float ;
+    nidm_inCoordinateSpace: niiri:ee5bb6c6-8818-4ff8-a4c7-de957b078083 ;
+    nidm_statisticType: obo:STATO_0000176 ;
+    nfo:fileName "TStatistic_T001.nii.gz"^^xsd:string ;
+    prov:atLocation "TStatistic_T001.nii.gz"^^xsd:anyURI ;
+    prov:wasGeneratedBy niiri:da0fd2d2-360a-4b49-b365-8b9e24603279 .
+
+niiri:d7e43e79-a643-4643-8c7b-e0cc0e8a7f16 a nidm_ExcursionSetMap:,
+        prov:Entity ;
+    rdfs:label "Excursion Set Map" ;
+    crypto:sha512 "13a66c3b17cbef796c83f348e064c7e8f0420bec6ad05d692f9638f76991088507ff82514e4de7a7fc8ec9de0f1d425d39bd7ade7bfb135a9ce44d2ac243791e"^^xsd:string ;
+    dc:description <http://iri.nidash.org/54a088d2-371f-49a1-a706-9bbfdae1dd6a> ;
+    dct:format "image/nifti"^^xsd:string ;
+    nidm_inCoordinateSpace: niiri:ee5bb6c6-8818-4ff8-a4c7-de957b078083 ;
+    nfo:fileName "ExcursionSet_T003.nii.gz"^^xsd:string ;
+    prov:atLocation "ExcursionSet_T003.nii.gz"^^xsd:anyURI ;
+    prov:wasGeneratedBy <http://iri.nidash.org/6ca538ef-da71-4869-b0ce-f67596e93aeb> .
+
+niiri:ffedb96d-c354-4cc8-8c04-48fd27b6695b a nidm_ExcursionSetMap:,
+        prov:Entity ;
+    rdfs:label "Excursion Set Map" ;
+    crypto:sha512 "13a66c3b17cbef796c83f348e064c7e8f0420bec6ad05d692f9638f76991088507ff82514e4de7a7fc8ec9de0f1d425d39bd7ade7bfb135a9ce44d2ac243791e"^^xsd:string ;
+    dc:description <http://iri.nidash.org/318ae999-38a9-44a2-87fa-ae45fb49d8fd> ;
+    dct:format "image/nifti"^^xsd:string ;
+    nidm_inCoordinateSpace: niiri:ee5bb6c6-8818-4ff8-a4c7-de957b078083 ;
+    nfo:fileName "ExcursionSet_T004.nii.gz"^^xsd:string ;
+    prov:atLocation "ExcursionSet_T004.nii.gz"^^xsd:anyURI ;
+    prov:wasGeneratedBy niiri:c03f3ec2-ae37-45aa-91fd-8bc2f4a0632a .
+
+<http://iri.nidash.org/19395625-3427-4318-9274-da80432ab60c> a nidm_ErrorModel:,
+        prov:Entity ;
+    nidm_dependenceMapWiseDependence: nidm_RegularizedParameter: ;
+    nidm_errorVarianceHomogeneous: true ;
+    nidm_hasErrorDependence: obo:STATO_0000357 ;
+    nidm_hasErrorDistribution: obo:STATO_0000227 ;
+    nidm_varianceMapWiseDependence: nidm_IndependentParameter: .
+
+<http://iri.nidash.org/25b7d770-d388-4436-be35-a918a009aaa4> a nidm_Inference:,
+        prov:Activity ;
+    rdfs:label "Inference: switch vs nonswitch" ;
+    nidm_hasAlternativeHypothesis: nidm_OneTailedTest: ;
+    prov:used <http://iri.nidash.org/312ec2af-3673-4c83-bccf-fe4802197878>,
+        <http://iri.nidash.org/8f6971af-d063-48da-acba-9bd51182d47e>,
+        <http://iri.nidash.org/903ad309-510e-4a96-afe3-9849e19fc62d>,
+        niiri:c80c9b67-5751-4617-a514-bc2753b393e5 ;
+    prov:wasAssociatedWith <http://iri.nidash.org/9475862f-49b0-427e-99f0-6c7c98cd2502> .
+
+<http://iri.nidash.org/312ec2af-3673-4c83-bccf-fe4802197878> a nidm_HeightThreshold:,
+        nidm_PValueUncorrected:,
+        prov:Entity ;
+    rdfs:label "Height Threshold: p<0.001 (uncorrected)" ;
+    prov:value "0.001"^^xsd:float .
+
+<http://iri.nidash.org/318ae999-38a9-44a2-87fa-ae45fb49d8fd> a dctype:Image,
+        prov:Entity ;
+    dct:format "image/png"^^xsd:string ;
+    nfo:fileName "rendered_thresh_zstat4.png"^^xsd:string ;
+    prov:atLocation "rendered_thresh_zstat4.png"^^xsd:anyURI .
+
+<http://iri.nidash.org/3489494f-045e-4321-8ff6-31f4e655e725> a dctype:Image,
+        prov:Entity ;
+    dct:format "image/png"^^xsd:string ;
+    nfo:fileName "rendered_thresh_zstat2.png"^^xsd:string ;
+    prov:atLocation "rendered_thresh_zstat2.png"^^xsd:anyURI .
+
+<http://iri.nidash.org/40f95aa2-8604-4dc7-b67b-89dc2eeeed11> a dctype:Image,
+        prov:Entity ;
+    dct:format "image/png"^^xsd:string ;
+    nfo:fileName "DesignMatrix.png"^^xsd:string ;
+    prov:atLocation "DesignMatrix.png"^^xsd:anyURI .
+
+<http://iri.nidash.org/44b87295-6b98-432d-b1b8-258ea7f5a8a7> a nidm_DisplayMaskMap:,
+        prov:Entity ;
+    rdfs:label "Display Mask Map 2" ;
+    crypto:sha512 "13a66c3b17cbef796c83f348e064c7e8f0420bec6ad05d692f9638f76991088507ff82514e4de7a7fc8ec9de0f1d425d39bd7ade7bfb135a9ce44d2ac243791e"^^xsd:string ;
+    dct:format "image/nifti"^^xsd:string ;
+    nidm_inCoordinateSpace: niiri:ee5bb6c6-8818-4ff8-a4c7-de957b078083 ;
+    nfo:fileName "DisplayMask2.nii.gz"^^xsd:string ;
+    prov:atLocation "DisplayMask2.nii.gz"^^xsd:anyURI .
+
+<http://iri.nidash.org/54a088d2-371f-49a1-a706-9bbfdae1dd6a> a dctype:Image,
+        prov:Entity ;
+    dct:format "image/png"^^xsd:string ;
+    nfo:fileName "rendered_thresh_zstat3.png"^^xsd:string ;
+    prov:atLocation "rendered_thresh_zstat3.png"^^xsd:anyURI .
+
+<http://iri.nidash.org/56bae2dc-a4fe-49a6-ae74-2e46e7afc44d> a dctype:Image,
+        prov:Entity ;
+    dct:format "image/png"^^xsd:string ;
+    nfo:fileName "rendered_thresh_zstat1.png"^^xsd:string ;
+    prov:atLocation "rendered_thresh_zstat1.png"^^xsd:anyURI .
+
+<http://iri.nidash.org/676f0c71-57de-438f-b55b-a2b35c3662b7> a nidm_Inference:,
+        prov:Activity ;
+    rdfs:label "Inference: mr vs plain" ;
+    nidm_hasAlternativeHypothesis: nidm_OneTailedTest: ;
+    prov:used <http://iri.nidash.org/44b87295-6b98-432d-b1b8-258ea7f5a8a7>,
+        <http://iri.nidash.org/9021c5e7-c3ae-413a-8cf3-2d0380bdc807>,
+        niiri:e1813d40-5274-4a04-a51d-c12dfa14acaa,
+        niiri:ebd53688-9a88-4776-973a-c6a447026711 ;
+    prov:wasAssociatedWith <http://iri.nidash.org/9475862f-49b0-427e-99f0-6c7c98cd2502> .
+
+<http://iri.nidash.org/6a49e2e3-4682-45e1-85d8-77d3c29e4bd7> a nidm_StatisticMap:,
+        prov:Entity ;
+    rdfs:label "Z-Statistic Map: switch vs nonswitch plainonly" ;
+    crypto:sha512 "d581a6fcc20a82a8a2d3de33bddbbf49e2ef31072df90d267808a8c4e43adc10601cc191614bd58a8c95b70e565f8a17b0a960e70e9250f66085ad1c21544e30"^^xsd:string ;
+    dct:format "image/nifti"^^xsd:string ;
+    nidm_contrastName: "switch vs nonswitch plainonly"^^xsd:string ;
+    nidm_effectDegreesOfFreedom: "1.0"^^xsd:float ;
+    nidm_errorDegreesOfFreedom: "inf"^^xsd:float ;
+    nidm_inCoordinateSpace: niiri:ee5bb6c6-8818-4ff8-a4c7-de957b078083 ;
+    nidm_statisticType: obo:STATO_0000376 ;
+    nfo:fileName "ZStatistic_T004.nii.gz"^^xsd:string ;
+    prov:atLocation "ZStatistic_T004.nii.gz"^^xsd:anyURI ;
+    prov:wasGeneratedBy <http://iri.nidash.org/9ee0fdde-2963-4d37-94f0-da33eefe4ca4> .
+
+<http://iri.nidash.org/6bd97e2a-0abd-47fb-9ca4-cc6de300f3f5> a nidm_DesignMatrix:,
+        prov:Entity ;
+    rdfs:label "Design Matrix" ;
+    dc:description <http://iri.nidash.org/40f95aa2-8604-4dc7-b67b-89dc2eeeed11> ;
+    dct:format "text/csv"^^xsd:string ;
+    nidm_regressorNames: "[\"mr_sw\", \"mr_sw*temporal_derivative\", \"mr_ns\", \"mr_ns*temporal_derivative\", \"pl_sw\", \"pl_sw*temporal_derivative\", \"pl_ns\", \"pl_ns*temporal_derivative\", \"junk\", \"junk*temporal_derivative\"]"^^xsd:string ;
+    nidm_hasDriftModel: niiri:d7278601-2e51-4953-9e93-a59196694119 ;
+    nidm_hasHRFBasis: nidm_GammaHRF: ;
+    nfo:fileName "DesignMatrix.csv"^^xsd:string ;
+    prov:atLocation "DesignMatrix.csv"^^xsd:anyURI .
+
+<http://iri.nidash.org/6ca538ef-da71-4869-b0ce-f67596e93aeb> a nidm_Inference:,
+        prov:Activity ;
+    rdfs:label "Inference: switch vs nonswitch mronly" ;
+    nidm_hasAlternativeHypothesis: nidm_OneTailedTest: ;
+    prov:used <http://iri.nidash.org/70957224-8012-4d19-b5c9-18a131ea0f5d>,
+        <http://iri.nidash.org/7beee85b-dca5-418f-94cd-044b6e82e6b1>,
+        niiri:c26b3777-b177-46cf-a2ae-ad31e7f63b26,
+        niiri:ea5a70b0-7e5f-4157-9d07-da9a35e71001 ;
+    prov:wasAssociatedWith <http://iri.nidash.org/9475862f-49b0-427e-99f0-6c7c98cd2502> .
+
+<http://iri.nidash.org/70957224-8012-4d19-b5c9-18a131ea0f5d> a nidm_HeightThreshold:,
+        nidm_PValueUncorrected:,
+        prov:Entity ;
+    rdfs:label "Height Threshold: p<0.001 (uncorrected)" ;
+    prov:value "0.001"^^xsd:float .
+
+<http://iri.nidash.org/7beee85b-dca5-418f-94cd-044b6e82e6b1> a nidm_DisplayMaskMap:,
+        prov:Entity ;
+    rdfs:label "Display Mask Map 4" ;
+    crypto:sha512 "13a66c3b17cbef796c83f348e064c7e8f0420bec6ad05d692f9638f76991088507ff82514e4de7a7fc8ec9de0f1d425d39bd7ade7bfb135a9ce44d2ac243791e"^^xsd:string ;
+    dct:format "image/nifti"^^xsd:string ;
+    nidm_inCoordinateSpace: niiri:ee5bb6c6-8818-4ff8-a4c7-de957b078083 ;
+    nfo:fileName "DisplayMask4.nii.gz"^^xsd:string ;
+    prov:atLocation "DisplayMask4.nii.gz"^^xsd:anyURI .
+
+<http://iri.nidash.org/83ce47d5-2af5-4a3e-981c-c96372d4ef33> a nidm_ContrastVarianceMap:,
+        prov:Entity ;
+    crypto:sha512 "7a3c42c8d212c12879050d6a3ac6ee4966f77e5589443ce724f0b363fe45457c87652c7eec9a1aed8346daf5efc81ff02ee2ab2d7b341fcdedf7666546b88440"^^xsd:string ;
+    dct:format "image/nifti"^^xsd:string ;
+    nfo:fileName "varcope2.nii.gz"^^xsd:string .
+
+<http://iri.nidash.org/85bf358b-9b49-4207-8ef7-f681fc140cb5> a nidm:NIDM_0000167,
+        prov:Agent,
+        prov:SoftwareAgent ;
+    rdfs:label "nidmfsl" ;
+    nidm_softwareVersion: "dev"^^xsd:string .
+
+<http://iri.nidash.org/8f6971af-d063-48da-acba-9bd51182d47e> a nidm_StatisticMap:,
+        prov:Entity ;
+    rdfs:label "Z-Statistic Map: switch vs nonswitch" ;
+    crypto:sha512 "bb743c2564abfea308eaaca02dfd69c65ad0d105a4c432d927fd53990923a9d6818987356821f57160110986b77090641b4ab4a6ab939394dde3f27b53aa0f81"^^xsd:string ;
+    dct:format "image/nifti"^^xsd:string ;
+    nidm_contrastName: "switch vs nonswitch"^^xsd:string ;
+    nidm_effectDegreesOfFreedom: "1.0"^^xsd:float ;
+    nidm_errorDegreesOfFreedom: "inf"^^xsd:float ;
+    nidm_inCoordinateSpace: niiri:ee5bb6c6-8818-4ff8-a4c7-de957b078083 ;
+    nidm_statisticType: obo:STATO_0000376 ;
+    nfo:fileName "ZStatistic_T002.nii.gz"^^xsd:string ;
+    prov:atLocation "ZStatistic_T002.nii.gz"^^xsd:anyURI ;
+    prov:wasGeneratedBy niiri:cbacc4ea-7abd-4c1c-81f1-0043e887fd2d .
+
+<http://iri.nidash.org/9021c5e7-c3ae-413a-8cf3-2d0380bdc807> a nidm_HeightThreshold:,
+        nidm_PValueUncorrected:,
+        prov:Entity ;
+    rdfs:label "Height Threshold: p<0.001 (uncorrected)" ;
+    prov:value "0.001"^^xsd:float .
+
+<http://iri.nidash.org/903ad309-510e-4a96-afe3-9849e19fc62d> a nidm_DisplayMaskMap:,
+        prov:Entity ;
+    rdfs:label "Display Mask Map 3" ;
+    crypto:sha512 "13a66c3b17cbef796c83f348e064c7e8f0420bec6ad05d692f9638f76991088507ff82514e4de7a7fc8ec9de0f1d425d39bd7ade7bfb135a9ce44d2ac243791e"^^xsd:string ;
+    dct:format "image/nifti"^^xsd:string ;
+    nidm_inCoordinateSpace: niiri:ee5bb6c6-8818-4ff8-a4c7-de957b078083 ;
+    nfo:fileName "DisplayMask3.nii.gz"^^xsd:string ;
+    prov:atLocation "DisplayMask3.nii.gz"^^xsd:anyURI .
+
+<http://iri.nidash.org/93ce9177-8182-4eb1-890d-a711e361af17> a nidm:NIDM_0000166,
+        prov:Activity ;
+    rdfs:label "NIDM-Results export" ;
+    prov:wasAssociatedWith <http://iri.nidash.org/85bf358b-9b49-4207-8ef7-f681fc140cb5> .
+
+<http://iri.nidash.org/99dd64dd-59ff-4241-a59b-482bd1cde0ee> a nidm_ContrastVarianceMap:,
+        prov:Entity ;
+    crypto:sha512 "32670172750381bf3af1a1e7f15cea29c73ee0dfb2811977aa21a017ad48433a2823f42cdd49422c6509933b40a6f036e81e05f5b40733a239368c7fe0c3f3d7"^^xsd:string ;
+    dct:format "image/nifti"^^xsd:string ;
+    nfo:fileName "varcope1.nii.gz"^^xsd:string .
+
+<http://iri.nidash.org/9e591c3e-9f89-4cf5-9cfe-4ba03a12e0c5> a nidm_ContrastVarianceMap:,
+        prov:Entity ;
+    crypto:sha512 "b4081d2e973be18f95d3620579f7b66572128b1fa129274ed03eaa70aa108d10e42ef137ec3a29566d22c5f9acbacff093ba05acb8d1d261188ab71fed1a3bf2"^^xsd:string ;
+    dct:format "image/nifti"^^xsd:string ;
+    nfo:fileName "varcope4.nii.gz"^^xsd:string .
+
+<http://iri.nidash.org/9f31a2fb-bae4-415b-8bf7-c266db979e70> a nidm_ContrastVarianceMap:,
+        prov:Entity ;
+    crypto:sha512 "672e0c531c9cf7657b78c3dcc72c6c88d3e46b572db5a547c66b88de46cab757a37d4057719d17985bd2f977e2d3ff1e9e458039c63ba283e4e7d337f8a647f8"^^xsd:string ;
+    dct:format "image/nifti"^^xsd:string ;
+    nfo:fileName "varcope3.nii.gz"^^xsd:string .
+
+niiri:be4ad147-35f9-4ab2-9154-b41be750e42c a nidm_DisplayMaskMap:,
+        prov:Entity ;
+    rdfs:label "Display Mask Map 1" ;
+    crypto:sha512 "13a66c3b17cbef796c83f348e064c7e8f0420bec6ad05d692f9638f76991088507ff82514e4de7a7fc8ec9de0f1d425d39bd7ade7bfb135a9ce44d2ac243791e"^^xsd:string ;
+    dct:format "image/nifti"^^xsd:string ;
+    nidm_inCoordinateSpace: niiri:ee5bb6c6-8818-4ff8-a4c7-de957b078083 ;
+    nfo:fileName "DisplayMask1.nii.gz"^^xsd:string ;
+    prov:atLocation "DisplayMask1.nii.gz"^^xsd:anyURI .
+
+niiri:c03f3ec2-ae37-45aa-91fd-8bc2f4a0632a a nidm_Inference:,
+        prov:Activity ;
+    rdfs:label "Inference: switch vs nonswitch plainonly" ;
+    nidm_hasAlternativeHypothesis: nidm_OneTailedTest: ;
+    prov:used <http://iri.nidash.org/6a49e2e3-4682-45e1-85d8-77d3c29e4bd7>,
+        niiri:be4ad147-35f9-4ab2-9154-b41be750e42c,
+        niiri:c7ead44c-d1bf-4ce2-bb3e-ce4a9f34fc6a,
+        niiri:d1f94b18-8e72-4eb7-9031-a4bf6bd2ca1e ;
+    prov:wasAssociatedWith <http://iri.nidash.org/9475862f-49b0-427e-99f0-6c7c98cd2502> .
+
+niiri:c26b3777-b177-46cf-a2ae-ad31e7f63b26 a obo:STATO_0000039,
+        nidm_ExtentThreshold:,
+        prov:Entity ;
+    rdfs:label "Extent Threshold: k>=0" ;
+    nidm_clusterSizeInVoxels: "0"^^xsd:int .
+
+niiri:c7ead44c-d1bf-4ce2-bb3e-ce4a9f34fc6a a obo:STATO_0000039,
+        nidm_ExtentThreshold:,
+        prov:Entity ;
+    rdfs:label "Extent Threshold: k>=0" ;
+    nidm_clusterSizeInVoxels: "0"^^xsd:int .
+
+niiri:c80c9b67-5751-4617-a514-bc2753b393e5 a obo:STATO_0000039,
+        nidm_ExtentThreshold:,
+        prov:Entity ;
+    rdfs:label "Extent Threshold: k>=0" ;
+    nidm_clusterSizeInVoxels: "0"^^xsd:int .
+
+niiri:d1f94b18-8e72-4eb7-9031-a4bf6bd2ca1e a nidm_HeightThreshold:,
+        nidm_PValueUncorrected:,
+        prov:Entity ;
+    rdfs:label "Height Threshold: p<0.001 (uncorrected)" ;
+    prov:value "0.001"^^xsd:float .
+
+niiri:d7278601-2e51-4953-9e93-a59196694119 a fsl_GaussianRunningLineDriftModel:,
+        prov:Entity ;
+    rdfs:label "FSL's Gaussian Running Line Drift Model" ;
+    fsl_driftCutoffPeriod: "60.0"^^xsd:float .
+
+niiri:e1813d40-5274-4a04-a51d-c12dfa14acaa a nidm_StatisticMap:,
+        prov:Entity ;
+    rdfs:label "Z-Statistic Map: mr vs plain" ;
+    crypto:sha512 "14e34148654ce6691ddc38853478c6ee9d9dab76e1cc2b9d34a0d2d29050e2650110749d8cf88d93724736737020ad2f93f3437202d58f03e50e31cededcdcaf"^^xsd:string ;
+    dct:format "image/nifti"^^xsd:string ;
+    nidm_contrastName: "mr vs plain"^^xsd:string ;
+    nidm_effectDegreesOfFreedom: "1.0"^^xsd:float ;
+    nidm_errorDegreesOfFreedom: "inf"^^xsd:float ;
+    nidm_inCoordinateSpace: niiri:ee5bb6c6-8818-4ff8-a4c7-de957b078083 ;
+    nidm_statisticType: obo:STATO_0000376 ;
+    nfo:fileName "ZStatistic_T001.nii.gz"^^xsd:string ;
+    prov:atLocation "ZStatistic_T001.nii.gz"^^xsd:anyURI ;
+    prov:wasGeneratedBy niiri:da0fd2d2-360a-4b49-b365-8b9e24603279 .
+
+niiri:ea5a70b0-7e5f-4157-9d07-da9a35e71001 a nidm_StatisticMap:,
+        prov:Entity ;
+    rdfs:label "Z-Statistic Map: switch vs nonswitch mronly" ;
+    crypto:sha512 "2a6f34811367e3df1549e9e916f35bacba8a9698f12c7d4fbd286369d1d93ae4105683ed90f63873c473e3c274c809a8932a75612734f8eb9f43d0103889452b"^^xsd:string ;
+    dct:format "image/nifti"^^xsd:string ;
+    nidm_contrastName: "switch vs nonswitch mronly"^^xsd:string ;
+    nidm_effectDegreesOfFreedom: "1.0"^^xsd:float ;
+    nidm_errorDegreesOfFreedom: "inf"^^xsd:float ;
+    nidm_inCoordinateSpace: niiri:ee5bb6c6-8818-4ff8-a4c7-de957b078083 ;
+    nidm_statisticType: obo:STATO_0000376 ;
+    nfo:fileName "ZStatistic_T003.nii.gz"^^xsd:string ;
+    prov:atLocation "ZStatistic_T003.nii.gz"^^xsd:anyURI ;
+    prov:wasGeneratedBy <http://iri.nidash.org/4f307feb-450f-4c55-a3c8-8f9ebc465eb6> .
+
+niiri:ebd53688-9a88-4776-973a-c6a447026711 a obo:STATO_0000039,
+        nidm_ExtentThreshold:,
+        prov:Entity ;
+    rdfs:label "Extent Threshold: k>=0" ;
+    nidm_clusterSizeInVoxels: "0"^^xsd:int .
+
+niiri:f8ef2c75-6a78-4b64-8b02-6ee4adb85fe5 a nidm_DataScaling:,
+        prov:Collection,
+        prov:Entity ;
+    rdfs:label "Data" ;
+    nidm_grandMeanScaling: true ;
+    nidm_targetIntensity: "10000.0"^^xsd:float .
+
+<http://iri.nidash.org/123b4648-91cf-4f92-8ed3-a11a5210f502> a nidm_MaskMap:,
+        prov:Entity ;
+    rdfs:label "Mask" ;
+    crypto:sha512 "4070155693d3df6986a701f2ae9c9d485fb28558af779d3e65fcd85ff4e91862658abcccc7bedbd43bfe65263816fbedca534862721c42b0a4d60115795188e7"^^xsd:string ;
+    dct:format "image/nifti"^^xsd:string ;
+    nidm_inCoordinateSpace: niiri:ee5bb6c6-8818-4ff8-a4c7-de957b078083 ;
+    nidm_isUserDefined: false ;
+    nfo:fileName "Mask.nii.gz"^^xsd:string ;
+    prov:atLocation "Mask.nii.gz"^^xsd:anyURI ;
+    prov:wasGeneratedBy niiri:e9d9713b-1bed-46de-b4a7-9ff5d377d986 .
+
+<http://iri.nidash.org/4f307feb-450f-4c55-a3c8-8f9ebc465eb6> a nidm_ContrastEstimation:,
+        prov:Activity ;
+    rdfs:label "Contrast estimation: switch vs nonswitch mronly" ;
+    prov:used <http://iri.nidash.org/123b4648-91cf-4f92-8ed3-a11a5210f502>,
+        <http://iri.nidash.org/73f70175-f2ad-43e1-aab7-2a9dad28a190> ;
+    prov:wasAssociatedWith <http://iri.nidash.org/9475862f-49b0-427e-99f0-6c7c98cd2502> .
+
+<http://iri.nidash.org/73f70175-f2ad-43e1-aab7-2a9dad28a190> a nidm_ResidualMeanSquaresMap:,
+        prov:Entity ;
+    rdfs:label "Residual Mean Squares Map" ;
+    crypto:sha512 "7a7f9ca67f78f3a5c569f6d4d1c759be90a44bc0faa202e024bea2a0c88a60ef451fe7cc7f04b3a07487eb12f148bb6d30ed89ec80d3f45f2577504fc1db0023"^^xsd:string ;
+    dct:format "image/nifti"^^xsd:string ;
+    nidm_inCoordinateSpace: niiri:ee5bb6c6-8818-4ff8-a4c7-de957b078083 ;
+    nfo:fileName "ResidualMeanSquares.nii.gz"^^xsd:string ;
+    prov:atLocation "ResidualMeanSquares.nii.gz"^^xsd:anyURI ;
+    prov:wasGeneratedBy niiri:e9d9713b-1bed-46de-b4a7-9ff5d377d986 .
+
+<http://iri.nidash.org/9ee0fdde-2963-4d37-94f0-da33eefe4ca4> a nidm_ContrastEstimation:,
+        prov:Activity ;
+    rdfs:label "Contrast estimation: switch vs nonswitch plainonly" ;
+    prov:used <http://iri.nidash.org/123b4648-91cf-4f92-8ed3-a11a5210f502>,
+        <http://iri.nidash.org/73f70175-f2ad-43e1-aab7-2a9dad28a190> ;
+    prov:wasAssociatedWith <http://iri.nidash.org/9475862f-49b0-427e-99f0-6c7c98cd2502> .
+
+niiri:cbacc4ea-7abd-4c1c-81f1-0043e887fd2d a nidm_ContrastEstimation:,
+        prov:Activity ;
+    rdfs:label "Contrast estimation: switch vs nonswitch" ;
+    prov:used <http://iri.nidash.org/123b4648-91cf-4f92-8ed3-a11a5210f502>,
+        <http://iri.nidash.org/73f70175-f2ad-43e1-aab7-2a9dad28a190> ;
+    prov:wasAssociatedWith <http://iri.nidash.org/9475862f-49b0-427e-99f0-6c7c98cd2502> .
+
+niiri:da0fd2d2-360a-4b49-b365-8b9e24603279 a nidm_ContrastEstimation:,
+        prov:Activity ;
+    rdfs:label "Contrast estimation: mr vs plain" ;
+    prov:used <http://iri.nidash.org/123b4648-91cf-4f92-8ed3-a11a5210f502>,
+        <http://iri.nidash.org/73f70175-f2ad-43e1-aab7-2a9dad28a190> ;
+    prov:wasAssociatedWith <http://iri.nidash.org/9475862f-49b0-427e-99f0-6c7c98cd2502> .
+
+niiri:e9d9713b-1bed-46de-b4a7-9ff5d377d986 a nidm_ModelParametersEstimation:,
+        prov:Activity ;
+    rdfs:label "Model Parameters Estimation" ;
+    nidm_withEstimationMethod: obo:STATO_0000372 ;
+    prov:used <http://iri.nidash.org/19395625-3427-4318-9274-da80432ab60c>,
+        <http://iri.nidash.org/6bd97e2a-0abd-47fb-9ca4-cc6de300f3f5>,
+        niiri:f8ef2c75-6a78-4b64-8b02-6ee4adb85fe5 ;
+    prov:wasAssociatedWith <http://iri.nidash.org/9475862f-49b0-427e-99f0-6c7c98cd2502> .
+
+<http://iri.nidash.org/9475862f-49b0-427e-99f0-6c7c98cd2502> a nlx:birnlex_2067,
+        prov:Agent,
+        prov:SoftwareAgent ;
+    rdfs:label "FSL" ;
+    fsl_featVersion: "6.00"^^xsd:string ;
+    nidm_softwareVersion: "5.0.x"^^xsd:string .
+
+niiri:ee5bb6c6-8818-4ff8-a4c7-de957b078083 a nidm_CoordinateSpace:,
+        prov:Entity ;
+    rdfs:label "Coordinate space" ;
+    nidm_dimensionsInVoxels: "[ 64, 64, 25 ]"^^xsd:string ;
+    nidm_inWorldCoordinateSystem: nidm_SubjectCoordinateSystem: ;
+    nidm_numberOfDimensions: "3"^^xsd:int ;
+    nidm_voxelSize: "[ 3.125, 3.125, 5.0 ]"^^xsd:string ;
+    nidm_voxelToWorldMapping: "[[ -3.125, 0, 0, 98.4375], [ 0, 3.125, 0, -98.4375], [ 0, 0, 5, -60, ], [ 0, 0, 0, 1, ]]"^^xsd:string ;
+    nidm_voxelUnits: "[\"mm\", \"mm\", \"mm\"]"^^xsd:string .
+
