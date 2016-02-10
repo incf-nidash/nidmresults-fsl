@@ -544,9 +544,6 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 else:
                     design_type = NIDM_MIXED_DESIGN
             else:
-                warnings.warn(
-                    "Onset file(s) " + ", ".join(missing_onset_file) +
-                    " not found. " + "Design type will not be reported")
                 design_type = None
 
             # HRF model (only look at first ev)
