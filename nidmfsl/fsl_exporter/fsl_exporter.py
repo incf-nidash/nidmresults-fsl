@@ -40,10 +40,10 @@ class FSLtoNIDMExporter(NIDMExporter, object):
     stored in NIDM-Results and generate a NIDM-Results export.
     """
 
-    def __init__(self, version, *args, **kwargs):
+    def __init__(self, version, feat_dir, export_dir=None):
         super(FSLtoNIDMExporter, self).__init__(version)
-        self.feat_dir = kwargs.pop('feat_dir')
-        self.export_dir = kwargs.pop('export_dir')
+        self.feat_dir = feat_dir
+        self.export_dir = export_dir
 
         # If no export directory was specified then call it 'nidm'
         if not self.export_dir:
