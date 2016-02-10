@@ -40,12 +40,26 @@ class FSLtoNIDMExporter(NIDMExporter, object):
     stored in NIDM-Results and generate a NIDM-Results export.
     """
 
-    def __init__(self, version, *args, **kwargs):
+    def __init__(self, version, feat_dir, export_dir=None):
         super(FSLtoNIDMExporter, self).__init__(version)
-        print kwargs
+        self.feat_dir = feat_dir
+        self.export_dir = export_dir
 
-        self.feat_dir = kwargs.pop('feat_dir')
-        self.export_dir = kwargs.pop('export_dir')
+        # If no export directory was specified then call it 'nidm'
+        if not self.export_dir:
+            nidm_dirs = glob.glob(os.path.join(self.feat_dir, 'nidm****'))
+            if nidm_dirs:
+                if nidm_dirs[-1] == os.path.join(self.feat_dir, 'nidm'):
+                    export_dir_num = 1
+                else:
+                    m = re.search('(?<=nidm_).*', nidm_dirs[-1])
+                    export_dir_num = int(m.group(0)) + 1
+
+                self.export_dir = os.path.join(
+                    self.feat_dir, 'nidm' + "_{0:0>4}".format(export_dir_num))
+            else:
+                self.export_dir = os.path.join(self.feat_dir, 'nidm')
+
         self.design_file = os.path.join(self.feat_dir, 'design.fsf')
         # FIXME: maybe not always "4"?
         feat_post_log_file = os.path.join(self.feat_dir, 'logs', 'feat4_post')
