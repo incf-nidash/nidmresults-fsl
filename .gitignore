@@ -1,3 +1,5 @@
+test/config.json
+
 *.pyc
 test/data/*
 
