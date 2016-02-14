@@ -7,16 +7,15 @@ python:
 install: 
  - pip --version 
  # Install current version of nidmresults
- - pip install git+https://github.com/incf-nidash/nidmresults.git#egg=nidmresults
-# Install current version of nidmfsl
- - python setup.py install
+ - pip install git+https://github.com/cmaumet/nidmresults.git@zip#egg=nidmresults
  # Packages only needed for testing
  - pip install vcrpy
  - pip install ddt
- - pip install coveralls
+ # - pip install coveralls
 # command to run tests, e.g. python setup.py test
 script:
- - coverage run -m unittest discover
+ # - coverage run --source=nidmfsl -m unittest discover
+ - python -m unittest discover
  - cat debug.log
 # Update subtree nidm from main nidm repository
 before_install: 
@@ -29,5 +28,6 @@ before_install:
  - git subtree add --prefix nidm nidm/master --squash
  - git subtree add --prefix nidm_releases/1.0.0 nidm tags/NIDM-Results_1.0.0 --squash
  - git subtree add --prefix nidm_releases/1.1.0 nidm tags/NIDM-Results_1.1.0 --squash
-after_success:
-  coveralls
+ - git subtree add --prefix nidm_releases/1.2.0 nidm tags/NIDM-Results_1.2.0 --squash
+# after_success:
+#   coveralls

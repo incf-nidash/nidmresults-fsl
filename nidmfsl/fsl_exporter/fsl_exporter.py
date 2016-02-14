@@ -40,13 +40,20 @@ class FSLtoNIDMExporter(NIDMExporter, object):
     stored in NIDM-Results and generate a NIDM-Results export.
     """
 
-    def __init__(self, *args, **kwargs):
-        super(FSLtoNIDMExporter, self).__init__()
+    def __init__(self, version, feat_dir, out_dirname=None, zipped=True):
+        # Create output name if it was not set
+        if not out_dirname:
+                out_dirname = os.path.basename(feat_dir)
+        out_dir = os.path.join(feat_dir, out_dirname)
 
-        self.feat_dir = kwargs.pop('feat_dir')
-        self.export_dir = kwargs.pop('export_dir')
-        
-	self.design_file = os.path.join(self.feat_dir, 'design.fsf')
+        super(FSLtoNIDMExporter, self).__init__(version, out_dir, zipped)
+        # Check if feat_dir exists
+        print "Exporting NIDM results from "+feat_dir
+        if not os.path.isdir(feat_dir):
+            raise Exception("Unknown directory: "+str(feat_dir))
+        self.feat_dir = feat_dir
+
+        self.design_file = os.path.join(self.feat_dir, 'design.fsf')
         # FIXME: maybe not always "4"?
         feat_post_log_file = os.path.join(self.feat_dir, 'logs', 'feat4_post')
         # FIXME: this file is sometimes missing, can the connectivity info
@@ -55,8 +62,6 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             self.feat_post_log = open(feat_post_log_file, 'r')
         else:
             self.feat_post_log = None
-
-        self.version = kwargs.pop('version')
         self.coord_space = None
         self.contrast_names_by_num = dict()
 
@@ -112,9 +117,18 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         version_re = r'.*set fmri\(version\) (?P<info>\d+\.?\d+).*'
         feat_version = self._search_in_fsf(version_re)
 
-        software = Software(feat_version=feat_version)
+        software = FSLNeuroimagingSoftware(feat_version=feat_version)
 
         return software
+
+    def _get_exporter(self):
+        """
+        Return an object of type NIDM-Results Exporter Software describing the
+        exporter used to compute the current analysis.
+        """
+        exporter = FSLExporterSoftware()
+
+        return exporter
 
     def _find_model_fitting(self):
         """
@@ -133,7 +147,8 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             rms_map = self._get_residual_mean_squares_map(stat_dir)
             param_estimates = self._get_param_estimate_maps(stat_dir)
             mask_map = self._get_mask_map(analysis_dir)
-            grand_mean_map = self._get_grand_mean(mask_map.file, analysis_dir)
+            grand_mean_map = self._get_grand_mean(
+                mask_map.file.path, analysis_dir)
 
             activity = self._get_model_parameters_estimations(error_model)
 
@@ -182,17 +197,19 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     stat_type = "F"
                     con_num = zstatnum.replace('zfstat', '')
 
+                con_num = int(con_num)
+
                 # If more than one excursion set is reported, we need to
                 # use an index in the file names of the file exported in
                 # nidm
                 if len(exc_sets) > 1:
-                    stat_num = "_" + \
+                    stat_num_idx = "_" + \
                         stat_type.upper() + "{0:0>3}".format(con_num)
                 else:
-                    stat_num = ""
+                    stat_num_idx = ""
 
                 # Contrast name
-                name_re = r'.*set fmri\(conname_real\.' + con_num +\
+                name_re = r'.*set fmri\(conname_real\.' + str(con_num) +\
                     '\) "(?P<info>[^"]+)".*'
                 contrast_name = self._search_in_fsf(name_re)
                 self.contrast_names_by_num[con_num] = contrast_name
@@ -201,14 +218,14 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 estimation = ContrastEstimation(con_num, contrast_name)
 
                 # Contrast weights
-                weights_re = r'.*set fmri\(con_real' + con_num +\
+                weights_re = r'.*set fmri\(con_real' + str(con_num) +\
                     '\.\d+\) (?P<info>-?\d+)'
                 weight_search = re.compile(weights_re)
                 contrast_weights = str(
                     re.findall(weight_search,
                                self.design_txt)).replace("'", '')
 
-                weights = ContrastWeights(stat_num, contrast_name,
+                weights = ContrastWeights(stat_num_idx, contrast_name,
                                           contrast_weights, stat_type)
 
                 # Find which parameter estimates were used to compute the
@@ -228,7 +245,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                         for model_fitting in self.model_fittings.values():
                             for pe in model_fitting.param_estimates:
                                 s = re.compile('pe\d+')
-                                pe_num = s.search(pe.file)
+                                pe_num = s.search(pe.file.path)
                                 pe_num = pe_num.group()
                                 pe_num = pe_num.replace('pe', '')
                                 if pe_num == pe_index:
@@ -243,7 +260,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     stat_dir,
                     stat_type.lower() + 'stat' + str(con_num) + '.nii.gz')
                 stat_map = StatisticMap(
-                    stat_file, stat_type, stat_num,
+                    stat_file, stat_type, stat_num_idx,
                     contrast_name, dof, self.coord_space,
                     self.export_dir)
 
@@ -252,7 +269,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     stat_dir,
                     'zstat' + str(con_num) + '.nii.gz')
                 z_stat_map = StatisticMap(
-                    z_stat_file, 'Z', stat_num,
+                    z_stat_file, 'Z', stat_num_idx,
                     contrast_name, dof, self.coord_space,
                     self.export_dir)
 
@@ -260,7 +277,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     # Contrast Map
                     con_file = os.path.join(stat_dir,
                                             'cope' + str(con_num) + '.nii.gz')
-                    contrast_map = ContrastMap(con_file, stat_num,
+                    contrast_map = ContrastMap(con_file, stat_num_idx,
                                                contrast_name, self.coord_space,
                                                self.export_dir)
 
@@ -269,7 +286,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                         stat_dir, 'varcope' + str(con_num) + '.nii.gz')
                     is_variance = True
                     std_err_map = ContrastStdErrMap(
-                        stat_num,
+                        stat_num_idx,
                         varcontrast_file, is_variance, self.coord_space,
                         self.coord_space, self.export_dir)
                     std_err_map_or_mean_sq_map = std_err_map
@@ -280,7 +297,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                         stat_dir, 'sigmasquareds.nii.gz')
 
                     expl_mean_sq_map = ContrastExplainedMeanSquareMap(
-                        stat_file, sigma_sq_file, stat_num,
+                        stat_file, sigma_sq_file, stat_num_idx,
                         self.coord_space, self.export_dir)
 
                     std_err_map_or_mean_sq_map = expl_mean_sq_map
@@ -305,6 +322,12 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         """
         inferences = dict()
 
+        # Any contrast masking?
+        m = re.search(r"set fmri\(conmask1_1\) (?P<con_maskg>[0|1])",
+                      self.design_txt)
+        assert m is not None
+        contrast_masking = bool(int(m.group("con_maskg")))
+
         for analysis_dir in self.analysis_dirs:
             exc_sets = glob.glob(os.path.join(analysis_dir,
                                               'thresh_z*.nii.gz'))
@@ -322,6 +345,8 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     stat_type = "F"
                     stat_num = zstatnum.replace('zfstat', '')
 
+                stat_num = int(stat_num)
+
                 # If more than one excursion set is reported, we need to use
                 # an index in the file names of the file exported in nidm
                 if len(exc_sets) > 1:
@@ -335,11 +360,12 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 for contrasts in self.contrasts.values():
                     for contrast in contrasts:
                         s = re.compile('zf?stat\d+')
-                        con_num = s.search(contrast.z_stat_map.file)
+                        con_num = s.search(contrast.z_stat_map.file.path)
                         con_num = con_num.group()
                         con_num = con_num.replace('zstat', '')\
                                          .replace('zfstat', '')\
                                          .replace('.nii.gz', '')
+                        con_num = int(con_num)
                         if con_num == stat_num:
                             con_id = contrast.estimation.id
                 assert con_id is not None
@@ -352,9 +378,20 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 # Excursion set
                 visualisation = os.path.join(
                     analysis_dir,
-                    'rendered_thresh_zstat' + stat_num + '.png')
-                zFileImg = os.path.join(analysis_dir,
-                                        'thresh_zstat' + stat_num + '.nii.gz')
+                    'rendered_thresh_zstat' + str(stat_num) + '.png')
+                zFileImg = os.path.join(
+                    analysis_dir,
+                    'thresh_zstat' + str(stat_num) + '.nii.gz')
+
+                # FIXME: When doing contrast masking is the excursion set
+                # stored in thresh_zstat the one after or before contrast
+                # masking?
+                # If before: is there a way to get the excursion set after
+                # contrast masking?
+                # If after: how can we get the contrast masks? cf. report:
+                # "After all thresholding, zstat1 was masked with
+                # thresh_zstat2.
+                # --> fsl_contrast_mask
                 exc_set = ExcursionSet(zFileImg, stat_num_t, visualisation,
                                        self.coord_space, self.export_dir)
 
@@ -409,47 +446,38 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     peak_criteria = None
                     clus_criteria = None
 
-                # FIXME: for now only based on conmask1_1
-                m = re.search(
-                    r"set fmri\(conmask1_1\) (?P<con_maskg>\d+)",
-                    self.design_txt)
-                assert m is not None
-                contrast_masking = bool(int(m.group("con_maskg")))
-
+                # Display mask
+                contrast_masks = list()
+                display_mask = list()
                 if contrast_masking:
-                    # Display mask
-                    # FIXME deal with the case in which we are contrast masking
-                    # by
-                    #  more than one contrast
-                    # contrast_masking_search = re.compile(r'.*set
-                    # fmri\(conmask'+contrast_num+'_(?P<maskingconnum>\d+)\)
-                    # (?P<domask>\d+).*')
-                    # contrast_masking_found =
-                    # contrast_masking_search.search(self.design_txt)
-                    # do_contrast_masking =
-                    # float(contrast_masking_found.group('domask'))
-                    # if do_contrast_masking:
-                    #     contrast_masking_num =
-                    # contrast_masking_found.group('maskingconnum')
-                    #     contrast_masking_file =
-                    # else:
-                    #     contrast_masking_num = None
-                    # FIXME: We need an example with more than one contrast to
-                    # code
-                    # contrast masking
-                    contrast_masking_file = self._get_display_mask()
-                    display_mask = DisplayMaskMap(
-                        stat_num,
-                        contrast_masking_file, self.coord_space,
-                        self.export_dir)
-                else:
-                    display_mask = None
+                    # Find all contrast masking definitions for current stat
+                    con_mask_defs = re.findall(
+                        r"set fmri\(conmask" + str(stat_num) + "_\d+\) 1",
+                        self.design_txt)
+
+                    for con_mask_def in con_mask_defs:
+                        m = re.search(
+                            r"set fmri\(conmask" + str(stat_num) +
+                            "_(?P<c2>\d+)\) 1",
+                            con_mask_def)
+                        assert m is not None
+
+                        c2 = int(m.group("c2"))
+                        if not (stat_num == 1 and c2 == 1):
+                            contrast_masks.append(c2)
+                            conmask_file = os.path.join(
+                                analysis_dir,
+                                'thresh_zstat' + str(c2) + '.nii.gz')
+
+                            display_mask.append(DisplayMaskMap(
+                                stat_num,
+                                conmask_file, c2, self.coord_space,
+                                self.export_dir))
 
                 # Search space
                 search_space = self._get_search_space(analysis_dir)
 
                 inference = Inference(
-                    self.version,
                     inference_act, height_thresh,
                     extent_thresh, peak_criteria, clus_criteria,
                     display_mask, exc_set, clusters, search_space,
@@ -512,9 +540,6 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 else:
                     design_type = NIDM_MIXED_DESIGN
             else:
-                warnings.warn(
-                    "Onset file(s) " + ", ".join(missing_onset_file) +
-                    " not found. " + "Design type will not be reported")
                 design_type = None
 
             # HRF model (only look at first ev)
@@ -587,16 +612,20 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
         if self.first_level:
             variance_homo = True
-            dependance = SERIALLY_CORR
+            dependance = OBO_SERIALLY_CORR_COV
             variance_spatial = SPATIALLY_LOCAL
             dependance_spatial = SPATIALLY_REGUL
         else:
             variance_homo = False
-            dependance = INDEPEDENT_CORR
+            dependance = NIDM_INDEPEDENT_ERROR
             variance_spatial = SPATIALLY_LOCAL
             dependance_spatial = None
 
-        error_distribution = NIDM_GAUSSIAN_DISTRIBUTION
+        if self.version['num'] in ["1.0.0", "1.1.0"]:
+            error_distribution = NIDM_GAUSSIAN_DISTRIBUTION
+        else:
+            error_distribution = STATO_NORMAL_DISTRIBUTION
+
         error_model = ErrorModel(
             error_distribution, variance_homo,
             variance_spatial, dependance, dependance_spatial)
@@ -845,6 +874,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 log_file = os.path.join(self.feat_dir, 'logs', 'feat3_film')
 
             if not os.path.isfile(log_file):
+                # FIXME: not found for fsl_t_test
                 warnings.warn(
                     "Log file feat3_stats/feat3_film not found, " +
                     "noise FWHM will not be reported")
@@ -908,8 +938,9 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
         for analysis_dir in self.analysis_dirs:
             # Cluster list (positions in voxels)
-            cluster_file = os.path.join(analysis_dir,
-                                        'cluster_zstat' + stat_num + '.txt')
+            cluster_file = os.path.join(
+                analysis_dir,
+                'cluster_zstat' + str(stat_num) + '.txt')
             if not os.path.isfile(cluster_file):
                 cluster_file = None
             else:
@@ -922,7 +953,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             # Cluster list (positions in mm)
             cluster_std_file = os.path.join(
                 analysis_dir,
-                'cluster_zstat' + stat_num + '_std.txt')
+                'cluster_zstat' + str(stat_num) + '_std.txt')
             if not os.path.isfile(cluster_std_file):
                 cluster_std_file = None
                 # cluster_std_table = np.zeros_like(cluster_table)*float('nan')
@@ -935,7 +966,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
             # Peaks
             peak_file = os.path.join(
-                analysis_dir, 'lmax_zstat' + stat_num + '.txt')
+                analysis_dir, 'lmax_zstat' + str(stat_num) + '.txt')
             if not os.path.isfile(peak_file):
                 peak_file = None
             else:
@@ -944,8 +975,9 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     warnings.simplefilter("ignore")
                     peak_table = np.loadtxt(peak_file, skiprows=1, ndmin=2)
 
-            peak_std_file = os.path.join(analysis_dir,
-                                         'lmax_zstat' + stat_num + '_std.txt')
+            peak_std_file = os.path.join(
+                analysis_dir,
+                'lmax_zstat' + str(stat_num) + '_std.txt')
             if not os.path.isfile(peak_std_file):
                 peak_std_file = None
             else:

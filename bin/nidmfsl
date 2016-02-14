@@ -7,72 +7,29 @@ specification. The path to feat directory must be passed as first argument.
 @copyright: University of Warwick 2013-2014
 """
 
-import os
-import tempfile
 from nidmfsl.fsl_exporter.fsl_exporter import FSLtoNIDMExporter
 import argparse
-import zipfile
-import shutil
 
 if __name__ == "__main__":
     # Arguments and description
     parser = argparse.ArgumentParser(
         description='NIDM-Results exporter for FSL Feat.')
     parser.add_argument('feat_dir', help='Path to feat directory.')
-    parser.add_argument("-o","--output_name",help='Name of the output. A \".nidm.zip\" or \".nidm\" (when -d is used) suffix will be appended.')
-    parser.add_argument("-d","--directory-output",help='Produces a .nidm directory rather than a .nidm.zip file.',action='store_true')
+    parser.add_argument(
+        "-o", "--output_name",
+        help='Name of the output. A \".nidm.zip\" or \".nidm\" (when -d is use\
+d) suffix will be appended.')
+    parser.add_argument(
+        "-d", "--directory-output",
+        help='Produces a .nidm directory rather than a .nidm.zip file.',
+        action='store_true')
     args = parser.parse_args()
 
-    # Check if feat_dir exists
-    feat_dir = args.feat_dir
-    print "Exporting NIDM results from "+feat_dir
-    if not os.path.isdir(feat_dir):
-        raise Exception("Unknown directory: "+str(feat_dir))
-
-    # Create output name if it was not set
-    output_name = args.output_name
-    if not args.output_name:
-        output_name = feat_dir
-
-    # Create output path from output name    
-    if args.directory_output:
-        output_path = output_name+".nidm"
-    else:
-        output_path = output_name+".nidm.zip"
-
-    # Quit if output path already exists and user doesn't want to overwrite it
-    if os.path.exists(output_path):
-        msg = output_path+" already exists, overwrite?"
-        if not raw_input("%s (y/N) " % msg).lower() == 'y':
-            quit("Bye.")
-        if os.path.isdir(output_path):
-            shutil.rmtree(output_path)
-        else:
-            os.remove(output_path)
-            
-    # A temp directory that will contain the exported data
-    tempdir = tempfile.mkdtemp(prefix="nidm-",dir=".")
-    
     # Parse feat dir and export to NIDM
-    fslnidm = FSLtoNIDMExporter(feat_dir=feat_dir, export_dir=tempdir, version="1.1.0")
+    fslnidm = FSLtoNIDMExporter(
+        version="1.1.0", feat_dir=args.feat_dir,
+        out_dirname=args.output_name, dir_output=(not args.directory_output))
     fslnidm.parse()
-    fslnidm.export()
-    
-    # Post-processing
-    if args.directory_output:
-        # Just rename temp directory to output_path
-        os.rename(tempdir,output_path)
-    else:
-        # Create a zip file that contains the content of  the temp directory
-        os.chdir(tempdir)
-        zf = zipfile.ZipFile(os.path.join("..",output_path), mode='w')
-        try:
-            for root, dirnames, filenames in os.walk("."):
-              for filename in filenames:
-                  zf.write(os.path.join(filename))
-            shutil.rmtree(os.path.join("..",tempdir))
-        finally:
-            zf.close()
-            os.chdir("..")
-            
+    output_path = fslnidm.export()
+
     print 'NIDM export available at '+output_path

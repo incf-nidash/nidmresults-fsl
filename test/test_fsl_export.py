@@ -9,10 +9,8 @@ Test of NIDM FSL export tool
 import unittest
 import os
 from rdflib.graph import Graph
-import shutil
 import sys
 import glob
-import json
 
 import logging
 logger = logging.getLogger(__name__)
@@ -32,8 +30,6 @@ NIDM_DIR = os.path.join(RELPATH, "nidm")
 logging.debug(NIDM_DIR)
 if not os.path.isdir(NIDM_DIR):
     NIDM_DIR = os.path.join(os.path.dirname(RELPATH), "nidm")
-    # The FSL export to NIDM will only be run locally (for now)
-    from nidmfsl.fsl_exporter.fsl_exporter import FSLtoNIDMExporter
 
 NIDM_RESULTS_DIR = os.path.join(NIDM_DIR, "nidm", "nidm-results")
 TERM_RESULTS_DIRNAME = "terms"
@@ -53,43 +49,12 @@ from ddt import ddt, data
 # Find all test examples to be compared with ground truth
 test_files = glob.glob(os.path.join(TEST_DIR, 'ex*', '*.ttl'))
 # For test name readability remove path to test file
-test_files = [x.replace(TEST_DIR, "") for x in test_files]
+# test_files = [x.replace(TEST_DIR, "") for x in test_files]
 logging.info("Test files:\n\t" + "\n\t".join(test_files))
 
 
 @ddt
 class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
-
-    @classmethod
-    def setUpClass(cls):
-        # *** Once for all, run the export
-        for ttl_name in test_files:
-            ttl = TEST_DIR+ttl_name
-            test_dir = os.path.dirname(ttl)
-
-            # If test data is available (usually if the test is run locally)
-            # then compute a fresh export
-            with open(os.path.join(test_dir, 'config.json')) as data_file:
-                metadata = json.load(data_file)
-            data_dir = os.path.join(TEST_DATA_DIR, metadata["data_dir"])
-            version = metadata["version"]
-
-            #  Turtle file obtained with FSL NI-DM export tool
-            provn = ttl.replace(".ttl", ".provn")
-
-            if os.path.isdir(data_dir):
-                logging.debug("Computing NIDM FSL export")
-
-                # Export to NIDM using FSL export tool
-                # fslnidm = FSL_NIDM(feat_dir=DATA_DIR_001);
-                fslnidm = FSLtoNIDMExporter(feat_dir=data_dir, version=version)
-                fslnidm.parse()
-                export_dir = fslnidm.export()
-                # Copy provn export to test directory
-                shutil.copy(os.path.join(export_dir, 'nidm.provn'),
-                            os.path.join(provn))
-                shutil.copy(os.path.join(export_dir, 'nidm.ttl'),
-                            os.path.join(ttl))
 
     def setUp(self):
         # Retreive owl file for NIDM-Results
@@ -99,8 +64,10 @@ class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
             os.path.join(os.path.dirname(owl_file),
                          os.pardir, os.pardir, "imports", '*.ttl'))
 
+        gt_dir = os.path.join(TEST_DIR, 'ground_truth')
+
         TestResultDataModel.setUp(self, owl_file, import_files, test_files,
-                                  TEST_DIR, NIDM_RESULTS_DIR)
+                                  TEST_DIR, gt_dir)
 
     @data(*test_files)
     def test_class_consistency_with_owl(self, ttl):
@@ -108,7 +75,7 @@ class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
         Test: Check that the classes used in the ttl file are defined in the
         owl file.
         """
-        ex = self.ex_graphs[ttl]
+        ex = self.load_graph(ttl)
         ex.owl.check_class_names(ex.graph, ex.name, True)
 
     @data(*test_files)
@@ -117,7 +84,7 @@ class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
         Test: Check that the attributes used in the ttl file comply with their
         definition (range, domain) specified in the owl file.
         """
-        ex = self.ex_graphs[ttl]
+        ex = self.load_graph(ttl)
         ex.owl.check_attributes(ex.graph, "FSL example001", True)
 
     @data(*test_files)
@@ -127,7 +94,7 @@ class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
         ttl file (generated manually) are identical
         """
 
-        ex = self.ex_graphs[ttl]
+        ex = self.load_graph(ttl)
 
         for gt_file in ex.gt_ttl_files:
             logging.info("Ground truth ttl: " + gt_file)
