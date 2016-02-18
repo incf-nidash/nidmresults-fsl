@@ -7,25 +7,29 @@ specification. The path to feat directory must be passed as first argument.
 @copyright: University of Warwick 2013-2014
 """
 
-import os
 from nidmfsl.fsl_exporter.fsl_exporter import FSLtoNIDMExporter
 import argparse
 
 if __name__ == "__main__":
+    # Arguments and description
     parser = argparse.ArgumentParser(
-        description='NIDM-Results exporter for FSL.')
+        description='NIDM-Results exporter for FSL Feat.')
     parser.add_argument('feat_dir', help='Path to feat directory.')
-    parser.add_argument("-o","--output",help='Directory where to store the NIDM output.')
-
+    parser.add_argument(
+        "-o", "--output_name",
+        help='Name of the output. A \".nidm.zip\" or \".nidm\" (when -d is use\
+d) suffix will be appended.')
+    parser.add_argument(
+        "-d", "--directory-output",
+        help='Produces a .nidm directory rather than a .nidm.zip file.',
+        action='store_true')
     args = parser.parse_args()
 
-    feat_dir = args.feat_dir
-    print feat_dir
-    if not os.path.isdir(feat_dir):
-        raise Exception("Unknown directory: "+str(feat_dir))
-
-    fslnidm = FSLtoNIDMExporter(feat_dir=feat_dir, export_dir=args.output, version="1.1.0")
+    # Parse feat dir and export to NIDM
+    fslnidm = FSLtoNIDMExporter(
+        version="1.1.0", feat_dir=args.feat_dir,
+        out_dirname=args.output_name, dir_output=(not args.directory_output))
     fslnidm.parse()
-    export_dir = fslnidm.export()
+    output_path = fslnidm.export()
 
-    print 'NIDM export available at: '+str(export_dir)
+    print 'NIDM export available at '+output_path
