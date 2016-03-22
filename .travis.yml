@@ -5,6 +5,11 @@ python:
   - "2.7"
 # command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
 install: 
+ - curl -sLo - https://github.com/github/git-lfs/releases/download/v1.1.2/git-lfs-linux-amd64-1.1.2.tar.gz | tar xzvf -
+ - export PATH=$PATH:`pwd`/git-lfs-1.1.2
+ - cd data/nidmresults-examples
+ - git lfs install
+ - cd ../..
  - pip --version 
  # Install current version of nidmresults
  - pip install git+https://github.com/cmaumet/nidmresults.git@zip#egg=nidmresults
