@@ -14,6 +14,7 @@ import json
 import copy
 import zipfile
 import git
+import subprocess
 
 import logging
 logger = logging.getLogger(__name__)
@@ -59,21 +60,28 @@ if __name__ == '__main__':
     else:
         # Pull nidmresults-examples repository
         test_data_dir = os.path.join(TEST_DATA_DIR, "nidmresults-examples")
-        print "here"
-        print test_data_dir
 
-        if not os.path.isdir(os.path.join(test_data_dir, ".git")):
-            logging.debug("Cloning to " + test_data_dir)
-            # Cloning test data repository
-            data_repo = git.Repo.clone_from(
-                "https://github.com/incf-nidash/nidmresults-examples.git",
-                test_data_dir)
-        else:
-            # Updating test data repository
-            logging.debug("Updating repository at " + test_data_dir)
-            data_repo = git.Repo(test_data_dir)
-            origin = data_repo.remote("origin")
-            origin.pull()
+    if not os.path.isdir(os.path.join(test_data_dir, ".git")):
+        logging.debug("Cloning to " + test_data_dir)
+        # Cloning test data repository
+        data_repo = git.Repo.clone_from(
+            "https://github.com/incf-nidash/nidmresults-examples.git",
+            test_data_dir)
+    else:
+        # Updating test data repository
+        logging.debug("Updating repository at " + test_data_dir)
+        data_repo = git.Repo(test_data_dir)
+        origin = data_repo.remote("origin")
+        origin.pull()
+        # "git stash" gives the repo one more chance to checkout the files
+        # if something failed (e.g. git lfs error) during pull
+        subprocess.call(
+            ["cd " + test_data_dir + "; git stash"],
+            shell=True)
+        # Just to check that everything went fine
+        subprocess.call(
+            ["cd " + test_data_dir + "; git status"],
+            shell=True)
 
     # Find all test examples to be compared with ground truth
     test_data_cfg = glob.glob(os.path.join(test_data_dir, '*/config.json'))
