@@ -49,10 +49,12 @@ from CheckConsistency import *
 
 
 if __name__ == '__main__':
-    # Read config json file to find nidmresults-examples repository
-    with open(os.path.join(TEST_DIR, 'config.json')) as data_file:
-        metadata = json.load(data_file)
-    data_dir = os.path.join(TEST_DATA_DIR, metadata["data"])
+    config_file = os.path.join(TEST_DIR, 'config.json')
+    if os.path.isfile(config_file):
+        # Read config json file to find nidmresults-examples repository
+        with open(config_file) as data_file:
+            metadata = json.load(data_file)
+        data_dir = metadata["data"]
 
     # Find all test examples to be compared with ground truth
     test_data_cfg = glob.glob(os.path.join(data_dir, '*/config.json'))
