@@ -1,8 +1,0 @@
-{
-    "ground_truth": [
-        "fsl_full_example001/nidm.ttl"
-    ],
-    "inclusive": false,
-    "info": "Tests based on the analysis of single-subject fmri fluency data as described at http:fsl.fmrib.ox.ac.uk/fslcourse/lectures/practicals/feat1/index.html but with only *1 contrast: Generation*",
-    "version": "1.2.0"
-}
