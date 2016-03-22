@@ -25,6 +25,7 @@ install:
 # command to run tests, e.g. python setup.py test
 script:
  # - coverage run --source=nidmfsl -m unittest discover
+ - python test/export_test_battery.py
  - python -m unittest discover
  - cat debug.log
 # Update subtree nidm from main nidm repository
