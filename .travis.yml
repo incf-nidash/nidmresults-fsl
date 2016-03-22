@@ -8,9 +8,10 @@ install:
  - pip --version 
  # Install current version of nidmresults
  - pip install git+https://github.com/cmaumet/nidmresults.git@zip#egg=nidmresults
- # Packages only needed for testing
+ # Packages only needed for testing (others are set up in requirements.txt)
  - pip install vcrpy
  - pip install ddt
+ - pip install gitpython
  # - pip install coveralls
 # command to run tests, e.g. python setup.py test
 script:

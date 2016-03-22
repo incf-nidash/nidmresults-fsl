@@ -13,6 +13,7 @@ import glob
 import json
 import copy
 import zipfile
+import git
 
 import logging
 logger = logging.getLogger(__name__)
@@ -54,10 +55,28 @@ if __name__ == '__main__':
         # Read config json file to find nidmresults-examples repository
         with open(config_file) as data_file:
             metadata = json.load(data_file)
-        data_dir = metadata["data"]
+        test_data_dir = metadata["data"]
+    else:
+        # Pull nidmresults-examples repository
+        test_data_dir = os.path.join(TEST_DATA_DIR, "nidmresults-examples")
+        print "here"
+        print test_data_dir
+
+        if not os.path.isdir(os.path.join(test_data_dir, ".git")):
+            logging.debug("Cloning to " + test_data_dir)
+            # Cloning test data repository
+            data_repo = git.Repo.clone_from(
+                "https://github.com/incf-nidash/nidmresults-examples.git",
+                test_data_dir)
+        else:
+            # Updating test data repository
+            logging.debug("Updating repository at " + test_data_dir)
+            data_repo = git.Repo(test_data_dir)
+            origin = data_repo.remote("origin")
+            origin.pull()
 
     # Find all test examples to be compared with ground truth
-    test_data_cfg = glob.glob(os.path.join(data_dir, '*/config.json'))
+    test_data_cfg = glob.glob(os.path.join(test_data_dir, '*/config.json'))
 
     # # For test name readability remove path to test file
     # test_files = [x.replace(TEST_DIR, "") for x in test_files]
