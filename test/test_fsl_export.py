@@ -33,7 +33,7 @@ if not os.path.isdir(NIDM_DIR):
 
 NIDM_RESULTS_DIR = os.path.join(NIDM_DIR, "nidm", "nidm-results")
 TERM_RESULTS_DIRNAME = "terms"
-TEST_DIR = os.path.dirname(os.path.abspath(__file__))
+TEST_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "exported")
 TEST_DATA_DIR = os.path.join(TEST_DIR, "data")
 
 path = os.path.join(NIDM_RESULTS_DIR, "test")

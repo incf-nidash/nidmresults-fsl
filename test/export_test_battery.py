@@ -94,6 +94,11 @@ if __name__ == '__main__':
     #     version = metadata["version"]
 
     # *** Once for all, run the export
+    EXPORTED_TEST_DIR = os.path.join(TEST_DIR, 'exported')
+    if os.path.isdir(EXPORTED_TEST_DIR):
+        shutil.rmtree(EXPORTED_TEST_DIR)
+        os.mkdir(EXPORTED_TEST_DIR)
+
     for cfg in test_data_cfg:
         with open(cfg) as data_file:
             metadata = json.load(data_file)
@@ -120,7 +125,8 @@ if __name__ == '__main__':
 
                     # Copy provn export to test directory
                     test_export_dir = os.path.join(
-                        TEST_DIR, 'ex_' + test_name + '_' + version_str)
+                        EXPORTED_TEST_DIR,
+                        'ex_' + test_name + '_' + version_str)
 
                     if not os.path.exists(test_export_dir):
                         os.makedirs(test_export_dir)
@@ -143,7 +149,7 @@ if __name__ == '__main__':
                                   indent=4,
                                   separators=(',', ': '))
 
-                    gt_dir = os.path.join(TEST_DIR, 'ground_truth')
+                    gt_dir = os.path.join(EXPORTED_TEST_DIR, 'ground_truth')
                     if not os.path.exists(gt_dir):
                         os.makedirs(gt_dir)
 
