@@ -107,14 +107,14 @@ if __name__ == '__main__':
 
         if metadata["software"].lower() == "fsl":
             test_name = os.path.basename(data_dir)
+            logging.debug("Computing NIDM FSL export for " + test_name)
+
             versions = metadata["versions"]
 
             for version in versions:
                 version_str = version.replace(".", "")
 
                 if os.path.isdir(data_dir):
-                    logging.debug("Computing NIDM FSL export")
-
                     # Export to NIDM using FSL export tool
                     # fslnidm = FSL_NIDM(feat_dir=DATA_DIR_001);
                     fslnidm = FSLtoNIDMExporter(
