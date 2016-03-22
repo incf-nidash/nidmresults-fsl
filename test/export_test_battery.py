@@ -12,6 +12,7 @@ import sys
 import glob
 import json
 import copy
+import zipfile
 
 import logging
 logger = logging.getLogger(__name__)
@@ -82,10 +83,10 @@ if __name__ == '__main__':
                     # Export to NIDM using FSL export tool
                     # fslnidm = FSL_NIDM(feat_dir=DATA_DIR_001);
                     fslnidm = FSLtoNIDMExporter(
-                        feat_dir=data_dir, version=version)
+                        feat_dir=data_dir, version=version, zipped=True)
                     fslnidm.parse()
-                    export_dir = fslnidm.export()
-                    print export_dir
+                    zipped_dir = fslnidm.export()
+                    print 'NIDM export available at '+zipped_dir
 
                     # Copy provn export to test directory
                     test_export_dir = os.path.join(
@@ -93,10 +94,10 @@ if __name__ == '__main__':
 
                     if not os.path.exists(test_export_dir):
                         os.makedirs(test_export_dir)
-                    shutil.copy(os.path.join(export_dir, 'nidm.provn'),
-                                os.path.join(test_export_dir, 'nidm.provn'))
-                    shutil.copy(os.path.join(export_dir, 'nidm.ttl'),
-                                os.path.join(test_export_dir, 'nidm.ttl'))
+
+                    with zipfile.ZipFile(zipped_dir) as z:
+                        z.extract('nidm.ttl', test_export_dir)
+                        z.extract('nidm.provn', test_export_dir)
 
                     cfg_file = os.path.join(test_export_dir, 'config.json')
 
@@ -134,4 +135,4 @@ if __name__ == '__main__':
                             sub_gt_dir, os.path.basename(gt)))
 
                     # delete nidm export folder
-                    shutil.rmtree(export_dir)
+                    os.remove(zipped_dir)
