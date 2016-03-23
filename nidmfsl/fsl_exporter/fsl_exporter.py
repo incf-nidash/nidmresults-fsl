@@ -522,6 +522,12 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
             missing_onset_file = list()
             for onset in onsets:
+                # This is useful for our test case (full_example) only as in
+                # real examples, this would be a full path
+                if not os.path.isabs(onset['file']):
+                    onset['file'] = os.path.join(
+                        os.path.join(self.feat_dir), onset['file'])
+
                 if os.path.isfile(onset['file']):
                     aa = np.loadtxt(onset['file'], ndmin=2)
                     max_duration = max(
