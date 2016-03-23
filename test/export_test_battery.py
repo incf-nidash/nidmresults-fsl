@@ -71,19 +71,14 @@ if __name__ == '__main__':
     else:
         # Updating test data repository
         logging.debug("Updating repository at " + test_data_dir)
-        data_repo = git.Repo(test_data_dir)
-        origin = data_repo.remote("origin")
         subprocess.call(
             ["cd " + test_data_dir + "; git checkout master"],
             shell=True)
         subprocess.call(
-            ["cd " + test_data_dir + "; git fetch origin"],
-            shell=True)
-        subprocess.call(
-            ["cd " + test_data_dir + "; git checkout origin/add_onset_files_for_fsl_full"],
+            ["cd " + test_data_dir + "; git pull origin master"],
             shell=True)
         # "git stash" gives the repo one more chance to checkout the files
-        # if something failed (e.g. git lfs error) during pull
+        # if something failed (e.g. git lfs error)
         subprocess.call(
             ["cd " + test_data_dir + "; git stash"],
             shell=True)
