@@ -522,6 +522,12 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
             missing_onset_file = list()
             for onset in onsets:
+                # This is useful for our test case (full_example) only as in
+                # real examples, this would be a full path
+                if not os.path.isabs(onset['file']):
+                    onset['file'] = os.path.join(
+                        os.path.join(self.feat_dir), onset['file'])
+
                 if os.path.isfile(onset['file']):
                     aa = np.loadtxt(onset['file'], ndmin=2)
                     max_duration = max(
@@ -893,13 +899,25 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 cmd = cmd_match.group("cmd")
                 cmd = cmd.replace("stats/smoothness", "stats/smoothness_v")
                 cmd = cmd.replace("smoothest", "smoothest -V")
-                subprocess.call("cd "+analysis_dir+";"+cmd, shell=True)
+                try:
+                    subprocess.check_call(
+                        "cd "+analysis_dir+";"+cmd, shell=True)
+                    with open(smoothness_file+"_v", "r") as fp:
+                        smoothness_txt = fp.read()
 
-                with open(smoothness_file+"_v", "r") as fp:
-                    smoothness_txt = fp.read()
+                    sm_match = re.search(sm_reg, smoothness_txt, re.DOTALL)
+                    d = sm_match.groupdict()
+                except subprocess.CalledProcessError:
+                    warnings.warn(
+                        "fsl's smoothest binary not found, " +
+                        "noise FWHM will not be reported")
+                    noise_fwhm_in_voxels = None
+                    noise_fwhm_in_units = None
 
-                sm_match = re.search(sm_reg, smoothness_txt, re.DOTALL)
-                d = sm_match.groupdict()
+                    # Load DLH, VOLUME and RESELS
+                    d = dict()
+                    d['DLH'], d['volume'], d['vox_per_resels'] = \
+                        np.loadtxt(smoothness_file, usecols=[1])
 
         vol_in_units = float(d['volume'])*np.prod(
             json.loads(self.coord_space.voxel_size))

@@ -13,6 +13,8 @@ import glob
 import json
 import copy
 import zipfile
+import git
+import subprocess
 
 import logging
 logger = logging.getLogger(__name__)
@@ -32,8 +34,9 @@ NIDM_DIR = os.path.join(RELPATH, "nidm")
 logging.debug(NIDM_DIR)
 if not os.path.isdir(NIDM_DIR):
     NIDM_DIR = os.path.join(os.path.dirname(RELPATH), "nidm")
-    # The FSL export to NIDM will only be run locally (for now)
-    from nidmfsl.fsl_exporter.fsl_exporter import FSLtoNIDMExporter
+
+# The FSL export to NIDM will only be run locally (for now)
+from nidmfsl.fsl_exporter.fsl_exporter import FSLtoNIDMExporter
 
 NIDM_RESULTS_DIR = os.path.join(NIDM_DIR, "nidm", "nidm-results")
 TERM_RESULTS_DIRNAME = "terms"
@@ -49,13 +52,43 @@ from CheckConsistency import *
 
 
 if __name__ == '__main__':
-    # Read config json file to find nidmresults-examples repository
-    with open(os.path.join(TEST_DIR, 'config.json')) as data_file:
-        metadata = json.load(data_file)
-    data_dir = os.path.join(TEST_DATA_DIR, metadata["data"])
+    config_file = os.path.join(TEST_DIR, 'config.json')
+    if os.path.isfile(config_file):
+        # Read config json file to find nidmresults-examples repository
+        with open(config_file) as data_file:
+            metadata = json.load(data_file)
+        test_data_dir = metadata["data"]
+    else:
+        # Pull nidmresults-examples repository
+        test_data_dir = os.path.join(TEST_DATA_DIR, "nidmresults-examples")
+
+    if not os.path.isdir(os.path.join(test_data_dir, ".git")):
+        logging.debug("Cloning to " + test_data_dir)
+        # Cloning test data repository
+        data_repo = git.Repo.clone_from(
+            "https://github.com/incf-nidash/nidmresults-examples.git",
+            test_data_dir)
+    else:
+        # Updating test data repository
+        logging.debug("Updating repository at " + test_data_dir)
+        subprocess.call(
+            ["cd " + test_data_dir + "; git checkout master"],
+            shell=True)
+        subprocess.call(
+            ["cd " + test_data_dir + "; git pull origin master"],
+            shell=True)
+        # "git stash" gives the repo one more chance to checkout the files
+        # if something failed (e.g. git lfs error)
+        subprocess.call(
+            ["cd " + test_data_dir + "; git stash"],
+            shell=True)
+        # Just to check that everything went fine
+        subprocess.call(
+            ["cd " + test_data_dir + "; git status"],
+            shell=True)
 
     # Find all test examples to be compared with ground truth
-    test_data_cfg = glob.glob(os.path.join(data_dir, '*/config.json'))
+    test_data_cfg = glob.glob(os.path.join(test_data_dir, '*/config.json'))
 
     # # For test name readability remove path to test file
     # test_files = [x.replace(TEST_DIR, "") for x in test_files]
@@ -64,6 +97,11 @@ if __name__ == '__main__':
     #     version = metadata["version"]
 
     # *** Once for all, run the export
+    EXPORTED_TEST_DIR = os.path.join(TEST_DIR, 'exported')
+    if os.path.isdir(EXPORTED_TEST_DIR):
+        shutil.rmtree(EXPORTED_TEST_DIR)
+        os.mkdir(EXPORTED_TEST_DIR)
+
     for cfg in test_data_cfg:
         with open(cfg) as data_file:
             metadata = json.load(data_file)
@@ -72,14 +110,14 @@ if __name__ == '__main__':
 
         if metadata["software"].lower() == "fsl":
             test_name = os.path.basename(data_dir)
+            logging.debug("Computing NIDM FSL export for " + test_name)
+
             versions = metadata["versions"]
 
             for version in versions:
                 version_str = version.replace(".", "")
 
                 if os.path.isdir(data_dir):
-                    logging.debug("Computing NIDM FSL export")
-
                     # Export to NIDM using FSL export tool
                     # fslnidm = FSL_NIDM(feat_dir=DATA_DIR_001);
                     fslnidm = FSLtoNIDMExporter(
@@ -90,7 +128,8 @@ if __name__ == '__main__':
 
                     # Copy provn export to test directory
                     test_export_dir = os.path.join(
-                        TEST_DIR, 'ex_' + test_name + '_' + version_str)
+                        EXPORTED_TEST_DIR,
+                        'ex_' + test_name + '_' + version_str)
 
                     if not os.path.exists(test_export_dir):
                         os.makedirs(test_export_dir)
@@ -113,7 +152,7 @@ if __name__ == '__main__':
                                   indent=4,
                                   separators=(',', ': '))
 
-                    gt_dir = os.path.join(TEST_DIR, 'ground_truth')
+                    gt_dir = os.path.join(EXPORTED_TEST_DIR, 'ground_truth')
                     if not os.path.exists(gt_dir):
                         os.makedirs(gt_dir)
 

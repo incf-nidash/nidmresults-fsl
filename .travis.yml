@@ -1,20 +1,31 @@
 language: python
 # Enable Travis container-based infrastructure
 sudo: false
+cache:
+  pip: true
+  directories:
+  - test/data/nidmresults-examples
 python:
   - "2.7"
 # command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
 install: 
+ - curl -sLo - https://github.com/github/git-lfs/releases/download/v1.1.2/git-lfs-linux-amd64-1.1.2.tar.gz | tar xzvf -
+ - export PATH=$PATH:`pwd`/git-lfs-1.1.2
+ - cd test/data/nidmresults-examples
+ - git lfs install
+ - cd ../../..
  - pip --version 
  # Install current version of nidmresults
  - pip install git+https://github.com/cmaumet/nidmresults.git@zip#egg=nidmresults
- # Packages only needed for testing
+ # Packages only needed for testing (others are set up in requirements.txt)
  - pip install vcrpy
  - pip install ddt
- # - pip install coveralls
+ - pip install gitpython
+ - export GIT_PYTHON_TRACE='full'
 # command to run tests, e.g. python setup.py test
 script:
  # - coverage run --source=nidmfsl -m unittest discover
+ - python test/export_test_battery.py
  - python -m unittest discover
  - cat debug.log
 # Update subtree nidm from main nidm repository
