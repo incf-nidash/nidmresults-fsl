@@ -118,6 +118,12 @@ if __name__ == '__main__':
                 version_str = version.replace(".", "")
 
                 if os.path.isdir(data_dir):
+                    # Remove existent NIDM exports (if an export already exist
+                    # the program migth be stopped waiting on user output)
+                    for nidmpack in glob.glob(os.path.join(
+                            data_dir, "*.nidm.zip")):
+                        os.remove(nidmpack)
+
                     # Export to NIDM using FSL export tool
                     # fslnidm = FSL_NIDM(feat_dir=DATA_DIR_001);
                     fslnidm = FSLtoNIDMExporter(
