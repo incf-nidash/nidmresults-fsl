@@ -392,8 +392,9 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 # "After all thresholding, zstat1 was masked with
                 # thresh_zstat2.
                 # --> fsl_contrast_mask
-                exc_set = ExcursionSet(zFileImg, stat_num_t, visualisation,
-                                       self.coord_space, self.export_dir)
+                exc_set = ExcursionSet(
+                    zFileImg, self.coord_space, visualisation,
+                    stat_num_t, self.export_dir)
 
                 # Height Threshold
                 prob_re = r'.*set fmri\(prob_thresh\) (?P<info>\d+\.?\d+).*'
@@ -919,8 +920,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     d['DLH'], d['volume'], d['vox_per_resels'] = \
                         np.loadtxt(smoothness_file, usecols=[1])
 
-        vol_in_units = float(d['volume'])*np.prod(
-            json.loads(self.coord_space.voxel_size))
+        vol_in_units = float(d['volume'])*np.prod(self.coord_space.voxel_size)
         vol_in_resels = float(d['volume'])/float(d['vox_per_resels'])
 
         if 'FWHMx_vx' in d:
