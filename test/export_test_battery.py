@@ -104,6 +104,7 @@ if __name__ == '__main__':
 
     for cfg in test_data_cfg:
         with open(cfg) as data_file:
+            logging.debug(data_file)
             metadata = json.load(data_file)
 
         data_dir = os.path.dirname(cfg)
