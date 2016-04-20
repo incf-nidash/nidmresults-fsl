@@ -72,10 +72,10 @@ if __name__ == '__main__':
         # Updating test data repository
         logging.debug("Updating repository at " + test_data_dir)
         subprocess.call(
-            ["cd " + test_data_dir + "; git checkout master"],
+            ["cd " + test_data_dir + "; git checkout new_ground_truth"],
             shell=True)
         subprocess.call(
-            ["cd " + test_data_dir + "; git pull origin master"],
+            ["cd " + test_data_dir + "; git pull origin new_ground_truth"],
             shell=True)
         # "git stash" gives the repo one more chance to checkout the files
         # if something failed (e.g. git lfs error)
