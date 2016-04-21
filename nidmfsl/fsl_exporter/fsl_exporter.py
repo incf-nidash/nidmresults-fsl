@@ -429,21 +429,22 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 # Extent Threshold
                 extent_thresh = ExtentThreshold(p_corr=extent_p_corr)
 
-                # Peak and Cluster Definition Criteria
-                peak_criteria = PeakCriteria(
-                    stat_num,
-                    self._get_num_peaks(), self._get_peak_dist())
-                clus_criteria = ClusterCriteria(
-                    stat_num,
-                    self._get_connectivity())
-
                 # There is not table display listing peaks and clusters for
                 # voxelwise correction
                 if cluster_thresh:
                     # Clusters (and associated peaks)
                     clusters = self._get_clusters_peaks(stat_num)
+                                    # Peak and Cluster Definition Criteria
+                    peak_criteria = PeakCriteria(
+                        stat_num,
+                        self._get_num_peaks(), self._get_peak_dist())
+                    clus_criteria = ClusterCriteria(
+                        stat_num,
+                        self._get_connectivity())
                 else:
                     clusters = None
+                    peak_criteria = None
+                    clus_criteria = None
 
                 # Display mask
                 contrast_masks = list()
