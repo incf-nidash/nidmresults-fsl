@@ -647,6 +647,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         """
         if self.first_level:
             residuals_file = os.path.join(stat_dir, 'sigmasquareds.nii.gz')
+            temporary = False
         else:
             # FIXME cope num enter here
             sigma2_group_file = os.path.join(stat_dir,
@@ -662,6 +663,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
             residuals_file = os.path.join(stat_dir,
                                           'calculated_sigmasquareds.nii.gz')
+            temporary = True
             residuals_img = nib.Nifti1Image(sigma2_group + sigma2_sub,
                                             sigma2_sub_img.get_qform())
             nib.save(residuals_img, residuals_file)
@@ -671,7 +673,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                                            residuals_file)
 
         rms_map = ResidualMeanSquares(self.export_dir, residuals_file,
-                                      self.coord_space)
+                                      self.coord_space, temporary)
 
         # FIXME: does not work
         # if not self.first_level:
