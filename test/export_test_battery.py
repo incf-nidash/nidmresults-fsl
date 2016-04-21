@@ -159,7 +159,7 @@ if __name__ == '__main__':
                                   indent=4,
                                   separators=(',', ': '))
 
-                    gt_dir = os.path.join(EXPORTED_TEST_DIR, 'ground_truth')
+                    gt_dir = os.path.join(EXPORTED_TEST_DIR, '_ground_truth')
                     if not os.path.exists(gt_dir):
                         os.makedirs(gt_dir)
 
@@ -168,7 +168,7 @@ if __name__ == '__main__':
 
                     for gt in metadata["ground_truth"]:
                         gt_file = os.path.join(
-                            data_dir, "..", "ground_truth", version, gt)
+                            data_dir, "..", "_ground_truth", version, gt)
                         version_dir = os.path.join(gt_dir, version)
                         if not os.path.exists(version_dir):
                             os.makedirs(version_dir)
