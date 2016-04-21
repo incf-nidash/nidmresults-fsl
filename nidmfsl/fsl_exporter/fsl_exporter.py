@@ -622,7 +622,10 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             variance_spatial = SPATIALLY_LOCAL
             dependance_spatial = SPATIALLY_REGUL
         else:
-            variance_homo = False
+            m = re.search(r"set fmri\(mixed_yn\) (?P<mixed>\d)",
+                          self.design_txt)
+            assert m is not None
+            variance_homo = (int(m.group("mixed")) == 0)
             dependance = NIDM_INDEPEDENT_ERROR
             variance_spatial = SPATIALLY_LOCAL
             dependance_spatial = None
