@@ -40,7 +40,8 @@ class FSLtoNIDMExporter(NIDMExporter, object):
     stored in NIDM-Results and generate a NIDM-Results export.
     """
 
-    def __init__(self, version, feat_dir, out_dirname=None, zipped=True):
+    def __init__(self, version, feat_dir, out_dirname=None, zipped=True,
+                 num_subjects=None, group_names=None):
         # Create output name if it was not set
         if not out_dirname:
                 out_dirname = os.path.basename(feat_dir)
@@ -65,6 +66,10 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         self.coord_space = None
         self.contrast_names_by_num = dict()
 
+        self.num_subjects = num_subjects
+        if num_subjects is not None:
+            self.groups = zip(num_subjects, group_names)
+
     def parse(self):
         """
         Parse an FSL result directory to extract the pieces information to be
@@ -86,7 +91,16 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         if self.first_level:
             # stat_dir = list([os.path.join(self.feat_dir, 'stats')])
             self.analysis_dirs = list([self.feat_dir])
+            if self.num_subjects is None:
+                self.num_subjects = 1
+            else:
+                if self.num_subjects != 1:
+                    raise Exception("More than 1 subject specified as input\
+in a first-level analysis: (numsubjects=" + self.numsubjects+")")
         else:
+            if self.num_subjects is None:
+                raise Exception("Group analysis with unspecified number of \
+subjects")
             # If feat was called with the GUI then the analysis directory is in
             # the nested cope folder
             self.analysis_dirs = glob.glob(
@@ -152,10 +166,22 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
             activity = self._get_model_parameters_estimations(error_model)
 
+            # Assuming MRI data
+            machine = ImagingInstrument("mri")
+
+            # Group or Person
+            if self.first_level:
+                subjects = [Person()]
+            else:
+                subjects = list()
+                for group in self.groups:
+                    subjects.append(Group(
+                        num_subjects=group[0], group_name=group[1]))
+
             model_fitting = ModelFitting(
                 activity, design_matrix, data,
                 error_model, param_estimates, rms_map, mask_map,
-                grand_mean_map)
+                grand_mean_map, machine, subjects)
 
             self.model_fittings[analysis_dir] = model_fitting
 
@@ -605,9 +631,12 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         Parse FSL result directory to retreive information about the data.
         Return an object of type Data.
         """
+        # Assuming functional data
+        mri_protocol = "fmri"
         grand_mean_scaling = True
         target_intensity = 10000.0
-        data = Data(grand_mean_scaling, target_intensity)
+        data = Data(
+            grand_mean_scaling, target_intensity, mri_protocol=mri_protocol)
         return data
 
     def _get_error_model(self):

@@ -115,6 +115,15 @@ if __name__ == '__main__':
 
             versions = metadata["versions"]
 
+            if "num_subjects" in metadata:
+                num_subjects = metadata["num_subjects"]
+            else:
+                num_subjects = None
+            if "group_names" in metadata:
+                group_names = metadata["group_names"]
+            else:
+                group_names = None
+
             for version in versions:
                 version_str = version.replace(".", "")
 
@@ -128,7 +137,8 @@ if __name__ == '__main__':
                     # Export to NIDM using FSL export tool
                     # fslnidm = FSL_NIDM(feat_dir=DATA_DIR_001);
                     fslnidm = FSLtoNIDMExporter(
-                        feat_dir=data_dir, version=version, zipped=True)
+                        feat_dir=data_dir, version=version, zipped=True,
+                        num_subjects=num_subjects, group_names=group_names)
                     fslnidm.parse()
                     zipped_dir = fslnidm.export()
                     print 'NIDM export available at '+zipped_dir
