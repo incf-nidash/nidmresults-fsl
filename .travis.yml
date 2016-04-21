@@ -16,7 +16,7 @@ install:
  - cd ../../..
  - pip --version 
  # Install current version of nidmresults
- - pip install git+https://github.com/incf-nidash/nidmresults.git@master#egg=nidmresults
+ - pip install git+https://github.com/cmaumet/nidmresults.git@1.3.0#egg=nidmresults
  # Packages only needed for testing (others are set up in requirements.txt)
  - pip install vcrpy
  - pip install ddt
