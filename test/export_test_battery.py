@@ -13,7 +13,6 @@ import glob
 import json
 import copy
 import zipfile
-import git
 import subprocess
 
 import logging
@@ -27,31 +26,29 @@ RELPATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Add FSL NIDM export to python path
 sys.path.append(RELPATH)
 
-# Add nidm common testing code folder to python path
-NIDM_DIR = os.path.join(RELPATH, "nidm")
-# In TravisCI the nidm repository will be created as a subtree, however locally
-# the nidm directory will be accessed directly
-logging.debug(NIDM_DIR)
-if not os.path.isdir(NIDM_DIR):
-    NIDM_DIR = os.path.join(os.path.dirname(RELPATH), "nidm")
-
 # The FSL export to NIDM will only be run locally (for now)
 from nidmfsl.fsl_exporter.fsl_exporter import FSLtoNIDMExporter
 
-NIDM_RESULTS_DIR = os.path.join(NIDM_DIR, "nidm", "nidm-results")
-TERM_RESULTS_DIRNAME = "terms"
 TEST_DIR = os.path.dirname(os.path.abspath(__file__))
 TEST_DATA_DIR = os.path.join(TEST_DIR, "data")
 
-path = os.path.join(NIDM_RESULTS_DIR, "test")
-sys.path.append(path)
-
-
-from TestCommons import *
-from CheckConsistency import *
-
-
 if __name__ == '__main__':
+    def retry_lfs_download(cmd):
+        MAX_ITER = 20
+        it = 0
+        while (it < MAX_ITER):
+            # "git stash" gives the repo one more chance to checkout
+            # the git-lfs files
+            try:
+                print cmd
+                out = subprocess.check_output(cmd, shell=True)
+                print out
+                break
+            except subprocess.CalledProcessError as e:
+                if e.returncode == 128:
+                    it = it + 1
+                    print 'Retry #'+str(it)
+
     config_file = os.path.join(TEST_DIR, 'config.json')
     if os.path.isfile(config_file):
         # Read config json file to find nidmresults-examples repository
@@ -63,29 +60,61 @@ if __name__ == '__main__':
         test_data_dir = os.path.join(TEST_DATA_DIR, "nidmresults-examples")
 
     if not os.path.isdir(os.path.join(test_data_dir, ".git")):
-        logging.debug("Cloning to " + test_data_dir)
-        # Cloning test data repository
-        data_repo = git.Repo.clone_from(
-            "https://github.com/incf-nidash/nidmresults-examples.git",
-            test_data_dir)
+        try:
+            logging.debug("Cloning to " + test_data_dir)
+            repo_https = \
+                "https://github.com/incf-nidash/nidmresults-examples.git"
+            clone_cmd = ["cd " + test_data_dir + "; git clone " + repo_https]
+            print clone_cmd
+            subprocess.check_call(clone_cmd, shell=True)
+        except subprocess.CalledProcessError as e:
+            # 128 -> git-lfs download error: "Error downloading object"
+            if e.returncode == 128:
+                # "git stash" gives the repo one more chance to checkout the
+                # git-lfs files if the download failed
+                stash_cmd = ["cd " + test_data_dir + "; git stash"]
+                retry_lfs_download(stash_cmd)
     else:
         # Updating test data repository
         logging.debug("Updating repository at " + test_data_dir)
-        subprocess.call(
-            ["cd " + test_data_dir + "; git checkout new_ground_truth"],
-            shell=True)
-        subprocess.call(
-            ["cd " + test_data_dir + "; git pull origin new_ground_truth"],
-            shell=True)
-        # "git stash" gives the repo one more chance to checkout the files
-        # if something failed (e.g. git lfs error)
-        subprocess.call(
-            ["cd " + test_data_dir + "; git stash"],
-            shell=True)
-        # Just to check that everything went fine
-        subprocess.call(
-            ["cd " + test_data_dir + "; git status"],
-            shell=True)
+
+        # Check current branch and status
+        subprocess.call(["cd " + test_data_dir + "; git branch"], shell=True)
+        subprocess.call(["cd " + test_data_dir + "; git status"], shell=True)
+
+        # If we are in a different branch, checkout (this test is useful so
+        # that we only stash untracked files if in a different bramch)
+        branch_name = "new_ground_truth"
+        try:
+            # Start from a clean state: stash local changes including
+            # untracked and then checkout
+            checkout_cmd = ["cd " + test_data_dir +
+                            "; git stash --include-untracked" +
+                            "; git checkout " + branch_name]
+            print checkout_cmd
+            subprocess.check_call(checkout_cmd, shell=True)
+        except subprocess.CalledProcessError as e:
+            # 128 -> git-lfs download error: "Error downloading object"
+            if e.returncode == 128:
+                retry_lfs_download(checkout_cmd)
+
+        # Pull latest updates
+        pull_cmd = ["cd " + test_data_dir +
+                    "; git pull origin " + branch_name]
+        try:
+            print pull_cmd
+            subprocess.check_call(pull_cmd, shell=True)
+        except subprocess.CalledProcessError as e:
+            # 128 -> git-lfs download error: "Error downloading object"
+            if e.returncode == 128:
+                # "git stash" gives the repo one more chance to checkout the
+                # git-lfs files if the download failed
+                stash_cmd = ["cd " + test_data_dir + "; git stash"]
+                retry_lfs_download(stash_cmd)
+
+        # Check current branch and status
+        subprocess.call(["cd " + test_data_dir + "; git branch"], shell=True)
+        subprocess.call(["cd " + test_data_dir + "; git status"], shell=True)
 
     # Find all test examples to be compared with ground truth
     test_data_cfg = glob.glob(os.path.join(test_data_dir, '*/config.json'))
