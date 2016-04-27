@@ -2,6 +2,7 @@ test/config.json
 
 *.pyc
 test/data/*
+test/exported/*
 
 nidm/*
 build/*

@@ -40,7 +40,8 @@ class FSLtoNIDMExporter(NIDMExporter, object):
     stored in NIDM-Results and generate a NIDM-Results export.
     """
 
-    def __init__(self, version, feat_dir, out_dirname=None, zipped=True):
+    def __init__(self, version, feat_dir, out_dirname=None, zipped=True,
+                 num_subjects=None, group_names=None):
         # Create output name if it was not set
         if not out_dirname:
                 out_dirname = os.path.basename(feat_dir)
@@ -65,6 +66,10 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         self.coord_space = None
         self.contrast_names_by_num = dict()
 
+        self.num_subjects = num_subjects
+        if num_subjects is not None:
+            self.groups = zip(num_subjects, group_names)
+
     def parse(self):
         """
         Parse an FSL result directory to extract the pieces information to be
@@ -86,7 +91,16 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         if self.first_level:
             # stat_dir = list([os.path.join(self.feat_dir, 'stats')])
             self.analysis_dirs = list([self.feat_dir])
+            if self.num_subjects is None:
+                self.num_subjects = 1
+            else:
+                if self.num_subjects != 1:
+                    raise Exception("More than 1 subject specified as input\
+in a first-level analysis: (numsubjects=" + self.numsubjects+")")
         else:
+            if self.num_subjects is None:
+                raise Exception("Group analysis with unspecified number of \
+subjects")
             # If feat was called with the GUI then the analysis directory is in
             # the nested cope folder
             self.analysis_dirs = glob.glob(
@@ -152,10 +166,22 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
             activity = self._get_model_parameters_estimations(error_model)
 
+            # Assuming MRI data
+            machine = ImagingInstrument("mri")
+
+            # Group or Person
+            if self.first_level:
+                subjects = [Person()]
+            else:
+                subjects = list()
+                for group in self.groups:
+                    subjects.append(Group(
+                        num_subjects=group[0], group_name=group[1]))
+
             model_fitting = ModelFitting(
                 activity, design_matrix, data,
                 error_model, param_estimates, rms_map, mask_map,
-                grand_mean_map)
+                grand_mean_map, machine, subjects)
 
             self.model_fittings[analysis_dir] = model_fitting
 
@@ -392,8 +418,9 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 # "After all thresholding, zstat1 was masked with
                 # thresh_zstat2.
                 # --> fsl_contrast_mask
-                exc_set = ExcursionSet(zFileImg, stat_num_t, visualisation,
-                                       self.coord_space, self.export_dir)
+                exc_set = ExcursionSet(
+                    zFileImg, self.coord_space, visualisation,
+                    stat_num_t, self.export_dir)
 
                 # Height Threshold
                 prob_re = r'.*set fmri\(prob_thresh\) (?P<info>\d+\.?\d+).*'
@@ -433,8 +460,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 if cluster_thresh:
                     # Clusters (and associated peaks)
                     clusters = self._get_clusters_peaks(stat_num)
-
-                    # Peak and Cluster Definition Criteria
+                                    # Peak and Cluster Definition Criteria
                     peak_criteria = PeakCriteria(
                         stat_num,
                         self._get_num_peaks(), self._get_peak_dist())
@@ -522,6 +548,12 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
             missing_onset_file = list()
             for onset in onsets:
+                # This is useful for our test case (full_example) only as in
+                # real examples, this would be a full path
+                if not os.path.isabs(onset['file']):
+                    onset['file'] = os.path.join(
+                        os.path.join(self.feat_dir), onset['file'])
+
                 if os.path.isfile(onset['file']):
                     aa = np.loadtxt(onset['file'], ndmin=2)
                     max_duration = max(
@@ -599,9 +631,12 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         Parse FSL result directory to retreive information about the data.
         Return an object of type Data.
         """
+        # Assuming functional data
+        mri_protocol = "fmri"
         grand_mean_scaling = True
         target_intensity = 10000.0
-        data = Data(grand_mean_scaling, target_intensity)
+        data = Data(
+            grand_mean_scaling, target_intensity, mri_protocol=mri_protocol)
         return data
 
     def _get_error_model(self):
@@ -616,7 +651,10 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             variance_spatial = SPATIALLY_LOCAL
             dependance_spatial = SPATIALLY_REGUL
         else:
-            variance_homo = False
+            m = re.search(r"set fmri\(mixed_yn\) (?P<mixed>\d)",
+                          self.design_txt)
+            assert m is not None
+            variance_homo = (int(m.group("mixed")) == 0)
             dependance = NIDM_INDEPEDENT_ERROR
             variance_spatial = SPATIALLY_LOCAL
             dependance_spatial = None
@@ -638,6 +676,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         """
         if self.first_level:
             residuals_file = os.path.join(stat_dir, 'sigmasquareds.nii.gz')
+            temporary = False
         else:
             # FIXME cope num enter here
             sigma2_group_file = os.path.join(stat_dir,
@@ -653,6 +692,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
             residuals_file = os.path.join(stat_dir,
                                           'calculated_sigmasquareds.nii.gz')
+            temporary = True
             residuals_img = nib.Nifti1Image(sigma2_group + sigma2_sub,
                                             sigma2_sub_img.get_qform())
             nib.save(residuals_img, residuals_file)
@@ -662,7 +702,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                                            residuals_file)
 
         rms_map = ResidualMeanSquares(self.export_dir, residuals_file,
-                                      self.coord_space)
+                                      self.coord_space, temporary)
 
         # FIXME: does not work
         # if not self.first_level:
@@ -893,16 +933,27 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 cmd = cmd_match.group("cmd")
                 cmd = cmd.replace("stats/smoothness", "stats/smoothness_v")
                 cmd = cmd.replace("smoothest", "smoothest -V")
-                subprocess.call("cd "+analysis_dir+";"+cmd, shell=True)
+                try:
+                    subprocess.check_call(
+                        "cd "+analysis_dir+";"+cmd, shell=True)
+                    with open(smoothness_file+"_v", "r") as fp:
+                        smoothness_txt = fp.read()
 
-                with open(smoothness_file+"_v", "r") as fp:
-                    smoothness_txt = fp.read()
+                    sm_match = re.search(sm_reg, smoothness_txt, re.DOTALL)
+                    d = sm_match.groupdict()
+                except subprocess.CalledProcessError:
+                    warnings.warn(
+                        "fsl's smoothest binary not found, " +
+                        "noise FWHM will not be reported")
+                    noise_fwhm_in_voxels = None
+                    noise_fwhm_in_units = None
 
-                sm_match = re.search(sm_reg, smoothness_txt, re.DOTALL)
-                d = sm_match.groupdict()
+                    # Load DLH, VOLUME and RESELS
+                    d = dict()
+                    d['DLH'], d['volume'], d['vox_per_resels'] = \
+                        np.loadtxt(smoothness_file, usecols=[1])
 
-        vol_in_units = float(d['volume'])*np.prod(
-            json.loads(self.coord_space.voxel_size))
+        vol_in_units = float(d['volume'])*np.prod(self.coord_space.voxel_size)
         vol_in_resels = float(d['volume'])/float(d['vox_per_resels'])
 
         if 'FWHMx_vx' in d:
