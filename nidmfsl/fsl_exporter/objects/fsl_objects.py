@@ -42,7 +42,7 @@ class FSLNeuroimagingSoftware(NeuroimagingSoftware):
                           feat_version + "\"")
             version = "unknown"
 
-        super(FSLNeuroimagingSoftware, self).__init__(NLX_FSL, version)
+        super(FSLNeuroimagingSoftware, self).__init__("fsl", version)
 
     def export(self, nidm_version):
         """
