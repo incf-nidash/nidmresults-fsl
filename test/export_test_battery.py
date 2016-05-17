@@ -134,6 +134,8 @@ if __name__ == '__main__':
             metadata = json.load(data_file)
 
         data_dir = os.path.dirname(cfg)
+        if data_dir.endswith("/"):
+            data_dir = data_dir[:-1]
 
         if metadata["software"].lower() == "fsl":
             test_name = os.path.basename(data_dir)
@@ -176,11 +178,10 @@ if __name__ == '__main__':
                         "nidmfsl " + featdir_arg + numsubs_arg +
                         groupnmes_arg + version_arg]
                     print "Running " + str(nidmfsl_cmd)
-                    zipped_dir = subprocess.check_output(
-                        nidmfsl_cmd, shell=True)
-                    zipped_dir = zipped_dir.strrep(
-                        'NIDM export available at ', "")
-                    print 'NIDM export available at '+zipped_dir
+                    subprocess.check_call(nidmfsl_cmd, shell=True)
+
+                    zipped_dir = os.path.join(
+                        data_dir, os.path.basename(data_dir) + ".nidm.zip")
 
                     # Copy provn export to test directory
                     test_export_dir = os.path.join(
