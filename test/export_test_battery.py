@@ -34,7 +34,7 @@ TEST_DATA_DIR = os.path.join(TEST_DIR, "data")
 
 if __name__ == '__main__':
     def retry_lfs_download(cmd):
-        MAX_ITER = 20
+        MAX_ITER = 200
         it = 0
         while (it < MAX_ITER):
             # "git stash" gives the repo one more chance to checkout
