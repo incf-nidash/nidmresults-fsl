@@ -41,7 +41,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
     """
 
     def __init__(self, version, feat_dir, out_dirname=None, zipped=True,
-                 num_subjects=None, group_names=None):
+                 num_subjects=[], group_names=None):
         # Create output name if it was not set
         if not out_dirname:
                 out_dirname = os.path.basename(feat_dir)
@@ -67,7 +67,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         self.contrast_names_by_num = dict()
 
         self.num_subjects = map(int, num_subjects)
-        if num_subjects is not None:
+        if num_subjects:
             self.groups = zip(num_subjects, group_names)
 
     def parse(self):
@@ -91,7 +91,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         if self.first_level:
             # stat_dir = list([os.path.join(self.feat_dir, 'stats')])
             self.analysis_dirs = list([self.feat_dir])
-            if self.num_subjects is None:
+            if not self.num_subjects:
                 self.num_subjects = 1
             else:
                 if self.num_subjects != [1]:
@@ -100,7 +100,7 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
                 else:
                     self.num_subjects = 1
         else:
-            if self.num_subjects is None:
+            if not self.num_subjects:
                 raise Exception("Group analysis with unspecified number of \
 subjects")
             # If feat was called with the GUI then the analysis directory is in
