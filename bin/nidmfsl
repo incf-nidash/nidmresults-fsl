@@ -20,7 +20,7 @@ if __name__ == "__main__":
         help='Number of subjects per group.',
         nargs="*")
     parser.add_argument(
-        "group_name",
+        "-g", "--group_names",
         help='Label for each group.',
         nargs="*")
     parser.add_argument(
