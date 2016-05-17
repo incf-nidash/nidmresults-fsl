@@ -168,9 +168,10 @@ if __name__ == '__main__':
                     numsubs_arg = ""
                     groupnmes_arg = ""
                     if num_subjects:
-                        numsubs_arg = " " + str(num_subjects)
+                        numsubs_arg = " " + " ".join(map(str, num_subjects))
                         if group_names:
-                            groupnmes_arg = " --group_names" + str(group_names)
+                            groupnmes_arg = \
+                                " --group_names " + " ".join(group_names)
                     if version:
                         version_arg = " -v " + version
 

@@ -68,7 +68,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
         self.num_subjects = map(int, num_subjects)
         if num_subjects:
-            self.groups = zip(num_subjects, group_names)
+            self.groups = zip(self.num_subjects, group_names)
 
     def parse(self):
         """
