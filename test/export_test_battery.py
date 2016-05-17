@@ -26,9 +26,6 @@ RELPATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Add FSL NIDM export to python path
 sys.path.append(RELPATH)
 
-# The FSL export to NIDM will only be run locally (for now)
-from nidmfsl.fsl_exporter.fsl_exporter import FSLtoNIDMExporter
-
 TEST_DIR = os.path.dirname(os.path.abspath(__file__))
 TEST_DATA_DIR = os.path.join(TEST_DIR, "data")
 
@@ -165,11 +162,24 @@ if __name__ == '__main__':
 
                     # Export to NIDM using FSL export tool
                     # fslnidm = FSL_NIDM(feat_dir=DATA_DIR_001);
-                    fslnidm = FSLtoNIDMExporter(
-                        feat_dir=data_dir, version=version, zipped=True,
-                        num_subjects=num_subjects, group_names=group_names)
-                    fslnidm.parse()
-                    zipped_dir = fslnidm.export()
+                    featdir_arg = str(data_dir)
+                    numsubs_arg = ""
+                    groupnmes_arg = ""
+                    if num_subjects:
+                        numsubs_arg = " " + str(num_subjects)
+                        if group_names:
+                            groupnmes_arg = " --group_names" + str(group_names)
+                    if version:
+                        version_arg = " -v " + version
+
+                    nidmfsl_cmd = [
+                        "nidmfsl " + featdir_arg + numsubs_arg +
+                        groupnmes_arg + version_arg]
+                    print "Running " + str(nidmfsl_cmd)
+                    zipped_dir = subprocess.check_output(
+                        nidmfsl_cmd, shell=True)
+                    zipped_dir = zipped_dir.strrep(
+                        'NIDM export available at ', "")
                     print 'NIDM export available at '+zipped_dir
 
                     # Copy provn export to test directory
