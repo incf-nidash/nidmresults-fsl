@@ -66,7 +66,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         self.coord_space = None
         self.contrast_names_by_num = dict()
 
-        self.num_subjects = num_subjects
+        self.num_subjects = map(int, num_subjects)
         if num_subjects is not None:
             self.groups = zip(num_subjects, group_names)
 
@@ -94,9 +94,11 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             if self.num_subjects is None:
                 self.num_subjects = 1
             else:
-                if self.num_subjects != 1:
+                if self.num_subjects != [1]:
                     raise Exception("More than 1 subject specified as input\
-in a first-level analysis: (numsubjects=" + self.numsubjects+")")
+in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
+                else:
+                    self.num_subjects = 1
         else:
             if self.num_subjects is None:
                 raise Exception("Group analysis with unspecified number of \
