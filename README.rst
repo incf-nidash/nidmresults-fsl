@@ -1,7 +1,7 @@
 NIDM-Results export for FSL
 ===========================
 
-Export of FSL statistical results using the NeuroImaging Data Model
+Export of FSL FEAT statistical results using the NeuroImaging Data Model
 (`NIDM Results`_).
 
 Install
@@ -16,7 +16,8 @@ Usage
 
 ::
 
-    $ nidmfsl /path/to/feat/directory
+$ nidmfsl [-h] [-g [GROUP_NAMES [GROUP_NAMES ...]]] [-o OUTPUT_NAME] [-d] [-v [VERSION]] feat_dir [numsubjects [numsubjects ...]]
+
 
 Requirements
 ------------
