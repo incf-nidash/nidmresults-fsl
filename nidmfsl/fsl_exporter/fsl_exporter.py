@@ -47,6 +47,8 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 out_dirname = os.path.basename(feat_dir)
         out_dir = os.path.join(feat_dir, out_dirname)
 
+        # Ignore rc* in version number
+        version = version.split("-")[0]
         super(FSLtoNIDMExporter, self).__init__(version, out_dir, zipped)
         # Check if feat_dir exists
         print "Exporting NIDM results from "+feat_dir
