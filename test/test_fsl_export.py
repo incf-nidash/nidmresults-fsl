@@ -64,7 +64,7 @@ class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
             os.path.join(os.path.dirname(owl_file),
                          os.pardir, os.pardir, "imports", '*.ttl'))
 
-        gt_dir = os.path.join(TEST_DIR, 'ground_truth')
+        gt_dir = os.path.join(TEST_DIR, '_ground_truth')
 
         TestResultDataModel.setUp(self, owl_file, import_files, test_files,
                                   TEST_DIR, gt_dir)
