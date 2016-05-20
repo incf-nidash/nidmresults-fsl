@@ -69,8 +69,12 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         self.contrast_names_by_num = dict()
 
         self.num_subjects = num_subjects
+        self.groups = []
         if num_subjects:
             self.groups = zip(self.num_subjects, group_names)
+
+        self.without_group_versions = ["0.1.0", "0.2.0", "1.0.0", "1.1.0",
+                                       "1.2.0"]
 
     def parse(self):
         """
@@ -90,6 +94,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         self.first_level = (fmri_level == 1)
 
         # FIXME cope1
+
         if self.first_level:
             # stat_dir = list([os.path.join(self.feat_dir, 'stats')])
             self.analysis_dirs = list([self.feat_dir])
@@ -103,8 +108,10 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
                     self.num_subjects = 1
         else:
             if not self.num_subjects:
-                raise Exception("Group analysis with unspecified number of \
-subjects")
+                # Number of subject per groups was introduced in 1.3.0
+                if self.version['num'] not in self.without_group_versions:
+                    raise Exception("Group analysis with unspecified number of\
+ subjects")
             # If feat was called with the GUI then the analysis directory is in
             # the nested cope folder
             self.analysis_dirs = glob.glob(
