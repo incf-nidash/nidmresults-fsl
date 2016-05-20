@@ -38,11 +38,13 @@ d) suffix will be appended.')
         nargs="?")
     args = parser.parse_args()
 
+    num_subjects = map(int, args.numsubjects)
+
     # Parse feat dir and export to NIDM
     fslnidm = FSLtoNIDMExporter(
         out_dirname=args.output_name, zipped=(not args.directory_output),
         version=args.version, feat_dir=args.feat_dir,
-        num_subjects=args.numsubjects, group_names=args.group_names)
+        num_subjects=num_subjects, group_names=args.group_names)
     fslnidm.parse()
     output_path = fslnidm.export()
 

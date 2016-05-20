@@ -68,7 +68,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         self.coord_space = None
         self.contrast_names_by_num = dict()
 
-        self.num_subjects = map(int, num_subjects)
+        self.num_subjects = num_subjects
         if num_subjects:
             self.groups = zip(self.num_subjects, group_names)
 
