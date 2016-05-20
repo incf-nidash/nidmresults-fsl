@@ -40,8 +40,8 @@ class FSLtoNIDMExporter(NIDMExporter, object):
     stored in NIDM-Results and generate a NIDM-Results export.
     """
 
-    def __init__(self, version, feat_dir, out_dirname=None, zipped=True,
-                 num_subjects=[], group_names=None):
+    def __init__(self, feat_dir, version="1.3.0-rc2", out_dirname=None,
+                 zipped=True, num_subjects=[], group_names=None):
         # Create output name if it was not set
         if not out_dirname:
                 out_dirname = os.path.basename(feat_dir)
