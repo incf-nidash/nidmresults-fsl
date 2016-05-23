@@ -593,7 +593,10 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
             if hrf == 1:    # 1: Gaussian
                 hrf_model = NIDM_GAUSSIAN_HRF
             elif hrf == 2:  # 2 : Gamma
-                hrf_model = NIDM_GAMMA_HRF
+                if self.version['num'] in ["1.0.0", "1.1.0", "1.2.0"]:
+                    hrf_model = NIDM_GAMMA_HRF
+                else:
+                    hrf_model = FSL_FSLS_GAMMA_HRF
             elif hrf == 3:  # 3 : Double-Gamma HRF
                 hrf_model = FSL_FSLS_GAMMA_DIFFERENCE_HRF
             elif hrf == 4:  # 4 : Gamma basis functions
