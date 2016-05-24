@@ -42,6 +42,13 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
     def __init__(self, feat_dir, version="1.3.0-rc2", out_dirname=None,
                  zipped=True, num_subjects=[], group_names=None):
+
+        # Absolute path to feat directory
+        feat_dir = os.path.abspath(feat_dir)
+
+        if feat_dir.endswith("/"):
+            feat_dir = feat_dir[:-1]
+
         # Create output name if it was not set
         if not out_dirname:
                 out_dirname = os.path.basename(feat_dir)
@@ -57,14 +64,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         self.feat_dir = feat_dir
 
         self.design_file = os.path.join(self.feat_dir, 'design.fsf')
-        # FIXME: maybe not always "4"?
-        feat_post_log_file = os.path.join(self.feat_dir, 'logs', 'feat4_post')
-        # FIXME: this file is sometimes missing, can the connectivity info
-        # be retreive from somewhere else??
-        if os.path.isfile(feat_post_log_file):
-            self.feat_post_log = open(feat_post_log_file, 'r')
-        else:
-            self.feat_post_log = None
+
         self.coord_space = None
         self.contrast_names_by_num = dict()
 
@@ -85,15 +85,9 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         design_file_open = open(self.design_file, 'r')
         self.design_txt = design_file_open.read()
 
-        # Load feat post log file
-        if self.feat_post_log is not None:
-            self.feat_post_log = self.feat_post_log.read()
-
         fmri_level_re = r'.*set fmri\(level\) (?P<info>\d+).*'
         fmri_level = int(self._search_in_fsf(fmri_level_re))
         self.first_level = (fmri_level == 1)
-
-        # FIXME cope1
 
         if self.first_level:
             # stat_dir = list([os.path.join(self.feat_dir, 'stats')])
@@ -119,6 +113,8 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
 
             if not self.analysis_dirs:
                 self.analysis_dirs = list([self.feat_dir])
+
+        print self.analysis_dirs
 
             # cope_dirs
             # print cope_dirs
@@ -213,8 +209,6 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
             stat_dir = os.path.join(analysis_dir, 'stats')
 
             # Degrees of freedom
-            # FIXME: check what happens when more than one contrast is
-            # performed
             dof_file = open(os.path.join(stat_dir, 'dof'), 'r')
             dof = float(dof_file.read())
 
@@ -468,16 +462,28 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
 
                 # There is not table display listing peaks and clusters for
                 # voxelwise correction
+                feat_post_log_file = os.path.join(
+                    analysis_dir, 'logs', 'feat4_post')
+                if os.path.isfile(feat_post_log_file):
+                    with open(feat_post_log_file, 'r') as log:
+                        feat_post_log = log.read()
+                else:
+                    warnings.warn(
+                        "Log file feat4_post not found, " +
+                        "connectivity information will not be reported")
+                    feat_post_log = None
+
                 if cluster_thresh:
                     # Clusters (and associated peaks)
                     clusters = self._get_clusters_peaks(stat_num)
                                     # Peak and Cluster Definition Criteria
                     peak_criteria = PeakCriteria(
                         stat_num,
-                        self._get_num_peaks(), self._get_peak_dist())
+                        self._get_num_peaks(feat_post_log),
+                        self._get_peak_dist(feat_post_log))
                     clus_criteria = ClusterCriteria(
                         stat_num,
-                        self._get_connectivity())
+                        self._get_connectivity(feat_post_log))
                 else:
                     clusters = None
                     peak_criteria = None
@@ -550,7 +556,8 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
         # For first-level fMRI only
         if self.first_level:
             # Design-type: event, mixed or block
-            # FIXME: deal with other options than "custom"
+            # Deal only with the "custom" option (latest NIDM-Results version
+            # do not include design type)
             onsets_re = r'.*set fmri\(custom(?P<num>\d+)\)\s*"(?P<file>.*)".*'
             r = re.compile(onsets_re)
             onsets = [m.groupdict() for m in r.finditer(self.design_txt)]
@@ -633,8 +640,6 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
             if tempo_deriv:
                 real_ev.append(ev_name+'*temporal_derivative')
 
-            # FIXME: other hrf models (FIR...)
-
         design_matrix = DesignMatrix(design_mat_values, design_mat_image,
                                      self.export_dir, real_ev, design_type,
                                      hrf_model, drift_model)
@@ -692,7 +697,6 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
             residuals_file = os.path.join(stat_dir, 'sigmasquareds.nii.gz')
             temporary = False
         else:
-            # FIXME cope num enter here
             sigma2_group_file = os.path.join(stat_dir,
                                              'mean_random_effects_var1.nii.gz')
             sigma2_sub_file = os.path.join(stat_dir,
@@ -717,12 +721,6 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
 
         rms_map = ResidualMeanSquares(self.export_dir, residuals_file,
                                       self.coord_space, temporary)
-
-        # FIXME: does not work
-        # if not self.first_level:
-        # Delete calculated rms file (a copy is now in the NIDM export)
-        # FIXME we need to add the wasDerivedFrom maps
-        #     os.remove(residuals_file)
 
         return rms_map
 
@@ -829,23 +827,15 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
             info = info_found.group('info')
         return info
 
-    def _get_display_mask(self):
-        """
-        Parse FSL result directory to retreive information about display mask.
-        """
-        # FIXME this should be updated with actual contrast masking file
-        mask_file = os.path.join(self.feat_dir, 'mask.nii.gz')
-        return mask_file
-
-    def _get_num_peaks(self):
-        if self.feat_post_log is not None:
+    def _get_num_peaks(self, feat_post_log):
+        if feat_post_log is not None:
             num_peak_search = re.compile(r'.* --num=(?P<numpeak>\d+)+ .*')
-            num_peak_found = num_peak_search.search(self.feat_post_log)
+            num_peak_found = num_peak_search.search(feat_post_log)
             if num_peak_found:
                 num_peak = int(num_peak_found.group('numpeak'))
             else:
                 num_peak_search = re.compile(r'.* -n=(?P<numpeak>\d+)+ .*')
-                num_peak_found = num_peak_search.search(self.feat_post_log)
+                num_peak_found = num_peak_search.search(feat_post_log)
                 if num_peak_found:
                     num_peak = int(num_peak_found.group('numpeak'))
                 else:
@@ -859,11 +849,11 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
             num_peak = None
         return num_peak
 
-    def _get_peak_dist(self):
-        if self.feat_post_log is not None:
+    def _get_peak_dist(self, feat_post_log):
+        if feat_post_log is not None:
             peak_dist_search = re.compile(
                 r'.* --peakdist=(?P<peakdist>\d+)+ .*')
-            peak_dist_found = peak_dist_search.search(self.feat_post_log)
+            peak_dist_found = peak_dist_search.search(feat_post_log)
             if peak_dist_found:
                 peak_dist = float(peak_dist_found.group('peakdist'))
             else:
@@ -875,17 +865,17 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
 
         return peak_dist
 
-    def _get_connectivity(self):
+    def _get_connectivity(self, feat_post_log):
         """
         Parse FSL result directory to retreive peak connectivity within a
         cluster.
         """
-        if self.feat_post_log is not None:
+        if feat_post_log is not None:
             conn_re = r'.* --connectivity=(?P<connectivity>\d+)+ .*'
             connectivity_search = re.compile(conn_re)
             connectivity = int(
                 connectivity_search.search(
-                    self.feat_post_log).group('connectivity'))
+                    feat_post_log).group('connectivity'))
         else:
             connectivity = None
 
@@ -922,13 +912,16 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
             d = sm_match.groupdict()
         else:
             # smoothness was estimated without the "-V" option, recompute
-            log_file = os.path.join(self.feat_dir, 'logs', 'feat3_stats')
+            if self.first_level:
+                log_file = os.path.join(analysis_dir, 'logs', 'feat3_stats')
+
+                if not os.path.isfile(log_file):
+                    log_file = os.path.join(
+                        self.feat_dir, 'logs', 'feat3_film')
+            else:
+                log_file = os.path.join(analysis_dir, 'logs', 'feat3c_flame')
 
             if not os.path.isfile(log_file):
-                log_file = os.path.join(self.feat_dir, 'logs', 'feat3_film')
-
-            if not os.path.isfile(log_file):
-                # FIXME: not found for fsl_t_test
                 warnings.warn(
                     "Log file feat3_stats/feat3_film not found, " +
                     "noise FWHM will not be reported")

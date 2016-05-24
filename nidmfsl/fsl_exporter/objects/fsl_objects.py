@@ -6,6 +6,7 @@ FSL-specific classes and classes overloaded to add FSL-specific attributes.
 """
 from nidmresults.objects.generic import ExporterSoftware, NeuroimagingSoftware
 from nidmresults.objects.constants import *
+import nidmfsl
 import logging
 import uuid
 
@@ -13,8 +14,6 @@ logger = logging.getLogger(__name__)
 
 
 class FSLNeuroimagingSoftware(NeuroimagingSoftware):
-    # FIXME software should be generic and then overloaded
-
     """
     Class representing a Software entity.
     """
@@ -55,16 +54,14 @@ class FSLNeuroimagingSoftware(NeuroimagingSoftware):
 
 
 class FSLExporterSoftware(ExporterSoftware):
-    # FIXME software should be generic and then overloaded
-
     """
     Class representing a Software entity.
     """
 
     def __init__(self):
         self.id = NIIRI[str(uuid.uuid4())]
-        # FIXME: is there a better way to retreive current version?
-        super(FSLExporterSoftware, self).__init__(NIDM_FSL, "dev")
+        super(FSLExporterSoftware, self).__init__(
+            NIDM_FSL, nidmfsl.__version__)
 
     def export(self, nidm_version):
         """
