@@ -57,13 +57,13 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         self.feat_dir = feat_dir
 
         self.design_file = os.path.join(self.feat_dir, 'design.fsf')
-        # FIXME: maybe not always "4"?
         feat_post_log_file = os.path.join(self.feat_dir, 'logs', 'feat4_post')
-        # FIXME: this file is sometimes missing, can the connectivity info
-        # be retreive from somewhere else??
         if os.path.isfile(feat_post_log_file):
             self.feat_post_log = open(feat_post_log_file, 'r')
         else:
+            warnings.warn(
+                "Log file feat4_post not found, " +
+                "connectivity information will not be reported")
             self.feat_post_log = None
         self.coord_space = None
         self.contrast_names_by_num = dict()
