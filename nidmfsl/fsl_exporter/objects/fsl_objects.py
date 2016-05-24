@@ -6,6 +6,7 @@ FSL-specific classes and classes overloaded to add FSL-specific attributes.
 """
 from nidmresults.objects.generic import ExporterSoftware, NeuroimagingSoftware
 from nidmresults.objects.constants import *
+import nidmfsl
 import logging
 import uuid
 
@@ -63,8 +64,8 @@ class FSLExporterSoftware(ExporterSoftware):
 
     def __init__(self):
         self.id = NIIRI[str(uuid.uuid4())]
-        # FIXME: is there a better way to retreive current version?
-        super(FSLExporterSoftware, self).__init__(NIDM_FSL, "dev")
+        super(FSLExporterSoftware, self).__init__(
+            NIDM_FSL, nidmfsl.__version__)
 
     def export(self, nidm_version):
         """
