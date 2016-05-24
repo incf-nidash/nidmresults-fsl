@@ -57,7 +57,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         self.feat_dir = feat_dir
 
         self.design_file = os.path.join(self.feat_dir, 'design.fsf')
-        
+
         self.coord_space = None
         self.contrast_names_by_num = dict()
 
@@ -81,8 +81,6 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         fmri_level_re = r'.*set fmri\(level\) (?P<info>\d+).*'
         fmri_level = int(self._search_in_fsf(fmri_level_re))
         self.first_level = (fmri_level == 1)
-
-        # FIXME cope1
 
         if self.first_level:
             # stat_dir = list([os.path.join(self.feat_dir, 'stats')])
@@ -108,6 +106,8 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
 
             if not self.analysis_dirs:
                 self.analysis_dirs = list([self.feat_dir])
+
+        print self.analysis_dirs
 
             # cope_dirs
             # print cope_dirs
@@ -202,8 +202,6 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
             stat_dir = os.path.join(analysis_dir, 'stats')
 
             # Degrees of freedom
-            # FIXME: check what happens when more than one contrast is
-            # performed
             dof_file = open(os.path.join(stat_dir, 'dof'), 'r')
             dof = float(dof_file.read())
 
@@ -551,7 +549,8 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
         # For first-level fMRI only
         if self.first_level:
             # Design-type: event, mixed or block
-            # FIXME: deal with other options than "custom"
+            # Deal only with the "custom" option (latest NIDM-Results version
+            # do not include design type)
             onsets_re = r'.*set fmri\(custom(?P<num>\d+)\)\s*"(?P<file>.*)".*'
             r = re.compile(onsets_re)
             onsets = [m.groupdict() for m in r.finditer(self.design_txt)]
@@ -691,7 +690,6 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
             residuals_file = os.path.join(stat_dir, 'sigmasquareds.nii.gz')
             temporary = False
         else:
-            # FIXME cope num enter here
             sigma2_group_file = os.path.join(stat_dir,
                                              'mean_random_effects_var1.nii.gz')
             sigma2_sub_file = os.path.join(stat_dir,
