@@ -14,8 +14,6 @@ logger = logging.getLogger(__name__)
 
 
 class FSLNeuroimagingSoftware(NeuroimagingSoftware):
-    # FIXME software should be generic and then overloaded
-
     """
     Class representing a Software entity.
     """
@@ -56,8 +54,6 @@ class FSLNeuroimagingSoftware(NeuroimagingSoftware):
 
 
 class FSLExporterSoftware(ExporterSoftware):
-    # FIXME software should be generic and then overloaded
-
     """
     Class representing a Software entity.
     """

@@ -633,8 +633,6 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
             if tempo_deriv:
                 real_ev.append(ev_name+'*temporal_derivative')
 
-            # FIXME: other hrf models (FIR...)
-
         design_matrix = DesignMatrix(design_mat_values, design_mat_image,
                                      self.export_dir, real_ev, design_type,
                                      hrf_model, drift_model)
@@ -717,12 +715,6 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
 
         rms_map = ResidualMeanSquares(self.export_dir, residuals_file,
                                       self.coord_space, temporary)
-
-        # FIXME: does not work
-        # if not self.first_level:
-        # Delete calculated rms file (a copy is now in the NIDM export)
-        # FIXME we need to add the wasDerivedFrom maps
-        #     os.remove(residuals_file)
 
         return rms_map
 
@@ -829,14 +821,6 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
             info = info_found.group('info')
         return info
 
-    def _get_display_mask(self):
-        """
-        Parse FSL result directory to retreive information about display mask.
-        """
-        # FIXME this should be updated with actual contrast masking file
-        mask_file = os.path.join(self.feat_dir, 'mask.nii.gz')
-        return mask_file
-
     def _get_num_peaks(self):
         if self.feat_post_log is not None:
             num_peak_search = re.compile(r'.* --num=(?P<numpeak>\d+)+ .*')
@@ -922,13 +906,16 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
             d = sm_match.groupdict()
         else:
             # smoothness was estimated without the "-V" option, recompute
-            log_file = os.path.join(self.feat_dir, 'logs', 'feat3_stats')
+            if self.first_level:
+                log_file = os.path.join(analysis_dir, 'logs', 'feat3_stats')
+
+                if not os.path.isfile(log_file):
+                    log_file = os.path.join(
+                        self.feat_dir, 'logs', 'feat3_film')
+            else:
+                log_file = os.path.join(analysis_dir, 'logs', 'feat3c_flame')
 
             if not os.path.isfile(log_file):
-                log_file = os.path.join(self.feat_dir, 'logs', 'feat3_film')
-
-            if not os.path.isfile(log_file):
-                # FIXME: not found for fsl_t_test
                 warnings.warn(
                     "Log file feat3_stats/feat3_film not found, " +
                     "noise FWHM will not be reported")
