@@ -40,8 +40,8 @@ class FSLtoNIDMExporter(NIDMExporter, object):
     stored in NIDM-Results and generate a NIDM-Results export.
     """
 
-    def __init__(self, version, feat_dir, out_dirname=None, zipped=True,
-                 num_subjects=[], group_names=None):
+    def __init__(self, feat_dir, version="1.3.0-rc2", out_dirname=None,
+                 zipped=True, num_subjects=[], group_names=None):
         # Create output name if it was not set
         if not out_dirname:
                 out_dirname = os.path.basename(feat_dir)
@@ -68,9 +68,13 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         self.coord_space = None
         self.contrast_names_by_num = dict()
 
-        self.num_subjects = map(int, num_subjects)
+        self.num_subjects = num_subjects
+        self.groups = []
         if num_subjects:
             self.groups = zip(self.num_subjects, group_names)
+
+        self.without_group_versions = ["0.1.0", "0.2.0", "1.0.0", "1.1.0",
+                                       "1.2.0"]
 
     def parse(self):
         """
@@ -90,6 +94,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         self.first_level = (fmri_level == 1)
 
         # FIXME cope1
+
         if self.first_level:
             # stat_dir = list([os.path.join(self.feat_dir, 'stats')])
             self.analysis_dirs = list([self.feat_dir])
@@ -103,8 +108,10 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
                     self.num_subjects = 1
         else:
             if not self.num_subjects:
-                raise Exception("Group analysis with unspecified number of \
-subjects")
+                # Number of subject per groups was introduced in 1.3.0
+                if self.version['num'] not in self.without_group_versions:
+                    raise Exception("Group analysis with unspecified number of\
+ subjects")
             # If feat was called with the GUI then the analysis directory is in
             # the nested cope folder
             self.analysis_dirs = glob.glob(
@@ -586,7 +593,10 @@ subjects")
             if hrf == 1:    # 1: Gaussian
                 hrf_model = NIDM_GAUSSIAN_HRF
             elif hrf == 2:  # 2 : Gamma
-                hrf_model = NIDM_GAMMA_HRF
+                if self.version['num'] in ["1.0.0", "1.1.0", "1.2.0"]:
+                    hrf_model = NIDM_GAMMA_HRF
+                else:
+                    hrf_model = FSL_FSLS_GAMMA_HRF
             elif hrf == 3:  # 3 : Double-Gamma HRF
                 hrf_model = FSL_FSLS_GAMMA_DIFFERENCE_HRF
             elif hrf == 4:  # 4 : Gamma basis functions
