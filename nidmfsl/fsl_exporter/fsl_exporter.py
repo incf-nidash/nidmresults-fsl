@@ -57,14 +57,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         self.feat_dir = feat_dir
 
         self.design_file = os.path.join(self.feat_dir, 'design.fsf')
-        feat_post_log_file = os.path.join(self.feat_dir, 'logs', 'feat4_post')
-        if os.path.isfile(feat_post_log_file):
-            self.feat_post_log = open(feat_post_log_file, 'r')
-        else:
-            warnings.warn(
-                "Log file feat4_post not found, " +
-                "connectivity information will not be reported")
-            self.feat_post_log = None
+        
         self.coord_space = None
         self.contrast_names_by_num = dict()
 
@@ -84,10 +77,6 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         # Load design.fsf file
         design_file_open = open(self.design_file, 'r')
         self.design_txt = design_file_open.read()
-
-        # Load feat post log file
-        if self.feat_post_log is not None:
-            self.feat_post_log = self.feat_post_log.read()
 
         fmri_level_re = r'.*set fmri\(level\) (?P<info>\d+).*'
         fmri_level = int(self._search_in_fsf(fmri_level_re))
@@ -468,16 +457,28 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
 
                 # There is not table display listing peaks and clusters for
                 # voxelwise correction
+                feat_post_log_file = os.path.join(
+                    analysis_dir, 'logs', 'feat4_post')
+                if os.path.isfile(feat_post_log_file):
+                    with open(feat_post_log_file, 'r') as log:
+                        feat_post_log = log.read()
+                else:
+                    warnings.warn(
+                        "Log file feat4_post not found, " +
+                        "connectivity information will not be reported")
+                    feat_post_log = None
+
                 if cluster_thresh:
                     # Clusters (and associated peaks)
                     clusters = self._get_clusters_peaks(stat_num)
                                     # Peak and Cluster Definition Criteria
                     peak_criteria = PeakCriteria(
                         stat_num,
-                        self._get_num_peaks(), self._get_peak_dist())
+                        self._get_num_peaks(feat_post_log),
+                        self._get_peak_dist(feat_post_log))
                     clus_criteria = ClusterCriteria(
                         stat_num,
-                        self._get_connectivity())
+                        self._get_connectivity(feat_post_log))
                 else:
                     clusters = None
                     peak_criteria = None
@@ -821,15 +822,15 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
             info = info_found.group('info')
         return info
 
-    def _get_num_peaks(self):
-        if self.feat_post_log is not None:
+    def _get_num_peaks(self, feat_post_log):
+        if feat_post_log is not None:
             num_peak_search = re.compile(r'.* --num=(?P<numpeak>\d+)+ .*')
-            num_peak_found = num_peak_search.search(self.feat_post_log)
+            num_peak_found = num_peak_search.search(feat_post_log)
             if num_peak_found:
                 num_peak = int(num_peak_found.group('numpeak'))
             else:
                 num_peak_search = re.compile(r'.* -n=(?P<numpeak>\d+)+ .*')
-                num_peak_found = num_peak_search.search(self.feat_post_log)
+                num_peak_found = num_peak_search.search(feat_post_log)
                 if num_peak_found:
                     num_peak = int(num_peak_found.group('numpeak'))
                 else:
@@ -843,11 +844,11 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
             num_peak = None
         return num_peak
 
-    def _get_peak_dist(self):
-        if self.feat_post_log is not None:
+    def _get_peak_dist(self, feat_post_log):
+        if feat_post_log is not None:
             peak_dist_search = re.compile(
                 r'.* --peakdist=(?P<peakdist>\d+)+ .*')
-            peak_dist_found = peak_dist_search.search(self.feat_post_log)
+            peak_dist_found = peak_dist_search.search(feat_post_log)
             if peak_dist_found:
                 peak_dist = float(peak_dist_found.group('peakdist'))
             else:
@@ -859,17 +860,17 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
 
         return peak_dist
 
-    def _get_connectivity(self):
+    def _get_connectivity(self, feat_post_log):
         """
         Parse FSL result directory to retreive peak connectivity within a
         cluster.
         """
-        if self.feat_post_log is not None:
+        if feat_post_log is not None:
             conn_re = r'.* --connectivity=(?P<connectivity>\d+)+ .*'
             connectivity_search = re.compile(conn_re)
             connectivity = int(
                 connectivity_search.search(
-                    self.feat_post_log).group('connectivity'))
+                    feat_post_log).group('connectivity'))
         else:
             connectivity = None
 
