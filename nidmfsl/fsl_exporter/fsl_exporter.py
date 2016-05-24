@@ -42,6 +42,13 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
     def __init__(self, feat_dir, version="1.3.0-rc2", out_dirname=None,
                  zipped=True, num_subjects=[], group_names=None):
+
+        # Absolute path to feat directory
+        feat_dir = os.path.abspath(feat_dir)
+
+        if feat_dir.endswith("/"):
+            feat_dir = feat_dir[:-1]
+
         # Create output name if it was not set
         if not out_dirname:
                 out_dirname = os.path.basename(feat_dir)
