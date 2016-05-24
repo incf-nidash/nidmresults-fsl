@@ -10,8 +10,7 @@ python:
 # command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
 install: 
  - pip install -r requirements.txt
- # install nidmfsl from sources
- - python setup.py install
+ - python setup.py install # install nidmfsl from sources
  - curl -sLo - https://github.com/github/git-lfs/releases/download/v1.1.2/git-lfs-linux-amd64-1.1.2.tar.gz | tar xzvf -
  - export PATH=$PATH:`pwd`/git-lfs-1.1.2
  - cd test/data/nidmresults-examples
