@@ -167,7 +167,8 @@ if __name__ == '__main__':
                     featdir_arg = str(data_dir)
                     numsubs_arg = ""
                     groupnmes_arg = ""
-                    if num_subjects:
+                    if num_subjects and \
+                            version not in ["1.0.0", "1.1.0", "1.2.0"]:
                         numsubs_arg = " " + " ".join(map(str, num_subjects))
                         if group_names:
                             groupnmes_arg = \
