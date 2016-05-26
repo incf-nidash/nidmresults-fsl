@@ -53,17 +53,9 @@ logging.info("Test files:\n\t" + "\n\t".join(test_files))
 class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
 
     def setUp(self):
-        # Retreive owl file for NIDM-Results
-        owl_file = os.path.join(NIDM_RESULTS_DIR, TERM_RESULTS_DIRNAME,
-                                'nidm-results.owl')
-        import_files = glob.glob(
-            os.path.join(os.path.dirname(owl_file),
-                         os.pardir, os.pardir, "imports", '*.ttl'))
-
         gt_dir = os.path.join(TEST_DIR, '_ground_truth')
 
-        TestResultDataModel.setUp(self, owl_file, import_files, test_files,
-                                  TEST_DIR, gt_dir)
+        TestResultDataModel.setUp(self, gt_dir)
 
     @data(*test_files)
     def test_class_consistency_with_owl(self, ttl):
