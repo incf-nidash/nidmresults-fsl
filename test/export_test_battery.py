@@ -185,7 +185,7 @@ if __name__ == '__main__':
                     zipped_dir = os.path.join(
                         data_dir, os.path.basename(data_dir) + ".nidm.zip")
 
-                    # Copy provn export to test directory
+                    # Copy ttl export to test directory
                     test_export_dir = os.path.join(
                         EXPORTED_TEST_DIR,
                         'ex_' + test_name + '_' + version_str)
@@ -195,7 +195,6 @@ if __name__ == '__main__':
 
                     with zipfile.ZipFile(zipped_dir) as z:
                         z.extract('nidm.ttl', test_export_dir)
-                        z.extract('nidm.provn', test_export_dir)
 
                     cfg_file = os.path.join(test_export_dir, 'config.json')
 
