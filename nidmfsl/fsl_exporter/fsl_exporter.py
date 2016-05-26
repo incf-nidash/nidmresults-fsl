@@ -941,8 +941,11 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
                 cmd = cmd.replace("stats/smoothness", "stats/smoothness_v")
                 cmd = cmd.replace("smoothest", "smoothest -V")
                 try:
+                    # Discard stdout
+                    FNULL = open(os.devnull, 'w')
                     subprocess.check_call(
-                        "cd "+analysis_dir+";"+cmd, shell=True)
+                        "cd "+analysis_dir+";"+cmd, shell=True,
+                        stdout=FNULL, stderr=subprocess.STDOUT)
                     with open(smoothness_file+"_v", "r") as fp:
                         smoothness_txt = fp.read()
 
