@@ -39,10 +39,9 @@ TEST_DATA_DIR = os.path.join(TEST_DIR, "data")
 path = os.path.join(NIDM_RESULTS_DIR, "test")
 sys.path.append(path)
 
-
-from TestResultDataModel import TestResultDataModel
-from TestCommons import *
-from CheckConsistency import *
+from nidmresults.test.test_results_doc import TestResultDataModel
+from nidmresults.test.test_commons import *
+from nidmresults.test.check_consistency import *
 
 from ddt import ddt, data
 
