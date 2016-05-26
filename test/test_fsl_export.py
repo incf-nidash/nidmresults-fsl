@@ -9,7 +9,6 @@ Test of NIDM FSL export tool
 import unittest
 import os
 from rdflib.graph import Graph
-import sys
 import glob
 
 import logging
@@ -18,23 +17,7 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(filename='debug.log', level=logging.DEBUG, filemode='w',
                     format='%(levelname)s - %(message)s')
 
-RELPATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-# Add FSL NIDM export to python path
-sys.path.append(RELPATH)
-
-# Add nidm common testing code folder to python path
-NIDM_DIR = os.path.join(RELPATH, "nidm")
-# In TravisCI the nidm repository will be created as a subtree, however locally
-# the nidm directory will be accessed directly
-logging.debug(NIDM_DIR)
-if not os.path.isdir(NIDM_DIR):
-    NIDM_DIR = os.path.join(os.path.dirname(RELPATH), "nidm")
-
-NIDM_RESULTS_DIR = os.path.join(NIDM_DIR, "nidm", "nidm-results")
-TERM_RESULTS_DIRNAME = "terms"
 TEST_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "exported")
-TEST_DATA_DIR = os.path.join(TEST_DIR, "data")
 
 from nidmresults.test.test_results_doc import TestResultDataModel
 from nidmresults.test.test_commons import *
