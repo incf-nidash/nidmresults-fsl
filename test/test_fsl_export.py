@@ -36,9 +36,6 @@ TERM_RESULTS_DIRNAME = "terms"
 TEST_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "exported")
 TEST_DATA_DIR = os.path.join(TEST_DIR, "data")
 
-path = os.path.join(NIDM_RESULTS_DIR, "test")
-sys.path.append(path)
-
 from nidmresults.test.test_results_doc import TestResultDataModel
 from nidmresults.test.test_commons import *
 from nidmresults.test.check_consistency import *
