@@ -1,1 +1,1 @@
-nidmresults==0.3.1
+nidmresults>=0.3.1
