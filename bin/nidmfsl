@@ -8,6 +8,7 @@ specification. The path to feat directory must be passed as first argument.
 """
 
 from nidmfsl.fsl_exporter.fsl_exporter import FSLtoNIDMExporter
+from nidmfsl import __version__
 import argparse
 
 if __name__ == "__main__":
@@ -32,10 +33,13 @@ d) suffix will be appended.')
         help='Produces a .nidm directory rather than a .nidm.zip file.',
         action='store_true')
     parser.add_argument(
-        "-v", "--version",
+        "-v", "--nidm_version",
         help='NIDM-Results version to use (default: latest).',
         default="1.3.0",
         nargs="?")
+    parser.add_argument(
+        '--version', action='version',
+        version='{version}'.format(version=__version__))
     args = parser.parse_args()
 
     num_subjects = map(int, args.numsubjects)
@@ -43,7 +47,7 @@ d) suffix will be appended.')
     # Parse feat dir and export to NIDM
     fslnidm = FSLtoNIDMExporter(
         out_dirname=args.output_name, zipped=(not args.directory_output),
-        version=args.version, feat_dir=args.feat_dir,
+        version=args.nidm_version, feat_dir=args.feat_dir,
         num_subjects=num_subjects, group_names=args.group_names)
     fslnidm.parse()
     output_path = fslnidm.export()

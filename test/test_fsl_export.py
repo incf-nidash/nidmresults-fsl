@@ -9,7 +9,6 @@ Test of NIDM FSL export tool
 import unittest
 import os
 from rdflib.graph import Graph
-import sys
 import glob
 
 import logging
@@ -18,31 +17,11 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(filename='debug.log', level=logging.DEBUG, filemode='w',
                     format='%(levelname)s - %(message)s')
 
-RELPATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-# Add FSL NIDM export to python path
-sys.path.append(RELPATH)
-
-# Add nidm common testing code folder to python path
-NIDM_DIR = os.path.join(RELPATH, "nidm")
-# In TravisCI the nidm repository will be created as a subtree, however locally
-# the nidm directory will be accessed directly
-logging.debug(NIDM_DIR)
-if not os.path.isdir(NIDM_DIR):
-    NIDM_DIR = os.path.join(os.path.dirname(RELPATH), "nidm")
-
-NIDM_RESULTS_DIR = os.path.join(NIDM_DIR, "nidm", "nidm-results")
-TERM_RESULTS_DIRNAME = "terms"
 TEST_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "exported")
-TEST_DATA_DIR = os.path.join(TEST_DIR, "data")
 
-path = os.path.join(NIDM_RESULTS_DIR, "test")
-sys.path.append(path)
-
-
-from TestResultDataModel import TestResultDataModel
-from TestCommons import *
-from CheckConsistency import *
+from nidmresults.test.test_results_doc import TestResultDataModel
+from nidmresults.test.test_commons import *
+from nidmresults.test.check_consistency import *
 
 from ddt import ddt, data
 
@@ -57,17 +36,9 @@ logging.info("Test files:\n\t" + "\n\t".join(test_files))
 class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
 
     def setUp(self):
-        # Retreive owl file for NIDM-Results
-        owl_file = os.path.join(NIDM_RESULTS_DIR, TERM_RESULTS_DIRNAME,
-                                'nidm-results.owl')
-        import_files = glob.glob(
-            os.path.join(os.path.dirname(owl_file),
-                         os.pardir, os.pardir, "imports", '*.ttl'))
-
         gt_dir = os.path.join(TEST_DIR, '_ground_truth')
 
-        TestResultDataModel.setUp(self, owl_file, import_files, test_files,
-                                  TEST_DIR, gt_dir)
+        TestResultDataModel.setUp(self, gt_dir)
 
     @data(*test_files)
     def test_class_consistency_with_owl(self, ttl):

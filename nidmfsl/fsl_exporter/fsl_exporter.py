@@ -42,7 +42,6 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
     def __init__(self, feat_dir, version="1.3.0-rc2", out_dirname=None,
                  zipped=True, num_subjects=[], group_names=None):
-
         # Absolute path to feat directory
         feat_dir = os.path.abspath(feat_dir)
 
@@ -113,8 +112,6 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
 
             if not self.analysis_dirs:
                 self.analysis_dirs = list([self.feat_dir])
-
-        print self.analysis_dirs
 
             # cope_dirs
             # print cope_dirs
@@ -476,7 +473,8 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
                 if cluster_thresh:
                     # Clusters (and associated peaks)
                     clusters = self._get_clusters_peaks(stat_num)
-                                    # Peak and Cluster Definition Criteria
+                    # Peak and Cluster are only reported for cluster-wise
+                    # thresholds
                     peak_criteria = PeakCriteria(
                         stat_num,
                         self._get_num_peaks(feat_post_log),
@@ -941,8 +939,11 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
                 cmd = cmd.replace("stats/smoothness", "stats/smoothness_v")
                 cmd = cmd.replace("smoothest", "smoothest -V")
                 try:
+                    # Discard stdout
+                    FNULL = open(os.devnull, 'w')
                     subprocess.check_call(
-                        "cd "+analysis_dir+";"+cmd, shell=True)
+                        "cd "+analysis_dir+";"+cmd, shell=True,
+                        stdout=FNULL, stderr=subprocess.STDOUT)
                     with open(smoothness_file+"_v", "r") as fp:
                         smoothness_txt = fp.read()
 
