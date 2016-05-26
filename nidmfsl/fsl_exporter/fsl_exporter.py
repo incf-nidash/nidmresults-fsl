@@ -114,8 +114,6 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
             if not self.analysis_dirs:
                 self.analysis_dirs = list([self.feat_dir])
 
-        print self.analysis_dirs
-
             # cope_dirs
             # print cope_dirs
             # stat_dir = os.path.join(self.feat_dir, 'cope1.feat', 'stats')
