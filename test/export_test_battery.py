@@ -179,7 +179,7 @@ if __name__ == '__main__':
                     nidmfsl_cmd = [
                         "nidmfsl " + featdir_arg + numsubs_arg +
                         groupnmes_arg + version_arg]
-                    print "Running " + str(nidmfsl_cmd)
+                    print "\nRunning " + str(nidmfsl_cmd)
                     subprocess.check_call(nidmfsl_cmd, shell=True)
 
                     zipped_dir = os.path.join(
