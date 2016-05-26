@@ -1,7 +1,0 @@
-{
-    "ground_truth": [
-        "contrast_mask/nidm.ttl"
-    ],
-    "inclusive": true,
-    "version": "1.2.0"
-}
