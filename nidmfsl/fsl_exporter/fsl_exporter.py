@@ -45,6 +45,14 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         # Absolute path to feat directory
         feat_dir = os.path.abspath(feat_dir)
 
+        # Check if the FEAT dir exists (and append ".feat" if needed)
+        if not os.path.isdir(feat_dir):
+            if os.path.isdir(feat_dir + ".feat"):
+                feat_dir = feat_dir + ".feat"
+            else:
+                print feat_dir + ".feat"
+                raise Exception("No such a directory: " + feat_dir)
+
         if feat_dir.endswith("/"):
             feat_dir = feat_dir[:-1]
 
