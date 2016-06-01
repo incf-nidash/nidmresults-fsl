@@ -124,12 +124,14 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
                 self.analysis_dirs = list([self.feat_dir])
                 self.analyses_num[self.feat_dir] = ""
             else:
+                max_digits = len(str(len(self.analysis_dirs)))
                 for analysis in self.analysis_dirs:
                     s = re.compile('cope\d+.feat')
                     ana_num = s.search(analysis)
                     ana_num = ana_num.group()
                     ana_num = ana_num.replace("cope", "").replace(".feat", "")
-                    self.analyses_num[analysis] = "_{0:0>3}".format(ana_num)
+                    self.analyses_num[analysis] = \
+                        ("_{0:0>" + str(max_digits) + "}").format(ana_num)
 
         super(FSLtoNIDMExporter, self).parse()
 
@@ -473,7 +475,9 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
 
                 if cluster_thresh:
                     # Clusters (and associated peaks)
-                    clusters = self._get_clusters_peaks(stat_num, stat_type)
+                    clusters = self._get_clusters_peaks(
+                        analysis_dir,
+                        stat_num, stat_type)
                     # Peak and Cluster are only reported for cluster-wise
                     # thresholds
                     peak_criteria = PeakCriteria(
@@ -995,7 +999,7 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
 
         return search_space
 
-    def _get_clusters_peaks(self, stat_num, stat_type):
+    def _get_clusters_peaks(self, analysis_dir, stat_num, stat_type):
         """
         Parse FSL result directory to retreive information about the clusters
         and peaks declared significant for statistic 'stat_num'. Return a list
@@ -1003,189 +1007,208 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
         """
         clusters = list()
 
-        for analysis_dir in self.analysis_dirs:
-            if stat_type.lower() == "f":
-                prefix = 'zfstat'
-            else:
-                prefix = 'zstat'
-            # Cluster list (positions in voxels)
-            cluster_file = os.path.join(
-                analysis_dir,
-                'cluster_' + prefix + str(stat_num) + '.txt')
-            if not os.path.isfile(cluster_file):
-                cluster_file = None
-            else:
-                with warnings.catch_warnings():
-                    # Ignore "Empty input file" for no significant cluster
-                    warnings.simplefilter("ignore")
-                    cluster_table = np.loadtxt(
-                        cluster_file, skiprows=1, ndmin=2)
+        if stat_type.lower() == "f":
+            prefix = 'zfstat'
+        else:
+            prefix = 'zstat'
+        # Cluster list (positions in voxels)
+        cluster_file = os.path.join(
+            analysis_dir, 'cluster_' + prefix + str(stat_num) + '.txt')
+        if not os.path.isfile(cluster_file):
+            cluster_file = None
+        else:
+            with warnings.catch_warnings():
+                # Ignore "Empty input file" for no significant cluster
+                warnings.simplefilter("ignore")
+                cluster_table = np.loadtxt(
+                    cluster_file, skiprows=1, ndmin=2)
 
-            # Cluster list (positions in mm)
-            cluster_std_file = os.path.join(
-                analysis_dir,
-                'cluster_' + prefix + str(stat_num) + '_std.txt')
-            if not os.path.isfile(cluster_std_file):
-                cluster_std_file = None
-                # cluster_std_table = np.zeros_like(cluster_table)*float('nan')
-            else:
-                with warnings.catch_warnings():
-                    # Ignore "Empty input file" for no significant cluster
-                    warnings.simplefilter("ignore")
-                    cluster_std_table = np.loadtxt(
-                        cluster_std_file, skiprows=1, ndmin=2)
+        # Cluster list (positions in mm)
+        cluster_std_file = os.path.join(
+            analysis_dir, 'cluster_' + prefix + str(stat_num) + '_std.txt')
+        if not os.path.isfile(cluster_std_file):
+            cluster_std_file = None
+            # cluster_std_table = np.zeros_like(cluster_table)*float('nan')
+        else:
+            with warnings.catch_warnings():
+                # Ignore "Empty input file" for no significant cluster
+                warnings.simplefilter("ignore")
+                cluster_std_table = np.loadtxt(
+                    cluster_std_file, skiprows=1, ndmin=2)
 
-            # Peaks
-            peak_file = os.path.join(
-                analysis_dir, 'lmax_' + prefix + str(stat_num) + '.txt')
-            if not os.path.isfile(peak_file):
-                peak_file = None
-            else:
-                with warnings.catch_warnings():
-                    # Ignore "Empty input file" for no significant peak
-                    warnings.simplefilter("ignore")
-                    peak_table = np.loadtxt(peak_file, skiprows=1, ndmin=2)
+        # Peaks
+        peak_file = os.path.join(
+            analysis_dir, 'lmax_' + prefix + str(stat_num) + '.txt')
+        if not os.path.isfile(peak_file):
+            peak_file = None
+        else:
+            with warnings.catch_warnings():
+                # Ignore "Empty input file" for no significant peak
+                warnings.simplefilter("ignore")
+                peak_table = np.loadtxt(peak_file, skiprows=1, ndmin=2)
 
-            peak_std_file = os.path.join(
-                analysis_dir,
-                'lmax_' + prefix + str(stat_num) + '_std.txt')
-            if not os.path.isfile(peak_std_file):
-                peak_std_file = None
-            else:
-                with warnings.catch_warnings():
-                    # Ignore "Empty input file" for no significant peak
-                    warnings.simplefilter("ignore")
-                    peak_std_table = np.loadtxt(
-                        peak_std_file, skiprows=1, ndmin=2)
+        peak_std_file = os.path.join(
+            analysis_dir,
+            'lmax_' + prefix + str(stat_num) + '_std.txt')
+        if not os.path.isfile(peak_std_file):
+            peak_std_file = None
+        else:
+            with warnings.catch_warnings():
+                # Ignore "Empty input file" for no significant peak
+                warnings.simplefilter("ignore")
+                peak_std_table = np.loadtxt(
+                    peak_std_file, skiprows=1, ndmin=2)
 
-            peaks = dict()
-            prev_cluster = -1
-            if (peak_file is not None) and (peak_std_file is not None):
+        peaks = dict()
+        prev_cluster = -1
+        if (peak_file is not None) and (peak_std_file is not None):
 
-                peaks_join_table = np.column_stack(
-                    (peak_table, peak_std_table))
-                for peak_row in peaks_join_table:
-                    cluster_id = int(peak_row[0])
+            peaks_join_table = np.column_stack(
+                (peak_table, peak_std_table))
 
-                    if not cluster_id == prev_cluster:
-                        # First peak in this cluster
-                        peakIndex = 1
+            num_clusters = peaks_join_table.max(axis=0)[0]
+            max_num_peaks = peaks_join_table.shape[0]
 
-                    # Though peak coordinates in voxels are integer, we use a
-                    # float type to comply with the rdfs:range
-                    peak = Peak(
-                        peak_index=int(peakIndex), x=int(peak_row[2]),
-                        y=int(peak_row[3]), z=int(peak_row[4]),
-                        x_std=peak_row[7], y_std=peak_row[8],
-                        z_std=peak_row[9],
-                        equiv_z=float(peak_row[1]),
-                        cluster_index=cluster_id, stat_num=stat_num,
-                        stat_type=stat_type)
-                    if cluster_id in peaks:
-                        peaks[cluster_id].append(peak)
-                    else:
-                        peaks[cluster_id] = list([peak])
+            for peak_row in peaks_join_table:
+                cluster_id = int(peak_row[0])
 
-                    prev_cluster = cluster_id
+                if not cluster_id == prev_cluster:
+                    # First peak in this cluster
+                    peakIndex = 1
 
-                    peakIndex = peakIndex + 1
-            elif (peak_file is not None):
-                for peak_row in peak_table:
-                    cluster_id = int(peak_row[0])
+                # Though peak coordinates in voxels are integer, we use a
+                # float type to comply with the rdfs:range
+                suffix = self._get_peak_suffix(analysis_dir, stat_type,
+                                               stat_num, cluster_id, peakIndex,
+                                               num_clusters, max_num_peaks)
 
-                    if not cluster_id == prev_cluster:
-                        peakIndex = 1
+                peak = Peak(
+                    x=int(peak_row[2]), y=int(peak_row[3]), z=int(peak_row[4]),
+                    x_std=peak_row[7], y_std=peak_row[8], z_std=peak_row[9],
+                    equiv_z=float(peak_row[1]), suffix=suffix)
+                if cluster_id in peaks:
+                    peaks[cluster_id].append(peak)
+                else:
+                    peaks[cluster_id] = list([peak])
 
-                    peak = Peak(
-                        peak_index=int(peakIndex), x=int(peak_row[2]),
-                        y=int(peak_row[3]), z=int(peak_row[4]),
-                        equiv_z=float(peak_row[1]), cluster_index=cluster_id,
-                        stat_num=stat_num, stat_type=stat_type)
-                    if cluster_id in peaks:
-                        peaks[cluster_id].append(peak)
-                    else:
-                        peaks[cluster_id] = list([peak])
+                prev_cluster = cluster_id
 
-                    prev_cluster = cluster_id
+                peakIndex = peakIndex + 1
+        elif (peak_file is not None):
+            num_clusters = peak_table.max(axis=0)[0]
+            max_num_peaks = peak_table.shape[0]
 
-                    peakIndex = peakIndex + 1
-            elif (peak_std_file is not None):
-                for peak_row in peak_std_table:
-                    cluster_id = int(peak_row[0])
+            for peak_row in peak_table:
+                cluster_id = int(peak_row[0])
 
-                    if not cluster_id == prev_cluster:
-                        peakIndex = 1
+                if not cluster_id == prev_cluster:
+                    peakIndex = 1
 
-                    peak = Peak(
-                        peak_index=int(peakIndex),
-                        x_std=peak_row[2],
-                        y_std=peak_row[3],
-                        z_std=peak_row[4],
-                        equiv_z=float(peak_row[1]), cluster_index=cluster_id,
-                        stat_num=stat_num, stat_type=stat_type)
-                    if cluster_id in peaks:
-                        peaks[cluster_id].append(peak)
-                    else:
-                        peaks[cluster_id] = list([peak])
-                    prev_cluster = cluster_id
+                suffix = self._get_peak_suffix(analysis_dir, stat_type,
+                                               stat_num, cluster_id, peakIndex,
+                                               num_clusters, max_num_peaks)
+                peak = Peak(
+                    x=int(peak_row[2]), y=int(peak_row[3]), z=int(peak_row[4]),
+                    equiv_z=float(peak_row[1]), suffix=suffix)
+                if cluster_id in peaks:
+                    peaks[cluster_id].append(peak)
+                else:
+                    peaks[cluster_id] = list([peak])
 
-                    peakIndex = peakIndex + 1
+                prev_cluster = cluster_id
 
-            if (cluster_file is not None) and (cluster_std_file is not None):
-                clusters_join_table = np.column_stack((cluster_table,
-                                                       cluster_std_table))
-                for cluster_row in clusters_join_table:
-                    cluster_id = int(cluster_row[0])
-                    size = int(cluster_row[1])
-                    pFWER = float(cluster_row[2])
-                    x = float(cluster_row[8])
-                    y = float(cluster_row[9])
-                    z = float(cluster_row[10])
-                    if stat_type.lower() == 't':
-                        x_std = float(cluster_row[24])
-                        y_std = float(cluster_row[25])
-                        z_std = float(cluster_row[26])
-                    else:
-                        x_std = float(cluster_row[19])
-                        y_std = float(cluster_row[20])
-                        z_std = float(cluster_row[21])
-                    clusters.append(
-                        Cluster(cluster_num=cluster_id, size=size,
-                                pFWER=pFWER, peaks=peaks[
-                                    cluster_id], x=x, y=y, z=z,
-                                x_std=x_std, y_std=y_std, z_std=z_std))
+                peakIndex = peakIndex + 1
+        elif (peak_std_file is not None):
 
-            elif (cluster_file is not None):
-                for cluster_row in cluster_table:
-                    cluster_id = int(cluster_row[0])
-                    size = int(cluster_row[1])
-                    pFWER = float(cluster_row[2])
-                    x = float(cluster_row[8])
-                    y = float(cluster_row[9])
-                    z = float(cluster_row[10])
-                    x_std = None
-                    y_std = None
-                    z_std = None
-                    clusters.append(
-                        Cluster(cluster_num=cluster_id, size=size,
-                                pFWER=pFWER, peaks=peaks[
-                                    cluster_id], x=x, y=y, z=z,
-                                x_std=x_std, y_std=y_std, z_std=z_std))
-            elif (cluster_std_file is not None):
-                for cluster_row in cluster_std_table:
-                    cluster_id = int(cluster_row[0])
-                    size = int(cluster_row[1])
-                    pFWER = float(cluster_row[2])
-                    x_std = float(cluster_row[8])
-                    y_std = float(cluster_row[9])
-                    z_std = float(cluster_row[10])
-                    x = None
-                    y = None
-                    z = None
-                    clusters.append(
-                        Cluster(cluster_num=cluster_id, size=size,
-                                pFWER=pFWER, peaks=peaks[
-                                    cluster_id], x=x, y=y, z=z,
-                                x_std=x_std, y_std=y_std, z_std=z_std))
+            num_clusters = peak_std_table.max(axis=0)[0]
+            max_num_peaks = peak_std_table.shape[0]
+
+            for peak_row in peak_std_table:
+                cluster_id = int(peak_row[0])
+
+                if not cluster_id == prev_cluster:
+                    peakIndex = 1
+
+                suffix = self._get_peak_suffix(analysis_dir, stat_type,
+                                               stat_num, cluster_id, peakIndex,
+                                               num_clusters, max_num_peaks)
+                peak = Peak(
+                    x_std=peak_row[2], y_std=peak_row[3], z_std=peak_row[4],
+                    equiv_z=float(peak_row[1]), suffix=suffix)
+                if cluster_id in peaks:
+                    peaks[cluster_id].append(peak)
+                else:
+                    peaks[cluster_id] = list([peak])
+                prev_cluster = cluster_id
+
+                peakIndex = peakIndex + 1
+
+        if (cluster_file is not None) and (cluster_std_file is not None):
+            clusters_join_table = np.column_stack((cluster_table,
+                                                   cluster_std_table))
+            for cluster_row in clusters_join_table:
+                cluster_id = int(cluster_row[0])
+                size = int(cluster_row[1])
+                pFWER = float(cluster_row[2])
+                x = float(cluster_row[8])
+                y = float(cluster_row[9])
+                z = float(cluster_row[10])
+                if stat_type.lower() == 't':
+                    x_std = float(cluster_row[24])
+                    y_std = float(cluster_row[25])
+                    z_std = float(cluster_row[26])
+                else:
+                    x_std = float(cluster_row[19])
+                    y_std = float(cluster_row[20])
+                    z_std = float(cluster_row[21])
+                clusters.append(
+                    Cluster(cluster_num=cluster_id, size=size,
+                            pFWER=pFWER, peaks=peaks[
+                                cluster_id], x=x, y=y, z=z,
+                            x_std=x_std, y_std=y_std, z_std=z_std))
+
+        elif (cluster_file is not None):
+            for cluster_row in cluster_table:
+                cluster_id = int(cluster_row[0])
+                size = int(cluster_row[1])
+                pFWER = float(cluster_row[2])
+                x = float(cluster_row[8])
+                y = float(cluster_row[9])
+                z = float(cluster_row[10])
+                x_std = None
+                y_std = None
+                z_std = None
+                clusters.append(
+                    Cluster(cluster_num=cluster_id, size=size,
+                            pFWER=pFWER, peaks=peaks[
+                                cluster_id], x=x, y=y, z=z,
+                            x_std=x_std, y_std=y_std, z_std=z_std))
+        elif (cluster_std_file is not None):
+            for cluster_row in cluster_std_table:
+                cluster_id = int(cluster_row[0])
+                size = int(cluster_row[1])
+                pFWER = float(cluster_row[2])
+                x_std = float(cluster_row[8])
+                y_std = float(cluster_row[9])
+                z_std = float(cluster_row[10])
+                x = None
+                y = None
+                z = None
+                clusters.append(
+                    Cluster(cluster_num=cluster_id, size=size,
+                            pFWER=pFWER, peaks=peaks[
+                                cluster_id], x=x, y=y, z=z,
+                            x_std=x_std, y_std=y_std, z_std=z_std))
 
         return clusters
+
+    def _get_peak_suffix(self, analysis_dir, stat_type, con_num,
+                         cluster_idx, peak_idx, num_clusters, num_peaks):
+        max_cluster_digits = str(len(str(int(num_clusters))))
+        max_peak_digits = str(len(str(int(num_peaks))))
+
+        suffix = self.analyses_num[analysis_dir] + "_" + \
+            stat_type.upper() + "{0:0>2}".format(con_num) + \
+            ("_{0:0>" + max_cluster_digits + "}").format(cluster_idx) + \
+            ("_{0:0>" + max_peak_digits + "}").format(peak_idx)
+        return suffix
