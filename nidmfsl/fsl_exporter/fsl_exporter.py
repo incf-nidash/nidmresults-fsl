@@ -110,13 +110,17 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
             self.analysis_dirs = glob.glob(
                 os.path.join(self.feat_dir, 'cope*.feat'))
 
+            self.analyses_num = dict()
             if not self.analysis_dirs:
                 self.analysis_dirs = list([self.feat_dir])
-
-            # cope_dirs
-            # print cope_dirs
-            # stat_dir = os.path.join(self.feat_dir, 'cope1.feat', 'stats')
-            # analysis_dir = os.path.join(self.feat_dir, 'cope1.feat')
+                self.analyses_num[self.feat_dir] = ""
+            else:
+                for analysis in self.analysis_dirs:
+                    s = re.compile('cope\d+.feat')
+                    ana_num = s.search(analysis)
+                    ana_num = ana_num.group()
+                    ana_num = ana_num.replace("cope", "").replace(".feat", "")
+                    self.analyses_num[analysis] = "_{0:0>3}".format(ana_num)
 
         super(FSLtoNIDMExporter, self).parse()
 
@@ -156,14 +160,13 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
         self.model_fittings = dict()
 
         for analysis_dir in self.analysis_dirs:
-            stat_dir = os.path.join(analysis_dir, 'stats')
 
             design_matrix = self._get_design_matrix(analysis_dir)
             data = self._get_data()
             error_model = self._get_error_model()
 
-            rms_map = self._get_residual_mean_squares_map(stat_dir)
-            param_estimates = self._get_param_estimate_maps(stat_dir)
+            rms_map = self._get_residual_mean_squares_map(analysis_dir)
+            param_estimates = self._get_param_estimate_maps(analysis_dir)
             mask_map = self._get_mask_map(analysis_dir)
             grand_mean_map = self._get_grand_mean(
                 mask_map.file.path, analysis_dir)
@@ -199,7 +202,9 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
         tuple of identifiers of ParameterEstimateMap objects, and value is an
         object of type Contrast.
         """
+        contrasts = dict()
         for analysis_dir in self.analysis_dirs:
+
             # Retreive the Model Parameters Estimations activity corresponding
             # to current analysis directory.
             mf_id = self.model_fittings[analysis_dir].activity.id
@@ -212,29 +217,9 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
             exc_sets = glob.glob(os.path.join(analysis_dir,
                                               'thresh_z*.nii.gz'))
 
-            contrasts = dict()
             for filename in exc_sets:
-                s = re.compile('zf?stat\d+')
-                zstatnum = s.search(filename)
-                zstatnum = zstatnum.group()
-
-                if zstatnum.startswith("zstat"):
-                    stat_type = "T"
-                    con_num = zstatnum.replace('zstat', '')
-                elif zstatnum.startswith("zfstat"):
-                    stat_type = "F"
-                    con_num = zstatnum.replace('zfstat', '')
-
-                con_num = int(con_num)
-
-                # If more than one excursion set is reported, we need to
-                # use an index in the file names of the file exported in
-                # nidm
-                if len(exc_sets) > 1:
-                    stat_num_idx = "_" + \
-                        stat_type.upper() + "{0:0>3}".format(con_num)
-                else:
-                    stat_num_idx = ""
+                con_num, stat_type, stat_num_idx = self._get_stat_num(
+                    filename, analysis_dir, exc_sets)
 
                 # Contrast name
                 name_re = r'.*set fmri\(conname_real\.' + str(con_num) +\
@@ -339,13 +324,40 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
                     raise Exception("Unknown statistic type: "+stat_type)
 
                 con = Contrast(
-                    con_num, contrast_name, weights, estimation,
+                    stat_num_idx, contrast_name, weights, estimation,
                     contrast_map, std_err_map_or_mean_sq_map, stat_map,
                     z_stat_map)
 
                 contrasts.setdefault((mf_id, pe_ids), list()).append(con)
 
         return contrasts
+
+    def _get_stat_num(self, filename, analysis_dir, exc_sets):
+        ana_num = self.analyses_num[analysis_dir]
+
+        s = re.compile('zf?stat\d+')
+        zstatnum = s.search(filename)
+        zstatnum = zstatnum.group()
+
+        if zstatnum.startswith("zstat"):
+            stat_type = "T"
+            con_num = zstatnum.replace('zstat', '')
+        elif zstatnum.startswith("zfstat"):
+            stat_type = "F"
+            con_num = zstatnum.replace('zfstat', '')
+
+        con_num = int(con_num)
+
+        # If more than one excursion set is reported, we need to
+        # use an index in the file names of the file exported in
+        # nidm
+        if len(exc_sets) > 1 or len(self.analysis_dirs) > 1:
+            stat_num_idx = ana_num + '_' + \
+                stat_type.upper() + "{0:0>3}".format(con_num)
+        else:
+            stat_num_idx = ""
+
+        return (con_num, stat_type, stat_num_idx)
 
     def _find_inferences(self):
         """
@@ -369,46 +381,15 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
             # Find excursion sets (in a given feat directory we have one
             # excursion set per contrast)
             for filename in exc_sets:
-                s = re.compile('zf?stat\d+')
-                zstatnum = s.search(filename)
-                zstatnum = zstatnum.group()
-                if zstatnum.startswith("zstat"):
-                    stat_type = "T"
-                    stat_num = zstatnum.replace('zstat', '')
-                elif zstatnum.startswith("zfstat"):
-                    stat_type = "F"
-                    stat_num = zstatnum.replace('zfstat', '')
-
-                stat_num = int(stat_num)
-
-                # If more than one excursion set is reported, we need to use
-                # an index in the file names of the file exported in nidm
-                if len(exc_sets) > 1:
-                    stat_num_t = "_" + \
-                        stat_type.upper() + "{0:0>3}".format(stat_num)
-                else:
-                    stat_num_t = ""
+                stat_num, stat_type, stat_num_t = self._get_stat_num(
+                    filename, analysis_dir, exc_sets)
 
                 # Find corresponding contrast estimation activity
                 con_id = None
                 for contrasts in self.contrasts.values():
                     for contrast in contrasts:
-                        s = re.compile('zf?stat\d+')
-                        con_num = s.search(contrast.z_stat_map.file.path)
-                        con_num = con_num.group()
-
-                        if 'zf' in con_num:
-                            con_type = "F"
-                        else:
-                            con_type = "T"
-                        con_num = con_num.replace('zstat', '')\
-                                         .replace('zfstat', '')\
-                                         .replace('.nii.gz', '')
-                        con_num = int(con_num)
-
-                        if con_num == stat_num and con_type == stat_type:
+                        if contrast.contrast_num == stat_num_t:
                             con_id = contrast.estimation.id
-
                 assert con_id is not None
 
                 # Inference activity
@@ -433,7 +414,7 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
                 # --> fsl_contrast_mask
                 exc_set = ExcursionSet(
                     zFileImg, self.coord_space, visualisation,
-                    stat_num_t, self.export_dir)
+                    self.export_dir, suffix=stat_num_t)
 
                 # Height Threshold
                 prob_re = r'.*set fmri\(prob_thresh\) (?P<info>\d+\.?\d+).*'
@@ -534,10 +515,6 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
                     extent_thresh, peak_criteria, clus_criteria,
                     display_mask, exc_set, clusters, search_space,
                     self.software.id)
-
-                print inference_act
-                print clusters
-                print con_id
 
                 inferences.setdefault(con_id, list()).append(inference)
 
@@ -655,7 +632,8 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
 
         design_matrix = DesignMatrix(design_mat_values, design_mat_image,
                                      self.export_dir, real_ev, design_type,
-                                     hrf_model, drift_model)
+                                     hrf_model, drift_model,
+                                     self.analyses_num[analysis_dir])
         return design_matrix
 
     def _get_data(self):
@@ -701,11 +679,13 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
             variance_spatial, dependance, dependance_spatial)
         return error_model
 
-    def _get_residual_mean_squares_map(self, stat_dir):
+    def _get_residual_mean_squares_map(self, analysis_dir):
         """
         Parse FSL result directory to retreive information about the residual
         mean squares map. Return an object of type ResidualMeanSquares.
         """
+        stat_dir = os.path.join(analysis_dir, 'stats')
+
         if self.first_level:
             residuals_file = os.path.join(stat_dir, 'sigmasquareds.nii.gz')
             temporary = False
@@ -733,16 +713,18 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
                                            residuals_file)
 
         rms_map = ResidualMeanSquares(self.export_dir, residuals_file,
-                                      self.coord_space, temporary)
+                                      self.coord_space, temporary,
+                                      self.analyses_num[analysis_dir])
 
         return rms_map
 
-    def _get_param_estimate_maps(self, stat_dir):
+    def _get_param_estimate_maps(self, analysis_dir):
         """
         Parse FSL result directory to retreive information about the parameter
         estimates. Return a list of objects of type ParameterEstimateMap.
         """
         param_estimates = list()
+        stat_dir = os.path.join(analysis_dir, 'stats')
 
         for filename in os.listdir(stat_dir):
             if filename.startswith("pe"):
@@ -754,7 +736,8 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
                     full_path_file = os.path.join(stat_dir, filename)
                     param_estimate = ParameterEstimateMap(
                         full_path_file,
-                        penum, self.coord_space)
+                        penum, self.coord_space,
+                        self.analyses_num[analysis_dir])
                     param_estimates.append(param_estimate)
         return param_estimates
 
@@ -766,7 +749,8 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
         """
         mask_file = os.path.join(analysis_dir, 'mask.nii.gz')
         mask_map = MaskMap(self.export_dir, mask_file,
-                           self.coord_space, False)
+                           self.coord_space, False,
+                           self.analyses_num[analysis_dir])
         return mask_map
 
     def _get_grand_mean(self, mask_file, analysis_dir):
@@ -776,13 +760,13 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
         """
         grand_mean_file = os.path.join(analysis_dir, 'mean_func.nii.gz')
 
-        # FIXME: Check if there is an alternative file to use here (maybe)
-        # depending on FSL version
         if not os.path.isfile(grand_mean_file):
-            grand_mean = None
+            raise Exception("Grand mean file " + grand_mean_file +
+                            " not found.")
         else:
             grand_mean = GrandMeanMap(grand_mean_file, mask_file,
-                                      self.coord_space, self.export_dir)
+                                      self.coord_space, self.export_dir,
+                                      self.analyses_num[analysis_dir])
 
         return grand_mean
 
@@ -1093,11 +1077,6 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
                     else:
                         peaks[cluster_id] = list([peak])
 
-                    print "creating peak "
-                    print str(peak.id) + str(peak.equiv_z)
-                    print stat_type + str(stat_num)
-                    print "----"
-
                     prev_cluster = cluster_id
 
                     peakIndex = peakIndex + 1
@@ -1112,7 +1091,7 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
                         peak_index=int(peakIndex), x=int(peak_row[2]),
                         y=int(peak_row[3]), z=int(peak_row[4]),
                         equiv_z=float(peak_row[1]), cluster_index=cluster_id,
-                        stat_num=stat_num,stat_type=stat_type)
+                        stat_num=stat_num, stat_type=stat_type)
                     if cluster_id in peaks:
                         peaks[cluster_id].append(peak)
                     else:
@@ -1134,7 +1113,7 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
                         y_std=peak_row[3],
                         z_std=peak_row[4],
                         equiv_z=float(peak_row[1]), cluster_index=cluster_id,
-                        stat_num=stat_num,stat_type=stat_type)
+                        stat_num=stat_num, stat_type=stat_type)
                     if cluster_id in peaks:
                         peaks[cluster_id].append(peak)
                     else:
