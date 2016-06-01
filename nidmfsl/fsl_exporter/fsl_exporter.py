@@ -96,9 +96,11 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         fmri_level = int(self._search_in_fsf(fmri_level_re))
         self.first_level = (fmri_level == 1)
 
+        self.analyses_num = dict()
         if self.first_level:
             # stat_dir = list([os.path.join(self.feat_dir, 'stats')])
             self.analysis_dirs = list([self.feat_dir])
+            self.analyses_num[self.feat_dir] = ""
             if not self.num_subjects:
                 self.num_subjects = 1
             else:
@@ -118,7 +120,6 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
             self.analysis_dirs = glob.glob(
                 os.path.join(self.feat_dir, 'cope*.feat'))
 
-            self.analyses_num = dict()
             if not self.analysis_dirs:
                 self.analysis_dirs = list([self.feat_dir])
                 self.analyses_num[self.feat_dir] = ""
