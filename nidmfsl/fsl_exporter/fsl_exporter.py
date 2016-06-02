@@ -50,7 +50,6 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             if os.path.isdir(feat_dir + ".feat"):
                 feat_dir = feat_dir + ".feat"
             else:
-                print feat_dir + ".feat"
                 raise Exception("No such a directory: " + feat_dir)
 
         if feat_dir.endswith("/"):
@@ -261,17 +260,20 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
                 contrast_weights = contrast_weights.replace(']', '')
                 contrast_weights = contrast_weights.split(',')
 
-                # Whenever a "1" is found in contrast_weights, the
+                # Whenever a non-zero element is found in contrast_weights, the
                 # parameter estimate map identified by the corresponding
                 # index is in use
                 for beta_index in contrast_weights:
-                    if int(beta_index) == 1:
+                    if abs(int(beta_index)) != 0:
                         for model_fitting in self.model_fittings.values():
                             for pe in model_fitting.param_estimates:
                                 s = re.compile('pe\d+')
-                                pe_num = s.search(pe.file.path)
+                                # We need basename to avoid conflict with
+                                # "cope" elsewhere in the path
+                                pe_num = s.search(
+                                    os.path.basename(pe.file.path))
                                 pe_num = pe_num.group()
-                                pe_num = pe_num.replace('pe', '')
+                                pe_num = int(pe_num.replace('pe', ''))
                                 if pe_num == pe_index:
                                     pe_ids.append(pe.id)
                     pe_index += 1
@@ -1118,8 +1120,7 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
                 prev_cluster = cluster_id
 
                 peakIndex = peakIndex + 1
-        elif (peak_std_file is not None):
-
+        elif (peak_std_file is not None) and (peak_std_table.size > 0):
             num_clusters = peak_std_table.max(axis=0)[0]
             max_num_peaks = peak_std_table.shape[0]
 
