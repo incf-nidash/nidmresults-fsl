@@ -123,14 +123,20 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
                 self.analysis_dirs = list([self.feat_dir])
                 self.analyses_num[self.feat_dir] = ""
             else:
-                max_digits = len(str(len(self.analysis_dirs)))
-                for analysis in self.analysis_dirs:
-                    s = re.compile('cope\d+.feat')
-                    ana_num = s.search(analysis)
-                    ana_num = ana_num.group()
-                    ana_num = ana_num.replace("cope", "").replace(".feat", "")
-                    self.analyses_num[analysis] = \
-                        ("_{0:0>" + str(max_digits) + "}").format(ana_num)
+                num_analyses = len(self.analysis_dirs)
+                if num_analyses > 1:
+                    max_digits = len(str(len(self.analysis_dirs)))
+                    for analysis in self.analysis_dirs:
+                        s = re.compile('cope\d+.feat')
+                        ana_num = s.search(analysis)
+                        ana_num = ana_num.group()
+                        ana_num = ana_num.replace("cope", "").replace(
+                            ".feat", "")
+                        self.analyses_num[analysis] = \
+                            ("_{0:0>" + str(max_digits) + "}").format(ana_num)
+                else:
+                    # There is a single analysis, no need to add a prefix
+                    self.analyses_num[self.analysis_dirs[0]] = ""
 
         super(FSLtoNIDMExporter, self).parse()
 
@@ -479,7 +485,7 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
                     # Clusters (and associated peaks)
                     clusters = self._get_clusters_peaks(
                         analysis_dir,
-                        stat_num, stat_type)
+                        stat_num, stat_type, len(exc_sets))
                     # Peak and Cluster are only reported for cluster-wise
                     # thresholds
                     peak_criteria = PeakCriteria(
@@ -1001,7 +1007,8 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
 
         return search_space
 
-    def _get_clusters_peaks(self, analysis_dir, stat_num, stat_type):
+    def _get_clusters_peaks(self, analysis_dir, stat_num, stat_type,
+                            max_stat_num):
         """
         Parse FSL result directory to retreive information about the clusters
         and peaks declared significant for statistic 'stat_num'. Return a list
@@ -1082,7 +1089,8 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
                 # float type to comply with the rdfs:range
                 suffix = self._get_peak_suffix(analysis_dir, stat_type,
                                                stat_num, cluster_id, peakIndex,
-                                               num_clusters, max_num_peaks)
+                                               num_clusters, max_num_peaks,
+                                               max_stat_num)
 
                 peak = Peak(
                     x=int(peak_row[2]), y=int(peak_row[3]), z=int(peak_row[4]),
@@ -1108,7 +1116,8 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
 
                 suffix = self._get_peak_suffix(analysis_dir, stat_type,
                                                stat_num, cluster_id, peakIndex,
-                                               num_clusters, max_num_peaks)
+                                               num_clusters, max_num_peaks,
+                                               max_stat_num)
                 peak = Peak(
                     x=int(peak_row[2]), y=int(peak_row[3]), z=int(peak_row[4]),
                     equiv_z=float(peak_row[1]), suffix=suffix)
@@ -1132,7 +1141,8 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
 
                 suffix = self._get_peak_suffix(analysis_dir, stat_type,
                                                stat_num, cluster_id, peakIndex,
-                                               num_clusters, max_num_peaks)
+                                               num_clusters, max_num_peaks,
+                                               max_stat_num)
                 peak = Peak(
                     x_std=peak_row[2], y_std=peak_row[3], z_std=peak_row[4],
                     equiv_z=float(peak_row[1]), suffix=suffix)
@@ -1204,12 +1214,23 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
         return clusters
 
     def _get_peak_suffix(self, analysis_dir, stat_type, con_num,
-                         cluster_idx, peak_idx, num_clusters, num_peaks):
+                         cluster_idx, peak_idx, num_clusters, num_peaks,
+                         max_stat_num):
         max_cluster_digits = str(len(str(int(num_clusters))))
         max_peak_digits = str(len(str(int(num_peaks))))
 
-        suffix = self.analyses_num[analysis_dir] + "_" + \
-            stat_type.upper() + "{0:0>2}".format(con_num) + \
-            ("_{0:0>" + max_cluster_digits + "}").format(cluster_idx) + \
+        ana_prefix = ""
+        if self.analyses_num[analysis_dir]:
+            ana_prefix = self.analyses_num[analysis_dir] + "_"
+
+        stat_prefix = ""
+        if max_stat_num > 1:
+            stat_prefix = stat_type.upper() + \
+                ("{0:0>" + str(max_stat_num) + "}").format(con_num) + "_"
+
+        suffix = ana_prefix + \
+            stat_prefix + \
+            ("{0:0>" + max_cluster_digits + "}").format(cluster_idx) + \
             ("_{0:0>" + max_peak_digits + "}").format(peak_idx)
+
         return suffix
