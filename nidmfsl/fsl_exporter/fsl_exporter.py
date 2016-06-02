@@ -45,6 +45,13 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         # Absolute path to feat directory
         feat_dir = os.path.abspath(feat_dir)
 
+        # Check if the FEAT dir exists (and append ".feat" if needed)
+        if not os.path.isdir(feat_dir):
+            if os.path.isdir(feat_dir + ".feat"):
+                feat_dir = feat_dir + ".feat"
+            else:
+                raise Exception("No such a directory: " + feat_dir)
+
         if feat_dir.endswith("/"):
             feat_dir = feat_dir[:-1]
 
@@ -88,15 +95,17 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         fmri_level = int(self._search_in_fsf(fmri_level_re))
         self.first_level = (fmri_level == 1)
 
+        self.analyses_num = dict()
         if self.first_level:
             # stat_dir = list([os.path.join(self.feat_dir, 'stats')])
             self.analysis_dirs = list([self.feat_dir])
+            self.analyses_num[self.feat_dir] = ""
             if not self.num_subjects:
                 self.num_subjects = 1
             else:
                 if self.num_subjects != [1]:
-                    raise Exception("More than 1 subject specified as input\
-in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
+                    raise Exception("More than 1 subject specified as input in\
+ a first-level analysis: (numsubjects=" + ",".join(str(self.num_subjects))+")")
                 else:
                     self.num_subjects = 1
         else:
@@ -112,11 +121,22 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
 
             if not self.analysis_dirs:
                 self.analysis_dirs = list([self.feat_dir])
-
-            # cope_dirs
-            # print cope_dirs
-            # stat_dir = os.path.join(self.feat_dir, 'cope1.feat', 'stats')
-            # analysis_dir = os.path.join(self.feat_dir, 'cope1.feat')
+                self.analyses_num[self.feat_dir] = ""
+            else:
+                num_analyses = len(self.analysis_dirs)
+                if num_analyses > 1:
+                    max_digits = len(str(len(self.analysis_dirs)))
+                    for analysis in self.analysis_dirs:
+                        s = re.compile('cope\d+.feat')
+                        ana_num = s.search(analysis)
+                        ana_num = ana_num.group()
+                        ana_num = ana_num.replace("cope", "").replace(
+                            ".feat", "")
+                        self.analyses_num[analysis] = \
+                            ("_{0:0>" + str(max_digits) + "}").format(ana_num)
+                else:
+                    # There is a single analysis, no need to add a prefix
+                    self.analyses_num[self.analysis_dirs[0]] = ""
 
         super(FSLtoNIDMExporter, self).parse()
 
@@ -156,14 +176,13 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
         self.model_fittings = dict()
 
         for analysis_dir in self.analysis_dirs:
-            stat_dir = os.path.join(analysis_dir, 'stats')
 
             design_matrix = self._get_design_matrix(analysis_dir)
             data = self._get_data()
             error_model = self._get_error_model()
 
-            rms_map = self._get_residual_mean_squares_map(stat_dir)
-            param_estimates = self._get_param_estimate_maps(stat_dir)
+            rms_map = self._get_residual_mean_squares_map(analysis_dir)
+            param_estimates = self._get_param_estimate_maps(analysis_dir)
             mask_map = self._get_mask_map(analysis_dir)
             grand_mean_map = self._get_grand_mean(
                 mask_map.file.path, analysis_dir)
@@ -199,7 +218,9 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
         tuple of identifiers of ParameterEstimateMap objects, and value is an
         object of type Contrast.
         """
+        contrasts = dict()
         for analysis_dir in self.analysis_dirs:
+
             # Retreive the Model Parameters Estimations activity corresponding
             # to current analysis directory.
             mf_id = self.model_fittings[analysis_dir].activity.id
@@ -212,29 +233,9 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
             exc_sets = glob.glob(os.path.join(analysis_dir,
                                               'thresh_z*.nii.gz'))
 
-            contrasts = dict()
             for filename in exc_sets:
-                s = re.compile('zf?stat\d+')
-                zstatnum = s.search(filename)
-                zstatnum = zstatnum.group()
-
-                if zstatnum.startswith("zstat"):
-                    stat_type = "T"
-                    con_num = zstatnum.replace('zstat', '')
-                elif zstatnum.startswith("zfstat"):
-                    stat_type = "F"
-                    con_num = zstatnum.replace('zfstat', '')
-
-                con_num = int(con_num)
-
-                # If more than one excursion set is reported, we need to
-                # use an index in the file names of the file exported in
-                # nidm
-                if len(exc_sets) > 1:
-                    stat_num_idx = "_" + \
-                        stat_type.upper() + "{0:0>3}".format(con_num)
-                else:
-                    stat_num_idx = ""
+                con_num, stat_type, stat_num_idx = self._get_stat_num(
+                    filename, analysis_dir, exc_sets)
 
                 # Contrast name
                 name_re = r'.*set fmri\(conname_real\.' + str(con_num) +\
@@ -265,17 +266,20 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
                 contrast_weights = contrast_weights.replace(']', '')
                 contrast_weights = contrast_weights.split(',')
 
-                # Whenever a "1" is found in contrast_weights, the
+                # Whenever a non-zero element is found in contrast_weights, the
                 # parameter estimate map identified by the corresponding
                 # index is in use
                 for beta_index in contrast_weights:
-                    if int(beta_index) == 1:
+                    if abs(int(beta_index)) != 0:
                         for model_fitting in self.model_fittings.values():
                             for pe in model_fitting.param_estimates:
                                 s = re.compile('pe\d+')
-                                pe_num = s.search(pe.file.path)
+                                # We need basename to avoid conflict with
+                                # "cope" elsewhere in the path
+                                pe_num = s.search(
+                                    os.path.basename(pe.file.path))
                                 pe_num = pe_num.group()
-                                pe_num = pe_num.replace('pe', '')
+                                pe_num = int(pe_num.replace('pe', ''))
                                 if pe_num == pe_index:
                                     pe_ids.append(pe.id)
                     pe_index += 1
@@ -293,9 +297,15 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
                     self.export_dir)
 
                 # Z-Statistic Map
-                z_stat_file = os.path.join(
-                    stat_dir,
-                    'zstat' + str(con_num) + '.nii.gz')
+                if stat_type == "F":
+                    z_stat_file = os.path.join(
+                        stat_dir,
+                        'zfstat' + str(con_num) + '.nii.gz')
+                elif stat_type == "T":
+                    z_stat_file = os.path.join(
+                        stat_dir,
+                        'zstat' + str(con_num) + '.nii.gz')
+
                 z_stat_map = StatisticMap(
                     z_stat_file, 'Z', stat_num_idx,
                     contrast_name, dof, self.coord_space,
@@ -333,13 +343,40 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
                     raise Exception("Unknown statistic type: "+stat_type)
 
                 con = Contrast(
-                    con_num, contrast_name, weights, estimation,
+                    stat_num_idx, contrast_name, weights, estimation,
                     contrast_map, std_err_map_or_mean_sq_map, stat_map,
                     z_stat_map)
 
                 contrasts.setdefault((mf_id, pe_ids), list()).append(con)
 
         return contrasts
+
+    def _get_stat_num(self, filename, analysis_dir, exc_sets):
+        ana_num = self.analyses_num[analysis_dir]
+
+        s = re.compile('zf?stat\d+')
+        zstatnum = s.search(filename)
+        zstatnum = zstatnum.group()
+
+        if zstatnum.startswith("zstat"):
+            stat_type = "T"
+            con_num = zstatnum.replace('zstat', '')
+        elif zstatnum.startswith("zfstat"):
+            stat_type = "F"
+            con_num = zstatnum.replace('zfstat', '')
+
+        con_num = int(con_num)
+
+        # If more than one excursion set is reported, we need to
+        # use an index in the file names of the file exported in
+        # nidm
+        if len(exc_sets) > 1 or len(self.analysis_dirs) > 1:
+            stat_num_idx = ana_num + '_' + \
+                stat_type.upper() + "{0:0>3}".format(con_num)
+        else:
+            stat_num_idx = ""
+
+        return (con_num, stat_type, stat_num_idx)
 
     def _find_inferences(self):
         """
@@ -363,38 +400,14 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
             # Find excursion sets (in a given feat directory we have one
             # excursion set per contrast)
             for filename in exc_sets:
-                s = re.compile('zf?stat\d+')
-                zstatnum = s.search(filename)
-                zstatnum = zstatnum.group()
-                if zstatnum.startswith("zstat"):
-                    stat_type = "T"
-                    stat_num = zstatnum.replace('zstat', '')
-                elif zstatnum.startswith("zfstat"):
-                    stat_type = "F"
-                    stat_num = zstatnum.replace('zfstat', '')
-
-                stat_num = int(stat_num)
-
-                # If more than one excursion set is reported, we need to use
-                # an index in the file names of the file exported in nidm
-                if len(exc_sets) > 1:
-                    stat_num_t = "_" + \
-                        stat_type.upper() + "{0:0>3}".format(stat_num)
-                else:
-                    stat_num_t = ""
+                stat_num, stat_type, stat_num_t = self._get_stat_num(
+                    filename, analysis_dir, exc_sets)
 
                 # Find corresponding contrast estimation activity
                 con_id = None
                 for contrasts in self.contrasts.values():
                     for contrast in contrasts:
-                        s = re.compile('zf?stat\d+')
-                        con_num = s.search(contrast.z_stat_map.file.path)
-                        con_num = con_num.group()
-                        con_num = con_num.replace('zstat', '')\
-                                         .replace('zfstat', '')\
-                                         .replace('.nii.gz', '')
-                        con_num = int(con_num)
-                        if con_num == stat_num:
+                        if contrast.contrast_num == stat_num_t:
                             con_id = contrast.estimation.id
                 assert con_id is not None
 
@@ -407,9 +420,7 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
                 visualisation = os.path.join(
                     analysis_dir,
                     'rendered_thresh_zstat' + str(stat_num) + '.png')
-                zFileImg = os.path.join(
-                    analysis_dir,
-                    'thresh_zstat' + str(stat_num) + '.nii.gz')
+                zFileImg = filename
 
                 # FIXME: When doing contrast masking is the excursion set
                 # stored in thresh_zstat the one after or before contrast
@@ -422,7 +433,7 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
                 # --> fsl_contrast_mask
                 exc_set = ExcursionSet(
                     zFileImg, self.coord_space, visualisation,
-                    stat_num_t, self.export_dir)
+                    self.export_dir, suffix=stat_num_t)
 
                 # Height Threshold
                 prob_re = r'.*set fmri\(prob_thresh\) (?P<info>\d+\.?\d+).*'
@@ -472,7 +483,9 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
 
                 if cluster_thresh:
                     # Clusters (and associated peaks)
-                    clusters = self._get_clusters_peaks(stat_num)
+                    clusters = self._get_clusters_peaks(
+                        analysis_dir,
+                        stat_num, stat_type, len(exc_sets))
                     # Peak and Cluster are only reported for cluster-wise
                     # thresholds
                     peak_criteria = PeakCriteria(
@@ -640,7 +653,8 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
 
         design_matrix = DesignMatrix(design_mat_values, design_mat_image,
                                      self.export_dir, real_ev, design_type,
-                                     hrf_model, drift_model)
+                                     hrf_model, drift_model,
+                                     self.analyses_num[analysis_dir])
         return design_matrix
 
     def _get_data(self):
@@ -686,11 +700,13 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
             variance_spatial, dependance, dependance_spatial)
         return error_model
 
-    def _get_residual_mean_squares_map(self, stat_dir):
+    def _get_residual_mean_squares_map(self, analysis_dir):
         """
         Parse FSL result directory to retreive information about the residual
         mean squares map. Return an object of type ResidualMeanSquares.
         """
+        stat_dir = os.path.join(analysis_dir, 'stats')
+
         if self.first_level:
             residuals_file = os.path.join(stat_dir, 'sigmasquareds.nii.gz')
             temporary = False
@@ -718,16 +734,18 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
                                            residuals_file)
 
         rms_map = ResidualMeanSquares(self.export_dir, residuals_file,
-                                      self.coord_space, temporary)
+                                      self.coord_space, temporary,
+                                      self.analyses_num[analysis_dir])
 
         return rms_map
 
-    def _get_param_estimate_maps(self, stat_dir):
+    def _get_param_estimate_maps(self, analysis_dir):
         """
         Parse FSL result directory to retreive information about the parameter
         estimates. Return a list of objects of type ParameterEstimateMap.
         """
         param_estimates = list()
+        stat_dir = os.path.join(analysis_dir, 'stats')
 
         for filename in os.listdir(stat_dir):
             if filename.startswith("pe"):
@@ -739,7 +757,8 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
                     full_path_file = os.path.join(stat_dir, filename)
                     param_estimate = ParameterEstimateMap(
                         full_path_file,
-                        penum, self.coord_space)
+                        penum, self.coord_space,
+                        suffix=self.analyses_num[analysis_dir])
                     param_estimates.append(param_estimate)
         return param_estimates
 
@@ -751,7 +770,8 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
         """
         mask_file = os.path.join(analysis_dir, 'mask.nii.gz')
         mask_map = MaskMap(self.export_dir, mask_file,
-                           self.coord_space, False)
+                           self.coord_space, False,
+                           self.analyses_num[analysis_dir])
         return mask_map
 
     def _get_grand_mean(self, mask_file, analysis_dir):
@@ -761,13 +781,13 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
         """
         grand_mean_file = os.path.join(analysis_dir, 'mean_func.nii.gz')
 
-        # FIXME: Check if there is an alternative file to use here (maybe)
-        # depending on FSL version
         if not os.path.isfile(grand_mean_file):
-            grand_mean = None
+            raise Exception("Grand mean file " + grand_mean_file +
+                            " not found.")
         else:
             grand_mean = GrandMeanMap(grand_mean_file, mask_file,
-                                      self.coord_space, self.export_dir)
+                                      self.coord_space, self.export_dir,
+                                      self.analyses_num[analysis_dir])
 
         return grand_mean
 
@@ -987,7 +1007,8 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
 
         return search_space
 
-    def _get_clusters_peaks(self, stat_num):
+    def _get_clusters_peaks(self, analysis_dir, stat_num, stat_type,
+                            max_stat_num):
         """
         Parse FSL result directory to retreive information about the clusters
         and peaks declared significant for statistic 'stat_num'. Return a list
@@ -995,179 +1016,221 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
         """
         clusters = list()
 
-        for analysis_dir in self.analysis_dirs:
-            # Cluster list (positions in voxels)
-            cluster_file = os.path.join(
-                analysis_dir,
-                'cluster_zstat' + str(stat_num) + '.txt')
-            if not os.path.isfile(cluster_file):
-                cluster_file = None
-            else:
-                with warnings.catch_warnings():
-                    # Ignore "Empty input file" for no significant cluster
-                    warnings.simplefilter("ignore")
-                    cluster_table = np.loadtxt(
-                        cluster_file, skiprows=1, ndmin=2)
+        if stat_type.lower() == "f":
+            prefix = 'zfstat'
+        else:
+            prefix = 'zstat'
+        # Cluster list (positions in voxels)
+        cluster_file = os.path.join(
+            analysis_dir, 'cluster_' + prefix + str(stat_num) + '.txt')
+        if not os.path.isfile(cluster_file):
+            cluster_file = None
+        else:
+            with warnings.catch_warnings():
+                # Ignore "Empty input file" for no significant cluster
+                warnings.simplefilter("ignore")
+                cluster_table = np.loadtxt(
+                    cluster_file, skiprows=1, ndmin=2)
 
-            # Cluster list (positions in mm)
-            cluster_std_file = os.path.join(
-                analysis_dir,
-                'cluster_zstat' + str(stat_num) + '_std.txt')
-            if not os.path.isfile(cluster_std_file):
-                cluster_std_file = None
-                # cluster_std_table = np.zeros_like(cluster_table)*float('nan')
-            else:
-                with warnings.catch_warnings():
-                    # Ignore "Empty input file" for no significant cluster
-                    warnings.simplefilter("ignore")
-                    cluster_std_table = np.loadtxt(
-                        cluster_std_file, skiprows=1, ndmin=2)
+        # Cluster list (positions in mm)
+        cluster_std_file = os.path.join(
+            analysis_dir, 'cluster_' + prefix + str(stat_num) + '_std.txt')
+        if not os.path.isfile(cluster_std_file):
+            cluster_std_file = None
+            # cluster_std_table = np.zeros_like(cluster_table)*float('nan')
+        else:
+            with warnings.catch_warnings():
+                # Ignore "Empty input file" for no significant cluster
+                warnings.simplefilter("ignore")
+                cluster_std_table = np.loadtxt(
+                    cluster_std_file, skiprows=1, ndmin=2)
 
-            # Peaks
-            peak_file = os.path.join(
-                analysis_dir, 'lmax_zstat' + str(stat_num) + '.txt')
-            if not os.path.isfile(peak_file):
-                peak_file = None
-            else:
-                with warnings.catch_warnings():
-                    # Ignore "Empty input file" for no significant peak
-                    warnings.simplefilter("ignore")
-                    peak_table = np.loadtxt(peak_file, skiprows=1, ndmin=2)
+        # Peaks
+        peak_file = os.path.join(
+            analysis_dir, 'lmax_' + prefix + str(stat_num) + '.txt')
+        if not os.path.isfile(peak_file):
+            peak_file = None
+        else:
+            with warnings.catch_warnings():
+                # Ignore "Empty input file" for no significant peak
+                warnings.simplefilter("ignore")
+                peak_table = np.loadtxt(peak_file, skiprows=1, ndmin=2)
 
-            peak_std_file = os.path.join(
-                analysis_dir,
-                'lmax_zstat' + str(stat_num) + '_std.txt')
-            if not os.path.isfile(peak_std_file):
-                peak_std_file = None
-            else:
-                with warnings.catch_warnings():
-                    # Ignore "Empty input file" for no significant peak
-                    warnings.simplefilter("ignore")
-                    peak_std_table = np.loadtxt(
-                        peak_std_file, skiprows=1, ndmin=2)
+        peak_std_file = os.path.join(
+            analysis_dir,
+            'lmax_' + prefix + str(stat_num) + '_std.txt')
+        if not os.path.isfile(peak_std_file):
+            peak_std_file = None
+        else:
+            with warnings.catch_warnings():
+                # Ignore "Empty input file" for no significant peak
+                warnings.simplefilter("ignore")
+                peak_std_table = np.loadtxt(
+                    peak_std_file, skiprows=1, ndmin=2)
 
-            peaks = dict()
-            prev_cluster = -1
-            if (peak_file is not None) and (peak_std_file is not None):
+        peaks = dict()
+        prev_cluster = -1
+        if (peak_file is not None) and (peak_std_file is not None):
 
-                peaks_join_table = np.column_stack(
-                    (peak_table, peak_std_table))
-                for peak_row in peaks_join_table:
-                    cluster_id = int(peak_row[0])
+            peaks_join_table = np.column_stack(
+                (peak_table, peak_std_table))
 
-                    if not cluster_id == prev_cluster:
-                        # First peak in this cluster
-                        peakIndex = 1
+            num_clusters = peaks_join_table.max(axis=0)[0]
+            max_num_peaks = peaks_join_table.shape[0]
 
-                    # Though peak coordinates in voxels are integer, we use a
-                    # float type to comply with the rdfs:range
-                    peak = Peak(
-                        peak_index=int(peakIndex), x=int(peak_row[2]),
-                        y=int(peak_row[3]), z=int(peak_row[4]),
-                        x_std=peak_row[7], y_std=peak_row[8],
-                        z_std=peak_row[9],
-                        equiv_z=float(peak_row[1]),
-                        cluster_index=cluster_id, stat_num=stat_num)
-                    if cluster_id in peaks:
-                        peaks[cluster_id].append(peak)
-                    else:
-                        peaks[cluster_id] = list([peak])
+            for peak_row in peaks_join_table:
+                cluster_id = int(peak_row[0])
 
-                    prev_cluster = cluster_id
+                if not cluster_id == prev_cluster:
+                    # First peak in this cluster
+                    peakIndex = 1
 
-                    peakIndex = peakIndex + 1
-            elif (peak_file is not None):
-                for peak_row in peak_table:
-                    cluster_id = int(peak_row[0])
+                # Though peak coordinates in voxels are integer, we use a
+                # float type to comply with the rdfs:range
+                suffix = self._get_peak_suffix(analysis_dir, stat_type,
+                                               stat_num, cluster_id, peakIndex,
+                                               num_clusters, max_num_peaks,
+                                               max_stat_num)
 
-                    if not cluster_id == prev_cluster:
-                        peakIndex = 1
+                peak = Peak(
+                    x=int(peak_row[2]), y=int(peak_row[3]), z=int(peak_row[4]),
+                    x_std=peak_row[7], y_std=peak_row[8], z_std=peak_row[9],
+                    equiv_z=float(peak_row[1]), suffix=suffix)
+                if cluster_id in peaks:
+                    peaks[cluster_id].append(peak)
+                else:
+                    peaks[cluster_id] = list([peak])
 
-                    peak = Peak(
-                        peak_index=int(peakIndex), x=int(peak_row[2]),
-                        y=int(peak_row[3]), z=int(peak_row[4]),
-                        equiv_z=float(peak_row[1]), cluster_index=cluster_id,
-                        stat_num=stat_num)
-                    if cluster_id in peaks:
-                        peaks[cluster_id].append(peak)
-                    else:
-                        peaks[cluster_id] = list([peak])
+                prev_cluster = cluster_id
 
-                    prev_cluster = cluster_id
+                peakIndex = peakIndex + 1
+        elif (peak_file is not None):
+            num_clusters = peak_table.max(axis=0)[0]
+            max_num_peaks = peak_table.shape[0]
 
-                    peakIndex = peakIndex + 1
-            elif (peak_std_file is not None):
-                for peak_row in peak_std_table:
-                    cluster_id = int(peak_row[0])
+            for peak_row in peak_table:
+                cluster_id = int(peak_row[0])
 
-                    if not cluster_id == prev_cluster:
-                        peakIndex = 1
+                if not cluster_id == prev_cluster:
+                    peakIndex = 1
 
-                    peak = Peak(
-                        peak_index=int(peakIndex),
-                        x_std=peak_row[2],
-                        y_std=peak_row[3],
-                        z_std=peak_row[4],
-                        equiv_z=float(peak_row[1]), cluster_index=cluster_id,
-                        stat_num=stat_num)
-                    if cluster_id in peaks:
-                        peaks[cluster_id].append(peak)
-                    else:
-                        peaks[cluster_id] = list([peak])
-                    prev_cluster = cluster_id
+                suffix = self._get_peak_suffix(analysis_dir, stat_type,
+                                               stat_num, cluster_id, peakIndex,
+                                               num_clusters, max_num_peaks,
+                                               max_stat_num)
+                peak = Peak(
+                    x=int(peak_row[2]), y=int(peak_row[3]), z=int(peak_row[4]),
+                    equiv_z=float(peak_row[1]), suffix=suffix)
+                if cluster_id in peaks:
+                    peaks[cluster_id].append(peak)
+                else:
+                    peaks[cluster_id] = list([peak])
 
-                    peakIndex = peakIndex + 1
+                prev_cluster = cluster_id
 
-            if (cluster_file is not None) and (cluster_std_file is not None):
-                clusters_join_table = np.column_stack((cluster_table,
-                                                       cluster_std_table))
-                for cluster_row in clusters_join_table:
-                    cluster_id = int(cluster_row[0])
-                    size = int(cluster_row[1])
-                    pFWER = float(cluster_row[2])
-                    x = float(cluster_row[8])
-                    y = float(cluster_row[9])
-                    z = float(cluster_row[10])
+                peakIndex = peakIndex + 1
+        elif (peak_std_file is not None) and (peak_std_table.size > 0):
+            num_clusters = peak_std_table.max(axis=0)[0]
+            max_num_peaks = peak_std_table.shape[0]
+
+            for peak_row in peak_std_table:
+                cluster_id = int(peak_row[0])
+
+                if not cluster_id == prev_cluster:
+                    peakIndex = 1
+
+                suffix = self._get_peak_suffix(analysis_dir, stat_type,
+                                               stat_num, cluster_id, peakIndex,
+                                               num_clusters, max_num_peaks,
+                                               max_stat_num)
+                peak = Peak(
+                    x_std=peak_row[2], y_std=peak_row[3], z_std=peak_row[4],
+                    equiv_z=float(peak_row[1]), suffix=suffix)
+                if cluster_id in peaks:
+                    peaks[cluster_id].append(peak)
+                else:
+                    peaks[cluster_id] = list([peak])
+                prev_cluster = cluster_id
+
+                peakIndex = peakIndex + 1
+
+        if (cluster_file is not None) and (cluster_std_file is not None):
+            clusters_join_table = np.column_stack((cluster_table,
+                                                   cluster_std_table))
+            for cluster_row in clusters_join_table:
+                cluster_id = int(cluster_row[0])
+                size = int(cluster_row[1])
+                pFWER = float(cluster_row[2])
+                x = float(cluster_row[8])
+                y = float(cluster_row[9])
+                z = float(cluster_row[10])
+                if stat_type.lower() == 't':
                     x_std = float(cluster_row[24])
                     y_std = float(cluster_row[25])
                     z_std = float(cluster_row[26])
-                    clusters.append(
-                        Cluster(cluster_num=cluster_id, size=size,
-                                pFWER=pFWER, peaks=peaks[
-                                    cluster_id], x=x, y=y, z=z,
-                                x_std=x_std, y_std=y_std, z_std=z_std))
+                else:
+                    x_std = float(cluster_row[19])
+                    y_std = float(cluster_row[20])
+                    z_std = float(cluster_row[21])
+                clusters.append(
+                    Cluster(cluster_num=cluster_id, size=size,
+                            pFWER=pFWER, peaks=peaks[
+                                cluster_id], x=x, y=y, z=z,
+                            x_std=x_std, y_std=y_std, z_std=z_std))
 
-            elif (cluster_file is not None):
-                for cluster_row in cluster_table:
-                    cluster_id = int(cluster_row[0])
-                    size = int(cluster_row[1])
-                    pFWER = float(cluster_row[2])
-                    x = float(cluster_row[8])
-                    y = float(cluster_row[9])
-                    z = float(cluster_row[10])
-                    x_std = None
-                    y_std = None
-                    z_std = None
-                    clusters.append(
-                        Cluster(cluster_num=cluster_id, size=size,
-                                pFWER=pFWER, peaks=peaks[
-                                    cluster_id], x=x, y=y, z=z,
-                                x_std=x_std, y_std=y_std, z_std=z_std))
-            elif (cluster_std_file is not None):
-                for cluster_row in cluster_std_table:
-                    cluster_id = int(cluster_row[0])
-                    size = int(cluster_row[1])
-                    pFWER = float(cluster_row[2])
-                    x_std = float(cluster_row[8])
-                    y_std = float(cluster_row[9])
-                    z_std = float(cluster_row[10])
-                    x = None
-                    y = None
-                    z = None
-                    clusters.append(
-                        Cluster(cluster_num=cluster_id, size=size,
-                                pFWER=pFWER, peaks=peaks[
-                                    cluster_id], x=x, y=y, z=z,
-                                x_std=x_std, y_std=y_std, z_std=z_std))
+        elif (cluster_file is not None):
+            for cluster_row in cluster_table:
+                cluster_id = int(cluster_row[0])
+                size = int(cluster_row[1])
+                pFWER = float(cluster_row[2])
+                x = float(cluster_row[8])
+                y = float(cluster_row[9])
+                z = float(cluster_row[10])
+                x_std = None
+                y_std = None
+                z_std = None
+                clusters.append(
+                    Cluster(cluster_num=cluster_id, size=size,
+                            pFWER=pFWER, peaks=peaks[
+                                cluster_id], x=x, y=y, z=z,
+                            x_std=x_std, y_std=y_std, z_std=z_std))
+        elif (cluster_std_file is not None):
+            for cluster_row in cluster_std_table:
+                cluster_id = int(cluster_row[0])
+                size = int(cluster_row[1])
+                pFWER = float(cluster_row[2])
+                x_std = float(cluster_row[8])
+                y_std = float(cluster_row[9])
+                z_std = float(cluster_row[10])
+                x = None
+                y = None
+                z = None
+                clusters.append(
+                    Cluster(cluster_num=cluster_id, size=size,
+                            pFWER=pFWER, peaks=peaks[
+                                cluster_id], x=x, y=y, z=z,
+                            x_std=x_std, y_std=y_std, z_std=z_std))
 
         return clusters
+
+    def _get_peak_suffix(self, analysis_dir, stat_type, con_num,
+                         cluster_idx, peak_idx, num_clusters, num_peaks,
+                         max_stat_num):
+        max_cluster_digits = str(len(str(int(num_clusters))))
+        max_peak_digits = str(len(str(int(num_peaks))))
+
+        ana_prefix = ""
+        if self.analyses_num[analysis_dir]:
+            ana_prefix = self.analyses_num[analysis_dir] + "_"
+
+        stat_prefix = ""
+        if max_stat_num > 1:
+            stat_prefix = stat_type.upper() + \
+                ("{0:0>" + str(max_stat_num) + "}").format(con_num) + "_"
+
+        suffix = ana_prefix + \
+            stat_prefix + \
+            ("{0:0>" + max_cluster_digits + "}").format(cluster_idx) + \
+            ("_{0:0>" + max_peak_digits + "}").format(peak_idx)
+
+        return suffix
