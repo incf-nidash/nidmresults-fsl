@@ -104,8 +104,8 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 self.num_subjects = 1
             else:
                 if self.num_subjects != [1]:
-                    raise Exception("More than 1 subject specified as input\
-in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
+                    raise Exception("More than 1 subject specified as input in\
+ a first-level analysis: (numsubjects=" + ",".join(str(self.num_subjects))+")")
                 else:
                     self.num_subjects = 1
         else:
@@ -758,7 +758,7 @@ in a first-level analysis: (numsubjects=" + ",".join(self.num_subjects)+")")
                     param_estimate = ParameterEstimateMap(
                         full_path_file,
                         penum, self.coord_space,
-                        self.analyses_num[analysis_dir])
+                        suffix=self.analyses_num[analysis_dir])
                     param_estimates.append(param_estimate)
         return param_estimates
 
