@@ -74,7 +74,8 @@ class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
             gt = Graph()
             gt.parse(gt_file, format='turtle')
 
-            self.compare_full_graphs(gt, ex.graph, ex.exact_comparison, True)
+            self.compare_full_graphs(gt, ex.graph, ex.owl,
+                                     ex.exact_comparison, True)
 
 if __name__ == '__main__':
     unittest.main()
