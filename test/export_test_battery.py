@@ -65,7 +65,7 @@ if __name__ == '__main__':
             logging.debug("Cloning to " + test_data_dir)
             repo_https = \
                 "https://github.com/incf-nidash/nidmresults-examples.git"
-            clone_cmd = ["cd " + test_data_dir + "; git clone " + repo_https]
+            clone_cmd = ["cd " + TEST_DATA_DIR + "; git clone " + repo_https]
             print clone_cmd
             subprocess.check_call(clone_cmd, shell=True)
         except subprocess.CalledProcessError as e:
