@@ -56,10 +56,6 @@ if __name__ == '__main__':
         # Pull nidmresults-examples repository
         test_data_dir = os.path.join(TEST_DATA_DIR, "nidmresults-examples")
 
-    print "-----------------"
-    print os.path.isdir(os.path.join(test_data_dir, ".git"))
-    print os.path.join(test_data_dir, ".git")
-    print os.listdir(test_data_dir)
     if not os.path.isdir(os.path.join(test_data_dir, ".git")):
         try:
             logging.debug("Cloning to " + test_data_dir)
