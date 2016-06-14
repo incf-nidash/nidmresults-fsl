@@ -7,7 +7,9 @@ A *NIDM-Results pack* is a compressed file containing a NIDM-Results serializati
 
 ##### Usage
 ```
-$ nidmfsl [-h] [-g [GROUP_NAMES [GROUP_NAMES ...]]] [-o OUTPUT_NAME] [-d] [-v [VERSION]] feat_dir [numsubjects [numsubjects ...]]
+   nidmfsl [-h] [-g [GROUP_NAMES [GROUP_NAMES ...]]] [-o OUTPUT_NAME] [-d]
+               [-v [NIDM_VERSION]] [--version]
+               feat_dir [numsubjects [numsubjects ...]]
 ```
 
 ##### Requirements
@@ -16,5 +18,5 @@ $ nidmfsl [-h] [-g [GROUP_NAMES [GROUP_NAMES ...]]] [-o OUTPUT_NAME] [-d] [-v [V
 
 ##### Installation
 ```
-    $ pip install nidmfsl
+    pip install nidmfsl
 ```
