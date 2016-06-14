@@ -13,7 +13,7 @@ A *NIDM-Results pack* is a compressed file containing a NIDM-Results serializati
 ```
 
 ##### Requirements
- -   [nidmresults](pypi.python.org/pypi/nidmresults)
+ -   [nidmresults](http://pypi.python.org/pypi/nidmresults)
 
 
 ##### Installation
