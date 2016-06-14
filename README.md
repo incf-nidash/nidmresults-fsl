@@ -1,30 +1,20 @@
-NIDM-Results export for FSL
-===========================
 
-Export of FSL FEAT statistical results using the NeuroImaging Data Model ([NIDM Results]).
+# NIDM-Results for FSL
 
-Install
--------
+Export mass-univariate neuroimaging results computed in FSL (using FEAT) as NIDM-Results packs.
 
+A *NIDM-Results pack* is a compressed file containing a NIDM-Results serialization and some or all of the referenced image data files in compliance with [NIDM-Results specification](http://nidm.nidash.org/specs/nidm-results.html).
+
+##### Usage
+```
+$ nidmfsl [-h] [-g [GROUP_NAMES [GROUP_NAMES ...]]] [-o OUTPUT_NAME] [-d] [-v [VERSION]] feat_dir [numsubjects [numsubjects ...]]
+```
+
+##### Requirements
+ -   [nidmresults](pypi.python.org/pypi/nidmresults)
+
+
+##### Installation
+```
     $ pip install nidmfsl
-
-Usage
------
-
-    $ nidmfsl [-h] [-g [GROUP_NAMES [GROUP_NAMES ...]]] [-o OUTPUT_NAME] [-d] [-v [VERSION]] feat_dir [numsubjects [numsubjects ...]]
-
-Requirements
-------------
-
--   [rdflib]
--   [prov]
--   [nibabel]
--   [numpy]
--   [nidmresults]
-
-  [NIDM Results]: http://nidm.nidash.org/specs/nidm-results.html
-  [rdflib]: http://rdflib.readthedocs.org/en/latest/
-  [prov]: https://github.com/trungdong/prov
-  [nibabel]: http://nipy.org/nibabel/
-  [numpy]: http://www.numpy.org/
-  [nidmresults]: https://github.com/incf-nidash/nidmresults/
+```
