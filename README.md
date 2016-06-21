@@ -32,9 +32,6 @@ optional arguments:
   --version             show program's version number and exit
 ```
 
-##### Requirements
- -   [nidmresults](http://pypi.python.org/pypi/nidmresults)
-
 
 ##### Installation
 ```
