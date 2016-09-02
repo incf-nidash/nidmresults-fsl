@@ -6,6 +6,7 @@ Test of NIDM FSL export tool
 @author: Camille Maumet <c.m.j.maumet@warwick.ac.uk>
 @copyright: University of Warwick 2013-2014
 """
+from __future__ import division, print_function, absolute_import
 import os
 import shutil
 import sys
@@ -37,14 +38,14 @@ if __name__ == '__main__':
             # "git stash" gives the repo one more chance to checkout
             # the git-lfs files
             try:
-                print cmd
+                print(cmd)
                 out = subprocess.check_output(cmd, shell=True)
-                print out
+                print(out)
                 break
             except subprocess.CalledProcessError as e:
                 if e.returncode == 128:
                     it = it + 1
-                    print 'Retry #'+str(it)
+                    print('Retry #'+str(it))
 
     config_file = os.path.join(TEST_DIR, 'config.json')
     if os.path.isfile(config_file):
@@ -62,7 +63,7 @@ if __name__ == '__main__':
             repo_https = \
                 "https://github.com/incf-nidash/nidmresults-examples.git"
             clone_cmd = ["cd " + TEST_DATA_DIR + "; git clone " + repo_https]
-            print clone_cmd
+            print(clone_cmd)
             subprocess.check_call(clone_cmd, shell=True)
         except subprocess.CalledProcessError as e:
             # 128 -> git-lfs download error: "Error downloading object"
@@ -88,7 +89,7 @@ if __name__ == '__main__':
             checkout_cmd = ["cd " + test_data_dir +
                             "; git stash --include-untracked" +
                             "; git checkout " + branch_name]
-            print checkout_cmd
+            print(checkout_cmd)
             subprocess.check_call(checkout_cmd, shell=True)
         except subprocess.CalledProcessError as e:
             # 128 -> git-lfs download error: "Error downloading object"
@@ -99,7 +100,7 @@ if __name__ == '__main__':
         pull_cmd = ["cd " + test_data_dir +
                     "; git pull origin " + branch_name]
         try:
-            print pull_cmd
+            print(pull_cmd)
             subprocess.check_call(pull_cmd, shell=True)
         except subprocess.CalledProcessError as e:
             # 128 -> git-lfs download error: "Error downloading object"
@@ -179,7 +180,7 @@ if __name__ == '__main__':
                     nidmfsl_cmd = [
                         "nidmfsl " + featdir_arg + numsubs_arg +
                         groupnmes_arg + version_arg]
-                    print "\nRunning " + str(nidmfsl_cmd)
+                    print("\nRunning " + str(nidmfsl_cmd))
                     subprocess.check_call(nidmfsl_cmd, shell=True)
 
                     zipped_dir = os.path.join(

@@ -6,6 +6,7 @@ specification.
 @copyright: University of Warwick 2013-2014
 """
 
+from __future__ import division, print_function, absolute_import
 import re
 import os
 import sys
@@ -64,7 +65,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         version = version.split("-")[0]
         super(FSLtoNIDMExporter, self).__init__(version, out_dir, zipped)
         # Check if feat_dir exists
-        print "Exporting NIDM results from "+feat_dir
+        print("Exporting NIDM results from "+feat_dir)
         if not os.path.isdir(feat_dir):
             raise Exception("Unknown directory: "+str(feat_dir))
         self.feat_dir = feat_dir
