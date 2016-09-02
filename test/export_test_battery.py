@@ -6,7 +6,7 @@ Test of NIDM FSL export tool
 @author: Camille Maumet <c.m.j.maumet@warwick.ac.uk>
 @copyright: University of Warwick 2013-2014
 """
-from __future__ import division, print_function, absolute_import
+
 import os
 import shutil
 import sys

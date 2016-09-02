@@ -6,7 +6,7 @@ specification.
 @copyright: University of Warwick 2013-2014
 """
 
-from __future__ import division, print_function, absolute_import
+
 import re
 import os
 import sys
@@ -78,7 +78,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         self.num_subjects = num_subjects
         self.groups = []
         if num_subjects:
-            self.groups = zip(self.num_subjects, group_names)
+            self.groups = list(zip(self.num_subjects, group_names))
 
         self.without_group_versions = ["0.1.0", "0.2.0", "1.0.0", "1.1.0",
                                        "1.2.0"]
@@ -272,7 +272,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 # index is in use
                 for beta_index in contrast_weights:
                     if abs(int(beta_index)) != 0:
-                        for model_fitting in self.model_fittings.values():
+                        for model_fitting in list(self.model_fittings.values()):
                             for pe in model_fitting.param_estimates:
                                 s = re.compile('pe\d+')
                                 # We need basename to avoid conflict with
@@ -406,7 +406,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
                 # Find corresponding contrast estimation activity
                 con_id = None
-                for contrasts in self.contrasts.values():
+                for contrasts in list(self.contrasts.values()):
                     for contrast in contrasts:
                         if contrast.contrast_num == stat_num_t:
                             con_id = contrast.estimation.id
@@ -640,7 +640,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             drift_model = None
 
         real_ev = list()
-        for ev_num, ev_name in orig_ev.items():
+        for ev_num, ev_name in list(orig_ev.items()):
             real_ev.append(ev_name)
 
             # Add one regressor name if there is an extra column for a temporal

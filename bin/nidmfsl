@@ -7,7 +7,7 @@ specification. The path to feat directory must be passed as first argument.
 @copyright: University of Warwick 2013-2014
 """
 
-from __future__ import division, print_function, absolute_import
+
 from nidmfsl.fsl_exporter.fsl_exporter import FSLtoNIDMExporter
 from nidmfsl import __version__
 import argparse
@@ -43,7 +43,7 @@ d) suffix will be appended.')
         version='{version}'.format(version=__version__))
     args = parser.parse_args()
 
-    num_subjects = map(int, args.numsubjects)
+    num_subjects = list(map(int, args.numsubjects))
 
     # Parse feat dir and export to NIDM
     fslnidm = FSLtoNIDMExporter(
