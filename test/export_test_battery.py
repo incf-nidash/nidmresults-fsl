@@ -82,7 +82,7 @@ if __name__ == '__main__':
 
         # If we are in a different branch, checkout (this test is useful so
         # that we only stash untracked files if in a different bramch)
-        branch_name = "new_ground_truth"
+        branch_name = "master"
         try:
             # Start from a clean state: stash local changes including
             # untracked and then checkout
