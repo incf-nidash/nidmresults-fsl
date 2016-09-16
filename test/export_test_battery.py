@@ -171,7 +171,7 @@ if __name__ == '__main__':
                                 list(zip(group_names, num_subjects)):
                             group_arg = " -g " + label + " " + str(numsub)
                     if version:
-                        version_arg = " -v " + version
+                        version_arg = " -n " + version
 
                     nidmfsl_cmd = [
                         "nidmfsl " + featdir_arg + group_arg + version_arg]

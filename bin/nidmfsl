@@ -20,6 +20,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '-g', '--group', nargs=2, action='append',
         default=None,
+        metavar=('GROUP_NAME', 'NUM_SUBJECTS'),
         help='Group label followed by number of subjects')
     parser.add_argument(
         "-o", "--output_name",
@@ -30,10 +31,9 @@ d) suffix will be appended.')
         help='Produces a .nidm directory rather than a .nidm.zip file.',
         action='store_true')
     parser.add_argument(
-        "-v", "--nidm_version",
+        "-n", "--nidm_version",
         help='NIDM-Results version to use (default: latest).',
-        default="1.3.0",
-        nargs="?")
+        default="1.3.0")
     parser.add_argument(
         '--version', action='version',
         version='{version}'.format(version=__version__))
