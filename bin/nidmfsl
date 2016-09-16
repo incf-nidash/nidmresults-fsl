@@ -18,13 +18,9 @@ if __name__ == "__main__":
         description='NIDM-Results exporter for FSL Feat.')
     parser.add_argument('feat_dir', help='Path to feat directory.')
     parser.add_argument(
-        'numsubjects',
-        help='Number of subjects per group.',
-        nargs="*")
-    parser.add_argument(
-        "-g", "--group_names",
-        help='Label for each group.',
-        nargs="*")
+        '-g', '--group', nargs=2, action='append',
+        default=None,
+        help='Group label followed by number of subjects')
     parser.add_argument(
         "-o", "--output_name",
         help='Name of the output. A \".nidm.zip\" or \".nidm\" (when -d is use\
@@ -43,13 +39,10 @@ d) suffix will be appended.')
         version='{version}'.format(version=__version__))
     args = parser.parse_args()
 
-    num_subjects = list(map(int, args.numsubjects))
-
     # Parse feat dir and export to NIDM
     fslnidm = FSLtoNIDMExporter(
         out_dirname=args.output_name, zipped=(not args.directory_output),
-        version=args.nidm_version, feat_dir=args.feat_dir,
-        num_subjects=num_subjects, group_names=args.group_names)
+        version=args.nidm_version, feat_dir=args.feat_dir, groups=args.group)
     fslnidm.parse()
     output_path = fslnidm.export()
 

@@ -144,14 +144,12 @@ if __name__ == '__main__':
 
             versions = metadata["versions"]
 
-            if "num_subjects" in metadata:
-                num_subjects = metadata["num_subjects"]
-            else:
-                num_subjects = None
             if "group_names" in metadata:
                 group_names = metadata["group_names"]
+                num_subjects = metadata["num_subjects"]
             else:
                 group_names = None
+                num_subjects = None
 
             for version in versions:
                 version_str = version.replace(".", "")
@@ -166,20 +164,17 @@ if __name__ == '__main__':
                     # Export to NIDM using FSL export tool
                     # fslnidm = FSL_NIDM(feat_dir=DATA_DIR_001);
                     featdir_arg = str(data_dir)
-                    numsubs_arg = ""
-                    groupnmes_arg = ""
+                    group_arg = ""
                     if num_subjects and \
                             version not in ["1.0.0", "1.1.0", "1.2.0"]:
-                        numsubs_arg = " " + " ".join(map(str, num_subjects))
-                        if group_names:
-                            groupnmes_arg = \
-                                " --group_names " + " ".join(group_names)
+                        for label, numsub in \
+                                list(zip(group_names, num_subjects)):
+                            group_arg = " -g " + label + " " + str(numsub)
                     if version:
                         version_arg = " -v " + version
 
                     nidmfsl_cmd = [
-                        "nidmfsl " + featdir_arg + numsubs_arg +
-                        groupnmes_arg + version_arg]
+                        "nidmfsl " + featdir_arg + group_arg + version_arg]
                     print("\nRunning " + str(nidmfsl_cmd))
                     subprocess.check_call(nidmfsl_cmd, shell=True)
 

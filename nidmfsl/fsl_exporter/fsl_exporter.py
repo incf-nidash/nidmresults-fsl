@@ -42,7 +42,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
     """
 
     def __init__(self, feat_dir, version="1.3.0-rc2", out_dirname=None,
-                 zipped=True, num_subjects=[], group_names=None):
+                 zipped=True, groups=None):
         # Absolute path to feat directory
         feat_dir = os.path.abspath(feat_dir)
 
@@ -75,10 +75,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         self.coord_space = None
         self.contrast_names_by_num = dict()
 
-        self.num_subjects = num_subjects
-        self.groups = []
-        if num_subjects:
-            self.groups = list(zip(self.num_subjects, group_names))
+        self.groups = groups
 
         self.without_group_versions = ["0.1.0", "0.2.0", "1.0.0", "1.1.0",
                                        "1.2.0"]
@@ -101,20 +98,16 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             # stat_dir = list([os.path.join(self.feat_dir, 'stats')])
             self.analysis_dirs = list([self.feat_dir])
             self.analyses_num[self.feat_dir] = ""
-            if not self.num_subjects:
+            if self.groups is None:
                 self.num_subjects = 1
             else:
-                if self.num_subjects != [1]:
-                    raise Exception("More than 1 subject specified as input in\
- a first-level analysis: (numsubjects=" + ",".join(str(self.num_subjects))+")")
-                else:
-                    self.num_subjects = 1
+                raise Exception("Groups specified as input in\
+ a first-level analysis: (groups=" + ",".join(str(self.groups))+")")
         else:
-            if not self.num_subjects:
+            if not self.groups:
                 # Number of subject per groups was introduced in 1.3.0
                 if self.version['num'] not in self.without_group_versions:
-                    raise Exception("Group analysis with unspecified number of\
- subjects")
+                    raise Exception("Group analysis with unspecified groups.")
             # If feat was called with the GUI then the analysis directory is in
             # the nested cope folder
             self.analysis_dirs = glob.glob(
@@ -194,13 +187,16 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             machine = ImagingInstrument("mri")
 
             # Group or Person
-            if self.first_level:
-                subjects = [Person()]
+            if self.version['num'] not in ["1.0.0", "1.1.0", "1.2.0"]:
+                if self.first_level:
+                    subjects = [Person()]
+                else:
+                    subjects = list()
+                    for group_name, numsub in self.groups:
+                        subjects.append(Group(
+                            num_subjects=int(numsub), group_name=group_name))
             else:
-                subjects = list()
-                for group in self.groups:
-                    subjects.append(Group(
-                        num_subjects=group[0], group_name=group[1]))
+                subjects = None
 
             model_fitting = ModelFitting(
                 activity, design_matrix, data,
