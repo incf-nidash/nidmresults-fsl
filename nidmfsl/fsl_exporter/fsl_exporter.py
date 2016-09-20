@@ -441,7 +441,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
                 except subprocess.CalledProcessError:
                     warnings.warn(
-                        "fsl's cluster binary not found, " +
+                        "'cluster' command (from FSL) not found, " +
                         "cluster labels maps will not be exported")
                     clust_map = None
 
@@ -994,7 +994,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     d = sm_match.groupdict()
                 except subprocess.CalledProcessError:
                     warnings.warn(
-                        "fsl's smoothest binary not found, " +
+                        "'smoothest' command (from FSL) not found, " +
                         "noise FWHM will not be reported")
                     noise_fwhm_in_voxels = None
                     noise_fwhm_in_units = None
