@@ -413,11 +413,37 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     stat_num,
                     self.contrast_names_by_num[stat_num])
 
-                # Excursion set
+                # Excursion set png image
                 visualisation = os.path.join(
                     analysis_dir,
                     'rendered_thresh_zstat' + str(stat_num) + '.png')
                 zFileImg = filename
+
+                # Cluster Labels Map
+                try:
+                    cmd = os.path.join("${FSLDIR}", "bin", "cluster")
+                    cluster_labels_map = os.path.join(
+                        analysis_dir, 'tmp_clustmap' + stat_num_t + '.nii.gz')
+                    cmd = cmd + " -i " + zFileImg + \
+                                " -o " + cluster_labels_map + " -t 0.01"
+
+                    # Discard stdout
+                    FNULL = open(os.devnull, 'w')
+                    subprocess.check_call(
+                        "cd "+analysis_dir+";"+cmd, shell=True,
+                        stdout=FNULL, stderr=subprocess.STDOUT)
+
+                    temporary = True
+                    clust_map = ClusterLabelsMap(
+                        cluster_labels_map, self.coord_space,
+                        export_dir=self.export_dir, suffix=stat_num_t,
+                        temporary=temporary)
+
+                except subprocess.CalledProcessError:
+                    warnings.warn(
+                        "fsl's cluster binary not found, " +
+                        "cluster labels maps will not be exported")
+                    clust_map = None
 
                 # FIXME: When doing contrast masking is the excursion set
                 # stored in thresh_zstat the one after or before contrast
@@ -430,7 +456,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 # --> fsl_contrast_mask
                 exc_set = ExcursionSet(
                     zFileImg, self.coord_space, visualisation,
-                    self.export_dir, suffix=stat_num_t)
+                    self.export_dir, suffix=stat_num_t, clust_map=clust_map)
 
                 # Height Threshold
                 prob_re = r'.*set fmri\(prob_thresh\) (?P<info>\d+\.?\d+).*'
