@@ -79,6 +79,8 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
         self.without_group_versions = ["0.1.0", "0.2.0", "1.0.0", "1.1.0",
                                        "1.2.0"]
+        # Path to FSL library (None if unavailable)
+        self.fsl_path = os.getenv('FSLDIR')
 
     def parse(self):
         """
@@ -420,8 +422,8 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 zFileImg = filename
 
                 # Cluster Labels Map
-                try:
-                    cmd = os.path.join("${FSLDIR}", "bin", "cluster")
+                if self.fsl_path is not None:
+                    cmd = os.path.join(self.fsl_path, "bin", "cluster")
                     cluster_labels_map = os.path.join(
                         analysis_dir, 'tmp_clustmap' + stat_num_t + '.nii.gz')
                     cmd = cmd + " -i " + zFileImg + \
@@ -438,8 +440,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                         cluster_labels_map, self.coord_space,
                         export_dir=self.export_dir, suffix=stat_num_t,
                         temporary=temporary)
-
-                except subprocess.CalledProcessError:
+                else:
                     warnings.warn(
                         "'cluster' command (from FSL) not found, " +
                         "cluster labels maps will not be exported")
@@ -977,11 +978,15 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 with open(log_file, "r") as fp:
                     log_txt = fp.read()
 
-                cmd_match = re.search(r"(?P<cmd>smoothest.*)\n", log_txt)
-                cmd = cmd_match.group("cmd")
-                cmd = cmd.replace("stats/smoothness", "stats/smoothness_v")
-                cmd = cmd.replace("smoothest", "smoothest -V")
-                try:
+                if self.fsl_path is not None:
+                    cmd_match = re.search(r"(?P<cmd>smoothest.*)\n", log_txt)
+                    cmd = cmd_match.group("cmd")
+                    cmd = cmd.replace("stats/smoothness", "stats/smoothness_v")
+                    cmd = cmd.replace(
+                        "smoothest",
+                        os.path.join(self.fsl_path,
+                                     "bin", "smoothest") + " -V")
+
                     # Discard stdout
                     FNULL = open(os.devnull, 'w')
                     subprocess.check_call(
@@ -992,7 +997,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
                     sm_match = re.search(sm_reg, smoothness_txt, re.DOTALL)
                     d = sm_match.groupdict()
-                except subprocess.CalledProcessError:
+                else:
                     warnings.warn(
                         "'smoothest' command (from FSL) not found, " +
                         "noise FWHM will not be reported")
