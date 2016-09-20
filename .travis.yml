@@ -11,7 +11,7 @@ python:
 # command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
 install:
  # Install FSL using Neurodebian
- - wget -O- http://neuro.debian.net/lists/precise.de-m.libre | sudo tee /etc/apt/sources.list.d/neurodebian.sources.list
+ - wget -O- http://neuro.debian.net/lists/trusty.de-m.libre | sudo tee /etc/apt/sources.list.d/neurodebian.sources.list
  - sudo apt-key adv --recv-keys --keyserver hkp://pgp.mit.edu:80 0xA5D32F012649A5A9
  - sudo apt-get update
  - sudo apt-get install fsl-complete
