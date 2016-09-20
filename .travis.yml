@@ -1,6 +1,5 @@
 language: python
 # Enable Travis container-based infrastructure
-sudo: false
 cache:
   pip: true
   directories:
