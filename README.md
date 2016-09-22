@@ -37,3 +37,6 @@ optional arguments:
 ```
     pip install nidmfsl
 ```
+
+##### Compatible with 
+FSL version 5.0.9
