@@ -63,78 +63,87 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
         # Ignore rc* in version number
         version = version.split("-")[0]
-        super(FSLtoNIDMExporter, self).__init__(version, out_dir, zipped)
-        # Check if feat_dir exists
-        print("Exporting NIDM results from "+feat_dir)
-        if not os.path.isdir(feat_dir):
-            raise Exception("Unknown directory: "+str(feat_dir))
-        self.feat_dir = feat_dir
 
-        self.design_file = os.path.join(self.feat_dir, 'design.fsf')
+        try:
+            super(FSLtoNIDMExporter, self).__init__(version, out_dir, zipped)
+            # Check if feat_dir exists
+            print("Exporting NIDM results from "+feat_dir)
+            if not os.path.isdir(feat_dir):
+                raise Exception("Unknown directory: "+str(feat_dir))
+            self.feat_dir = feat_dir
 
-        self.coord_space = None
-        self.contrast_names_by_num = dict()
+            self.design_file = os.path.join(self.feat_dir, 'design.fsf')
 
-        self.groups = groups
+            self.coord_space = None
+            self.contrast_names_by_num = dict()
 
-        self.without_group_versions = ["0.1.0", "0.2.0", "1.0.0", "1.1.0",
-                                       "1.2.0"]
-        # Path to FSL library (None if unavailable)
-        self.fsl_path = os.getenv('FSLDIR')
+            self.groups = groups
+
+            self.without_group_versions = ["0.1.0", "0.2.0", "1.0.0", "1.1.0",
+                                           "1.2.0"]
+            # Path to FSL library (None if unavailable)
+            self.fsl_path = os.getenv('FSLDIR')
+        except:
+            self.cleanup()
+            raise
 
     def parse(self):
         """
         Parse an FSL result directory to extract the pieces information to be
         stored in NIDM-Results.
         """
-        # Load design.fsf file
-        design_file_open = open(self.design_file, 'r')
-        self.design_txt = design_file_open.read()
+        try:
+            # Load design.fsf file
+            design_file_open = open(self.design_file, 'r')
+            self.design_txt = design_file_open.read()
 
-        fmri_level_re = r'.*set fmri\(level\) (?P<info>\d+).*'
-        fmri_level = int(self._search_in_fsf(fmri_level_re))
-        self.first_level = (fmri_level == 1)
+            fmri_level_re = r'.*set fmri\(level\) (?P<info>\d+).*'
+            fmri_level = int(self._search_in_fsf(fmri_level_re))
+            self.first_level = (fmri_level == 1)
 
-        self.analyses_num = dict()
-        if self.first_level:
-            # stat_dir = list([os.path.join(self.feat_dir, 'stats')])
-            self.analysis_dirs = list([self.feat_dir])
-            self.analyses_num[self.feat_dir] = ""
-            if self.groups is None:
-                self.num_subjects = 1
-            else:
-                raise Exception("Groups specified as input in\
- a first-level analysis: (groups=" + ",".join(str(self.groups))+")")
-        else:
-            if not self.groups:
-                # Number of subject per groups was introduced in 1.3.0
-                if self.version['num'] not in self.without_group_versions:
-                    raise Exception("Group analysis with unspecified groups.")
-            # If feat was called with the GUI then the analysis directory is in
-            # the nested cope folder
-            self.analysis_dirs = glob.glob(
-                os.path.join(self.feat_dir, 'cope*.feat'))
-
-            if not self.analysis_dirs:
+            self.analyses_num = dict()
+            if self.first_level:
+                # stat_dir = list([os.path.join(self.feat_dir, 'stats')])
                 self.analysis_dirs = list([self.feat_dir])
                 self.analyses_num[self.feat_dir] = ""
-            else:
-                num_analyses = len(self.analysis_dirs)
-                if num_analyses > 1:
-                    max_digits = len(str(len(self.analysis_dirs)))
-                    for analysis in self.analysis_dirs:
-                        s = re.compile('cope\d+.feat')
-                        ana_num = s.search(analysis)
-                        ana_num = ana_num.group()
-                        ana_num = ana_num.replace("cope", "").replace(
-                            ".feat", "")
-                        self.analyses_num[analysis] = \
-                            ("_{0:0>" + str(max_digits) + "}").format(ana_num)
+                if self.groups is None:
+                    self.num_subjects = 1
                 else:
-                    # There is a single analysis, no need to add a prefix
-                    self.analyses_num[self.analysis_dirs[0]] = ""
+                    raise Exception("Groups specified as input in\
+     a first-level analysis: (groups=" + ",".join(str(self.groups))+")")
+            else:
+                if not self.groups:
+                    # Number of subject per groups was introduced in 1.3.0
+                    if self.version['num'] not in self.without_group_versions:
+                        raise Exception("Group analysis with unspecified groups.")
+                # If feat was called with the GUI then the analysis directory is in
+                # the nested cope folder
+                self.analysis_dirs = glob.glob(
+                    os.path.join(self.feat_dir, 'cope*.feat'))
 
-        super(FSLtoNIDMExporter, self).parse()
+                if not self.analysis_dirs:
+                    self.analysis_dirs = list([self.feat_dir])
+                    self.analyses_num[self.feat_dir] = ""
+                else:
+                    num_analyses = len(self.analysis_dirs)
+                    if num_analyses > 1:
+                        max_digits = len(str(len(self.analysis_dirs)))
+                        for analysis in self.analysis_dirs:
+                            s = re.compile('cope\d+.feat')
+                            ana_num = s.search(analysis)
+                            ana_num = ana_num.group()
+                            ana_num = ana_num.replace("cope", "").replace(
+                                ".feat", "")
+                            self.analyses_num[analysis] = \
+                                ("_{0:0>" + str(max_digits) + "}").format(ana_num)
+                    else:
+                        # There is a single analysis, no need to add a prefix
+                        self.analyses_num[self.analysis_dirs[0]] = ""
+
+            super(FSLtoNIDMExporter, self).parse()
+        except:
+            self.cleanup()
+            raise
 
     def _add_namespaces(self):
         """
