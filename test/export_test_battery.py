@@ -138,8 +138,8 @@ if __name__ == '__main__':
         if data_dir.endswith("/"):
             data_dir = data_dir[:-1]
 
+        test_name = os.path.basename(data_dir)
         if metadata["software"].lower() == "fsl":
-            test_name = os.path.basename(data_dir)
             logging.debug("Computing NIDM FSL export for " + test_name)
 
             versions = metadata["versions"]
@@ -169,7 +169,7 @@ if __name__ == '__main__':
                             version not in ["1.0.0", "1.1.0", "1.2.0"]:
                         for label, numsub in \
                                 list(zip(group_names, num_subjects)):
-                            group_arg = " -g " + label + " " + str(numsub)
+                            group_arg += " -g " + label + " " + str(numsub)
                     if version:
                         version_arg = " -n " + version
 
