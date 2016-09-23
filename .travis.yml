@@ -7,6 +7,7 @@ cache:
 python:
   - "2.7"
   - "3.5"
+bundler_args: --retry 20
 # command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
 install:
  # Install FSL using Neurodebian
