@@ -27,11 +27,12 @@ install:
  # Is this is not a git repo them clone nidmresults-examples
  - if ! [ -d .git ]; then git clone git@github.com:incf-nidash/nidmresults-examples.git .; fi
  - git lfs install
- # Delete any previous changes
- - git stash --include-untracked
+ # Delete any previous changes (retry because lfs might download files)
+ - travis_retry git stash --include-untracked 
  - git checkout small_fixes
  - git pull origin small_fixes
- - travis_retry git stash --retry 20
+ # stash in case lfs failed and need to download more files
+ - travis_retry git stash --include-untracked 
  - cd ../../..
  # Packages only needed for testing (others are set up in requirements.txt)
  - pip install vcrpy
