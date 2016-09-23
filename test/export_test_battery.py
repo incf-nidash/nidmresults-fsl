@@ -31,22 +31,6 @@ TEST_DIR = os.path.dirname(os.path.abspath(__file__))
 TEST_DATA_DIR = os.path.join(TEST_DIR, "data")
 
 if __name__ == '__main__':
-    def retry_lfs_download(cmd):
-        MAX_ITER = 200
-        it = 0
-        while (it < MAX_ITER):
-            # "git stash" gives the repo one more chance to checkout
-            # the git-lfs files
-            try:
-                print(cmd)
-                out = subprocess.check_output(cmd, shell=True)
-                print(out)
-                break
-            except subprocess.CalledProcessError as e:
-                if e.returncode == 128:
-                    it = it + 1
-                    print('Retry #'+str(it))
-
     config_file = os.path.join(TEST_DIR, 'config.json')
     if os.path.isfile(config_file):
         # Read config json file to find nidmresults-examples repository
@@ -56,63 +40,6 @@ if __name__ == '__main__':
     else:
         # Pull nidmresults-examples repository
         test_data_dir = os.path.join(TEST_DATA_DIR, "nidmresults-examples")
-
-    if not os.path.isdir(os.path.join(test_data_dir, ".git")):
-        try:
-            logging.debug("Cloning to " + test_data_dir)
-            repo_https = \
-                "https://github.com/incf-nidash/nidmresults-examples.git"
-            clone_cmd = ["cd " + TEST_DATA_DIR + "; git clone " + repo_https]
-            print(clone_cmd)
-            subprocess.check_call(clone_cmd, shell=True)
-        except subprocess.CalledProcessError as e:
-            # 128 -> git-lfs download error: "Error downloading object"
-            if e.returncode == 128:
-                # "git stash" gives the repo one more chance to checkout the
-                # git-lfs files if the download failed
-                stash_cmd = ["cd " + test_data_dir + "; git stash"]
-                retry_lfs_download(stash_cmd)
-    else:
-        # Updating test data repository
-        logging.debug("Updating repository at " + test_data_dir)
-
-        # Check current branch and status
-        subprocess.call(["cd " + test_data_dir + "; git branch"], shell=True)
-        subprocess.call(["cd " + test_data_dir + "; git status"], shell=True)
-
-        # If we are in a different branch, checkout (this test is useful so
-        # that we only stash untracked files if in a different bramch)
-        branch_name = "small_fixes"
-        try:
-            # Start from a clean state: stash local changes including
-            # untracked and then checkout
-            checkout_cmd = ["cd " + test_data_dir +
-                            "; git stash --include-untracked" +
-                            "; git checkout " + branch_name]
-            print(checkout_cmd)
-            subprocess.check_call(checkout_cmd, shell=True)
-        except subprocess.CalledProcessError as e:
-            # 128 -> git-lfs download error: "Error downloading object"
-            if e.returncode == 128:
-                retry_lfs_download(checkout_cmd)
-
-        # Pull latest updates
-        pull_cmd = ["cd " + test_data_dir +
-                    "; git pull origin " + branch_name]
-        try:
-            print(pull_cmd)
-            subprocess.check_call(pull_cmd, shell=True)
-        except subprocess.CalledProcessError as e:
-            # 128 -> git-lfs download error: "Error downloading object"
-            if e.returncode == 128:
-                # "git stash" gives the repo one more chance to checkout the
-                # git-lfs files if the download failed
-                stash_cmd = ["cd " + test_data_dir + "; git stash"]
-                retry_lfs_download(stash_cmd)
-
-        # Check current branch and status
-        subprocess.call(["cd " + test_data_dir + "; git branch"], shell=True)
-        subprocess.call(["cd " + test_data_dir + "; git status"], shell=True)
 
     # Find all test examples to be compared with ground truth
     test_data_cfg = glob.glob(os.path.join(test_data_dir, '*/config.json'))
