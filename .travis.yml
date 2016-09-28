@@ -19,8 +19,7 @@ install:
  # Avoid "html5lib requires setuptools version 18.5" error
  - pip install --upgrade setuptools
  - pip install -r requirements.txt
- # - python setup.py install # install nidmfsl from sources
- - pip install nidmfsl
+ - python setup.py install # install nidmfsl from sources
  - curl -sLo - https://github.com/github/git-lfs/releases/download/v1.1.2/git-lfs-linux-amd64-1.1.2.tar.gz | tar xzvf -
  - export PATH=$PATH:`pwd`/git-lfs-1.1.2
  - cd test/data/nidmresults-examples
