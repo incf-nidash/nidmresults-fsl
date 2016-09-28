@@ -15,7 +15,7 @@ install:
  - export PATH=$PATH:`pwd`/git-lfs-1.1.2
  - cd test/data/nidmresults-examples
  # Is this is not a git repo them clone nidmresults-examples
- - if ! [ -d .git ]; then git clone --depth=50 https://github.com/incf-nidash/nidmresults-examples.git incf-nidash/nidmresults-examples .; fi
+ - if ! [ -d .git ]; then git clone --depth=50 https://github.com/incf-nidash/nidmresults-examples.git .; fi
  - git lfs install
  # Delete any previous changes (retry because lfs might download files)
  - travis_retry git stash --include-untracked 
