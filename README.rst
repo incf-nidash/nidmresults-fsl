@@ -13,9 +13,29 @@ Usage
 
 ::
 
-       nidmfsl [-h] [-g [GROUP_NAMES [GROUP_NAMES ...]]] [-o OUTPUT_NAME] [-d]
-                   [-v [NIDM_VERSION]] [--version]
-                   feat_dir [numsubjects [numsubjects ...]]
+usage: nidmfsl [-h] [-g [GROUP_NAMES [GROUP_NAMES ...]]] [-o OUTPUT_NAME] [-d]
+               [-v [NIDM_VERSION]] [--version]
+               feat_dir [numsubjects [numsubjects ...]]
+
+NIDM-Results exporter for FSL Feat.
+
+positional arguments:
+  feat_dir              Path to feat directory.
+  numsubjects           Number of subjects per group.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -g [GROUP_NAMES [GROUP_NAMES ...]], --group_names [GROUP_NAMES [GROUP_NAMES ...]]
+                        Label for each group.
+  -o OUTPUT_NAME, --output_name OUTPUT_NAME
+                        Name of the output. A ".nidm.zip" or ".nidm" (when -d
+                        is used) suffix will be appended.
+  -d, --directory-output
+                        Produces a .nidm directory rather than a .nidm.zip
+                        file.
+  -v [NIDM_VERSION], --nidm_version [NIDM_VERSION]
+                        NIDM-Results version to use (default: latest).
+  --version             show program's version number and exit
 
 Requirements
 ''''''''''''
