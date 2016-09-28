@@ -16,9 +16,7 @@ install:
  - sudo apt-get -y install fsl
  - source /etc/fsl/fsl.sh;
  - export FSLOUTPUTTYPE=NIFTI_GZ
- # Install nidmresults from source in GitHub repo
- - pip install --upgrade --no-deps git+https://github.com/cmaumet/nidmresults.git@no_std_space_coord#egg=nidmresults
-# Avoid "html5lib requires setuptools version 18.5" error
+ # Avoid "html5lib requires setuptools version 18.5" error
  - pip install --upgrade setuptools
  - pip install -r requirements.txt
  - python setup.py install # install nidmfsl from sources
