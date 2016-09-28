@@ -6,6 +6,7 @@ Test of NIDM FSL export tool
 @author: Camille Maumet <c.m.j.maumet@warwick.ac.uk>
 @copyright: University of Warwick 2013-2014
 """
+
 import os
 import shutil
 import sys
@@ -30,22 +31,6 @@ TEST_DIR = os.path.dirname(os.path.abspath(__file__))
 TEST_DATA_DIR = os.path.join(TEST_DIR, "data")
 
 if __name__ == '__main__':
-    def retry_lfs_download(cmd):
-        MAX_ITER = 200
-        it = 0
-        while (it < MAX_ITER):
-            # "git stash" gives the repo one more chance to checkout
-            # the git-lfs files
-            try:
-                print cmd
-                out = subprocess.check_output(cmd, shell=True)
-                print out
-                break
-            except subprocess.CalledProcessError as e:
-                if e.returncode == 128:
-                    it = it + 1
-                    print 'Retry #'+str(it)
-
     config_file = os.path.join(TEST_DIR, 'config.json')
     if os.path.isfile(config_file):
         # Read config json file to find nidmresults-examples repository
@@ -55,63 +40,6 @@ if __name__ == '__main__':
     else:
         # Pull nidmresults-examples repository
         test_data_dir = os.path.join(TEST_DATA_DIR, "nidmresults-examples")
-
-    if not os.path.isdir(os.path.join(test_data_dir, ".git")):
-        try:
-            logging.debug("Cloning to " + test_data_dir)
-            repo_https = \
-                "https://github.com/incf-nidash/nidmresults-examples.git"
-            clone_cmd = ["cd " + TEST_DATA_DIR + "; git clone " + repo_https]
-            print clone_cmd
-            subprocess.check_call(clone_cmd, shell=True)
-        except subprocess.CalledProcessError as e:
-            # 128 -> git-lfs download error: "Error downloading object"
-            if e.returncode == 128:
-                # "git stash" gives the repo one more chance to checkout the
-                # git-lfs files if the download failed
-                stash_cmd = ["cd " + test_data_dir + "; git stash"]
-                retry_lfs_download(stash_cmd)
-    else:
-        # Updating test data repository
-        logging.debug("Updating repository at " + test_data_dir)
-
-        # Check current branch and status
-        subprocess.call(["cd " + test_data_dir + "; git branch"], shell=True)
-        subprocess.call(["cd " + test_data_dir + "; git status"], shell=True)
-
-        # If we are in a different branch, checkout (this test is useful so
-        # that we only stash untracked files if in a different bramch)
-        branch_name = "new_ground_truth"
-        try:
-            # Start from a clean state: stash local changes including
-            # untracked and then checkout
-            checkout_cmd = ["cd " + test_data_dir +
-                            "; git stash --include-untracked" +
-                            "; git checkout " + branch_name]
-            print checkout_cmd
-            subprocess.check_call(checkout_cmd, shell=True)
-        except subprocess.CalledProcessError as e:
-            # 128 -> git-lfs download error: "Error downloading object"
-            if e.returncode == 128:
-                retry_lfs_download(checkout_cmd)
-
-        # Pull latest updates
-        pull_cmd = ["cd " + test_data_dir +
-                    "; git pull origin " + branch_name]
-        try:
-            print pull_cmd
-            subprocess.check_call(pull_cmd, shell=True)
-        except subprocess.CalledProcessError as e:
-            # 128 -> git-lfs download error: "Error downloading object"
-            if e.returncode == 128:
-                # "git stash" gives the repo one more chance to checkout the
-                # git-lfs files if the download failed
-                stash_cmd = ["cd " + test_data_dir + "; git stash"]
-                retry_lfs_download(stash_cmd)
-
-        # Check current branch and status
-        subprocess.call(["cd " + test_data_dir + "; git branch"], shell=True)
-        subprocess.call(["cd " + test_data_dir + "; git status"], shell=True)
 
     # Find all test examples to be compared with ground truth
     test_data_cfg = glob.glob(os.path.join(test_data_dir, '*/config.json'))
@@ -137,20 +65,18 @@ if __name__ == '__main__':
         if data_dir.endswith("/"):
             data_dir = data_dir[:-1]
 
+        test_name = os.path.basename(data_dir)
         if metadata["software"].lower() == "fsl":
-            test_name = os.path.basename(data_dir)
             logging.debug("Computing NIDM FSL export for " + test_name)
 
             versions = metadata["versions"]
 
-            if "num_subjects" in metadata:
-                num_subjects = metadata["num_subjects"]
-            else:
-                num_subjects = None
             if "group_names" in metadata:
                 group_names = metadata["group_names"]
+                num_subjects = metadata["num_subjects"]
             else:
                 group_names = None
+                num_subjects = None
 
             for version in versions:
                 version_str = version.replace(".", "")
@@ -165,21 +91,18 @@ if __name__ == '__main__':
                     # Export to NIDM using FSL export tool
                     # fslnidm = FSL_NIDM(feat_dir=DATA_DIR_001);
                     featdir_arg = str(data_dir)
-                    numsubs_arg = ""
-                    groupnmes_arg = ""
+                    group_arg = ""
                     if num_subjects and \
                             version not in ["1.0.0", "1.1.0", "1.2.0"]:
-                        numsubs_arg = " " + " ".join(map(str, num_subjects))
-                        if group_names:
-                            groupnmes_arg = \
-                                " --group_names " + " ".join(group_names)
+                        for label, numsub in \
+                                list(zip(group_names, num_subjects)):
+                            group_arg += " -g " + label + " " + str(numsub)
                     if version:
-                        version_arg = " -v " + version
+                        version_arg = " -n " + version
 
                     nidmfsl_cmd = [
-                        "nidmfsl " + featdir_arg + numsubs_arg +
-                        groupnmes_arg + version_arg]
-                    print "\nRunning " + str(nidmfsl_cmd)
+                        "nidmfsl " + featdir_arg + group_arg + version_arg]
+                    print("\nRunning " + str(nidmfsl_cmd))
                     subprocess.check_call(nidmfsl_cmd, shell=True)
 
                     zipped_dir = os.path.join(

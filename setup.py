@@ -7,7 +7,7 @@ requirements = list(filter(None, reqs))
 
 setup(
     name="nidmfsl",
-    version="0.3.6",
+    version="1.1.0",
     author="Camille Maumet",
     author_email="c.m.j.maumet@warwick.ac.uk",
     description=("Export of FSL statistical results using NIDM\
@@ -25,7 +25,7 @@ setup(
         "Development Status :: 3 - Alpha",
         "Topic :: Utilities",
         "License :: OSI Approved :: MIT License",
-        "Programming Language :: Python :: 2",
+        "Programming Language :: Python :: 3",
     ],
     install_requires=requirements
 )

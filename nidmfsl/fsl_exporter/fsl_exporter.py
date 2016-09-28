@@ -6,6 +6,7 @@ specification.
 @copyright: University of Warwick 2013-2014
 """
 
+
 import re
 import os
 import sys
@@ -41,7 +42,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
     """
 
     def __init__(self, feat_dir, version="1.3.0-rc2", out_dirname=None,
-                 zipped=True, num_subjects=[], group_names=None):
+                 zipped=True, groups=None):
         # Absolute path to feat directory
         feat_dir = os.path.abspath(feat_dir)
 
@@ -62,83 +63,87 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
         # Ignore rc* in version number
         version = version.split("-")[0]
-        super(FSLtoNIDMExporter, self).__init__(version, out_dir, zipped)
-        # Check if feat_dir exists
-        print "Exporting NIDM results from "+feat_dir
-        if not os.path.isdir(feat_dir):
-            raise Exception("Unknown directory: "+str(feat_dir))
-        self.feat_dir = feat_dir
 
-        self.design_file = os.path.join(self.feat_dir, 'design.fsf')
+        try:
+            super(FSLtoNIDMExporter, self).__init__(version, out_dir, zipped)
+            # Check if feat_dir exists
+            print("Exporting NIDM results from "+feat_dir)
+            if not os.path.isdir(feat_dir):
+                raise Exception("Unknown directory: "+str(feat_dir))
+            self.feat_dir = feat_dir
 
-        self.coord_space = None
-        self.contrast_names_by_num = dict()
+            self.design_file = os.path.join(self.feat_dir, 'design.fsf')
 
-        self.num_subjects = num_subjects
-        self.groups = []
-        if num_subjects:
-            self.groups = zip(self.num_subjects, group_names)
+            self.coord_space = None
+            self.contrast_names_by_num = dict()
 
-        self.without_group_versions = ["0.1.0", "0.2.0", "1.0.0", "1.1.0",
-                                       "1.2.0"]
+            self.groups = groups
+
+            self.without_group_versions = ["0.1.0", "0.2.0", "1.0.0", "1.1.0",
+                                           "1.2.0"]
+            # Path to FSL library (None if unavailable)
+            self.fsl_path = os.getenv('FSLDIR')
+        except:
+            self.cleanup()
+            raise
 
     def parse(self):
         """
         Parse an FSL result directory to extract the pieces information to be
         stored in NIDM-Results.
         """
-        # Load design.fsf file
-        design_file_open = open(self.design_file, 'r')
-        self.design_txt = design_file_open.read()
+        try:
+            # Load design.fsf file
+            design_file_open = open(self.design_file, 'r')
+            self.design_txt = design_file_open.read()
 
-        fmri_level_re = r'.*set fmri\(level\) (?P<info>\d+).*'
-        fmri_level = int(self._search_in_fsf(fmri_level_re))
-        self.first_level = (fmri_level == 1)
+            fmri_level_re = r'.*set fmri\(level\) (?P<info>\d+).*'
+            fmri_level = int(self._search_in_fsf(fmri_level_re))
+            self.first_level = (fmri_level == 1)
 
-        self.analyses_num = dict()
-        if self.first_level:
-            # stat_dir = list([os.path.join(self.feat_dir, 'stats')])
-            self.analysis_dirs = list([self.feat_dir])
-            self.analyses_num[self.feat_dir] = ""
-            if not self.num_subjects:
-                self.num_subjects = 1
-            else:
-                if self.num_subjects != [1]:
-                    raise Exception("More than 1 subject specified as input in\
- a first-level analysis: (numsubjects=" + ",".join(str(self.num_subjects))+")")
-                else:
-                    self.num_subjects = 1
-        else:
-            if not self.num_subjects:
-                # Number of subject per groups was introduced in 1.3.0
-                if self.version['num'] not in self.without_group_versions:
-                    raise Exception("Group analysis with unspecified number of\
- subjects")
-            # If feat was called with the GUI then the analysis directory is in
-            # the nested cope folder
-            self.analysis_dirs = glob.glob(
-                os.path.join(self.feat_dir, 'cope*.feat'))
-
-            if not self.analysis_dirs:
+            self.analyses_num = dict()
+            if self.first_level:
+                # stat_dir = list([os.path.join(self.feat_dir, 'stats')])
                 self.analysis_dirs = list([self.feat_dir])
                 self.analyses_num[self.feat_dir] = ""
-            else:
-                num_analyses = len(self.analysis_dirs)
-                if num_analyses > 1:
-                    max_digits = len(str(len(self.analysis_dirs)))
-                    for analysis in self.analysis_dirs:
-                        s = re.compile('cope\d+.feat')
-                        ana_num = s.search(analysis)
-                        ana_num = ana_num.group()
-                        ana_num = ana_num.replace("cope", "").replace(
-                            ".feat", "")
-                        self.analyses_num[analysis] = \
-                            ("_{0:0>" + str(max_digits) + "}").format(ana_num)
+                if self.groups is None:
+                    self.num_subjects = 1
                 else:
-                    # There is a single analysis, no need to add a prefix
-                    self.analyses_num[self.analysis_dirs[0]] = ""
+                    raise Exception("Groups specified as input in\
+     a first-level analysis: (groups=" + ",".join(str(self.groups))+")")
+            else:
+                if not self.groups:
+                    # Number of subject per groups was introduced in 1.3.0
+                    if self.version['num'] not in self.without_group_versions:
+                        raise Exception("Group analysis with unspecified groups.")
+                # If feat was called with the GUI then the analysis directory is in
+                # the nested cope folder
+                self.analysis_dirs = glob.glob(
+                    os.path.join(self.feat_dir, 'cope*.feat'))
 
-        super(FSLtoNIDMExporter, self).parse()
+                if not self.analysis_dirs:
+                    self.analysis_dirs = list([self.feat_dir])
+                    self.analyses_num[self.feat_dir] = ""
+                else:
+                    num_analyses = len(self.analysis_dirs)
+                    if num_analyses > 1:
+                        max_digits = len(str(len(self.analysis_dirs)))
+                        for analysis in self.analysis_dirs:
+                            s = re.compile('cope\d+.feat')
+                            ana_num = s.search(analysis)
+                            ana_num = ana_num.group()
+                            ana_num = ana_num.replace("cope", "").replace(
+                                ".feat", "")
+                            self.analyses_num[analysis] = \
+                                ("_{0:0>" + str(max_digits) + "}").format(ana_num)
+                    else:
+                        # There is a single analysis, no need to add a prefix
+                        self.analyses_num[self.analysis_dirs[0]] = ""
+
+            super(FSLtoNIDMExporter, self).parse()
+        except:
+            self.cleanup()
+            raise
 
     def _add_namespaces(self):
         """
@@ -193,13 +198,16 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             machine = ImagingInstrument("mri")
 
             # Group or Person
-            if self.first_level:
-                subjects = [Person()]
+            if self.version['num'] not in ["1.0.0", "1.1.0", "1.2.0"]:
+                if self.first_level:
+                    subjects = [Person()]
+                else:
+                    subjects = list()
+                    for group_name, numsub in self.groups:
+                        subjects.append(Group(
+                            num_subjects=int(numsub), group_name=group_name))
             else:
-                subjects = list()
-                for group in self.groups:
-                    subjects.append(Group(
-                        num_subjects=group[0], group_name=group[1]))
+                subjects = None
 
             model_fitting = ModelFitting(
                 activity, design_matrix, data,
@@ -271,7 +279,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 # index is in use
                 for beta_index in contrast_weights:
                     if abs(int(beta_index)) != 0:
-                        for model_fitting in self.model_fittings.values():
+                        for model_fitting in list(self.model_fittings.values()):
                             for pe in model_fitting.param_estimates:
                                 s = re.compile('pe\d+')
                                 # We need basename to avoid conflict with
@@ -292,9 +300,11 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     stat_dir,
                     stat_type.lower() + 'stat' + str(con_num) + '.nii.gz')
                 stat_map = StatisticMap(
-                    stat_file, stat_type, stat_num_idx,
-                    contrast_name, dof, self.coord_space,
-                    self.export_dir)
+                    location=stat_file, stat_type=stat_type,
+                    contrast_name=contrast_name, dof=dof,
+                    coord_space=self.coord_space,
+                    contrast_num=stat_num_idx,
+                    export_dir=self.export_dir)
 
                 # Z-Statistic Map
                 if stat_type == "F":
@@ -307,9 +317,11 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                         'zstat' + str(con_num) + '.nii.gz')
 
                 z_stat_map = StatisticMap(
-                    z_stat_file, 'Z', stat_num_idx,
-                    contrast_name, dof, self.coord_space,
-                    self.export_dir)
+                    location=z_stat_file, stat_type='Z', 
+                    contrast_name=contrast_name, dof=dof,
+                    coord_space=self.coord_space,
+                    contrast_num=stat_num_idx,
+                    export_dir=self.export_dir)
 
                 if stat_type is "T":
                     # Contrast Map
@@ -405,7 +417,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
                 # Find corresponding contrast estimation activity
                 con_id = None
-                for contrasts in self.contrasts.values():
+                for contrasts in list(self.contrasts.values()):
                     for contrast in contrasts:
                         if contrast.contrast_num == stat_num_t:
                             con_id = contrast.estimation.id
@@ -416,11 +428,36 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     stat_num,
                     self.contrast_names_by_num[stat_num])
 
-                # Excursion set
+                # Excursion set png image
                 visualisation = os.path.join(
                     analysis_dir,
                     'rendered_thresh_zstat' + str(stat_num) + '.png')
                 zFileImg = filename
+
+                # Cluster Labels Map
+                if self.fsl_path is not None:
+                    cmd = os.path.join(self.fsl_path, "bin", "cluster")
+                    cluster_labels_map = os.path.join(
+                        analysis_dir, 'tmp_clustmap' + stat_num_t + '.nii.gz')
+                    cmd = cmd + " -i " + zFileImg + \
+                                " -o " + cluster_labels_map + " -t 0.01"
+
+                    # Discard stdout
+                    FNULL = open(os.devnull, 'w')
+                    subprocess.check_call(
+                        "cd "+analysis_dir+";"+cmd, shell=True,
+                        stdout=FNULL, stderr=subprocess.STDOUT)
+
+                    temporary = True
+                    clust_map = ClusterLabelsMap(
+                        cluster_labels_map, self.coord_space,
+                        export_dir=self.export_dir, suffix=stat_num_t,
+                        temporary=temporary)
+                else:
+                    warnings.warn(
+                        "'cluster' command (from FSL) not found, " +
+                        "cluster labels maps will not be exported")
+                    clust_map = None
 
                 # FIXME: When doing contrast masking is the excursion set
                 # stored in thresh_zstat the one after or before contrast
@@ -433,7 +470,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 # --> fsl_contrast_mask
                 exc_set = ExcursionSet(
                     zFileImg, self.coord_space, visualisation,
-                    self.export_dir, suffix=stat_num_t)
+                    self.export_dir, suffix=stat_num_t, clust_map=clust_map)
 
                 # Height Threshold
                 prob_re = r'.*set fmri\(prob_thresh\) (?P<info>\d+\.?\d+).*'
@@ -639,7 +676,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             drift_model = None
 
         real_ev = list()
-        for ev_num, ev_name in orig_ev.items():
+        for ev_num, ev_name in list(orig_ev.items()):
             real_ev.append(ev_name)
 
             # Add one regressor name if there is an extra column for a temporal
@@ -954,11 +991,15 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 with open(log_file, "r") as fp:
                     log_txt = fp.read()
 
-                cmd_match = re.search(r"(?P<cmd>smoothest.*)\n", log_txt)
-                cmd = cmd_match.group("cmd")
-                cmd = cmd.replace("stats/smoothness", "stats/smoothness_v")
-                cmd = cmd.replace("smoothest", "smoothest -V")
-                try:
+                if self.fsl_path is not None:
+                    cmd_match = re.search(r"(?P<cmd>smoothest.*)\n", log_txt)
+                    cmd = cmd_match.group("cmd")
+                    cmd = cmd.replace("stats/smoothness", "stats/smoothness_v")
+                    cmd = cmd.replace(
+                        "smoothest",
+                        os.path.join(self.fsl_path,
+                                     "bin", "smoothest") + " -V")
+
                     # Discard stdout
                     FNULL = open(os.devnull, 'w')
                     subprocess.check_call(
@@ -969,9 +1010,9 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
                     sm_match = re.search(sm_reg, smoothness_txt, re.DOTALL)
                     d = sm_match.groupdict()
-                except subprocess.CalledProcessError:
+                else:
                     warnings.warn(
-                        "fsl's smoothest binary not found, " +
+                        "'smoothest' command (from FSL) not found, " +
                         "noise FWHM will not be reported")
                     noise_fwhm_in_voxels = None
                     noise_fwhm_in_units = None

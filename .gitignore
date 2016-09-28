@@ -1,3 +1,7 @@
+*.bak
+
+*.DS_Store
+
 test/config.json
 
 *.pyc

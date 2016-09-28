@@ -1,29 +1,41 @@
 language: python
 # Enable Travis container-based infrastructure
-sudo: false
 cache:
   pip: true
   directories:
   - test/data/nidmresults-examples
 python:
   - "2.7"
+  - "3.5"
+bundler_args: --retry 20
 # command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
 install:
-# Avoid "html5lib requires setuptools version 18.5" error
+ # Install FSL using Neurodebian
+ - bash <(wget -q -O- http://neuro.debian.net/_files/neurodebian-travis.sh)
+ - sudo apt-get -y update
+ - sudo apt-get -y install fsl
+ - source /etc/fsl/fsl.sh;
+ - export FSLOUTPUTTYPE=NIFTI_GZ
+ # Avoid "html5lib requires setuptools version 18.5" error
  - pip install --upgrade setuptools
  - pip install -r requirements.txt
  - python setup.py install # install nidmfsl from sources
  - curl -sLo - https://github.com/github/git-lfs/releases/download/v1.1.2/git-lfs-linux-amd64-1.1.2.tar.gz | tar xzvf -
  - export PATH=$PATH:`pwd`/git-lfs-1.1.2
  - cd test/data/nidmresults-examples
+ # Is this is not a git repo them clone nidmresults-examples
+ - if ! [ -d .git ]; then git clone git@github.com:incf-nidash/nidmresults-examples.git .; fi
  - git lfs install
+ # Delete any previous changes (retry because lfs might download files)
+ - travis_retry git stash --include-untracked 
+ - git checkout small_fixes
+ - git pull origin small_fixes
+ # stash in case lfs failed and need to download more files
+ - travis_retry git stash --include-untracked 
  - cd ../../..
- - pip --version 
  # Packages only needed for testing (others are set up in requirements.txt)
  - pip install vcrpy
  - pip install ddt
- - pip install gitpython
- - export GIT_PYTHON_TRACE='full'
 # command to run tests, e.g. python setup.py test
 script:
  # - coverage run --source=nidmfsl -m unittest discover
