@@ -7,7 +7,7 @@ requirements = list(filter(None, reqs))
 
 setup(
     name="nidmfsl",
-    version="1.0.0",
+    version="1.1.0",
     author="Camille Maumet",
     author_email="c.m.j.maumet@warwick.ac.uk",
     description=("Export of FSL statistical results using NIDM\
