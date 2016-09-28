@@ -11,8 +11,8 @@ bundler_args: --retry 20
 # command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
 install:
  # Download test data using git-lfs
- - curl -sLo - https://github.com/github/git-lfs/releases/download/v1.1.2/git-lfs-linux-amd64-1.1.2.tar.gz | tar xzvf -
- - export PATH=$PATH:`pwd`/git-lfs-1.1.2
+ - curl -sLo - https://github.com/github/git-lfs/releases/download/v1.4.1/git-lfs-linux-amd64-1.4.1.tar.gz | tar xzvf -
+ - export PATH=$PATH:`pwd`/git-lfs-1.4.1
  - cd test/data/nidmresults-examples
  # Is this is not a git repo them clone nidmresults-examples
  - if ! [ -d .git ]; then git clone --depth=50 https://github.com/incf-nidash/nidmresults-examples.git .; fi
