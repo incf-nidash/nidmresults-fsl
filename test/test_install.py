@@ -16,7 +16,7 @@ class TestInstall(unittest.TestCase):
         """
         Test: Check that nidmfsl was installed properly
         """
-        check_call("python setup.py install; nidmfsl -h", shell=True)
+        check_call("nidmfsl -h", shell=True)
 
 if __name__ == '__main__':
     unittest.main()
