@@ -300,9 +300,11 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     stat_dir,
                     stat_type.lower() + 'stat' + str(con_num) + '.nii.gz')
                 stat_map = StatisticMap(
-                    stat_file, stat_type, stat_num_idx,
-                    contrast_name, dof, self.coord_space,
-                    self.export_dir)
+                    location=stat_file, stat_type=stat_type,
+                    contrast_name=contrast_name, dof=dof,
+                    coord_space=self.coord_space,
+                    contrast_num=stat_num_idx,
+                    export_dir=self.export_dir)
 
                 # Z-Statistic Map
                 if stat_type == "F":
@@ -315,9 +317,11 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                         'zstat' + str(con_num) + '.nii.gz')
 
                 z_stat_map = StatisticMap(
-                    z_stat_file, 'Z', stat_num_idx,
-                    contrast_name, dof, self.coord_space,
-                    self.export_dir)
+                    location=z_stat_file, stat_type='Z', 
+                    contrast_name=contrast_name, dof=dof,
+                    coord_space=self.coord_space,
+                    contrast_num=stat_num_idx,
+                    export_dir=self.export_dir)
 
                 if stat_type is "T":
                     # Contrast Map
