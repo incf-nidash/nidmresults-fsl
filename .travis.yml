@@ -37,8 +37,6 @@ install:
  # Packages only needed for testing (others are set up in requirements.txt)
  - pip install vcrpy
  - pip install ddt
- - pip install gitpython
- - export GIT_PYTHON_TRACE='full'
 # command to run tests, e.g. python setup.py test
 script:
  # - coverage run --source=nidmfsl -m unittest discover
