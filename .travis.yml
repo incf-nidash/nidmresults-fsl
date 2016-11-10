@@ -15,7 +15,7 @@ install:
  - export PATH=$PATH:`pwd`/git-lfs-1.4.1
  - cd test/data/nidmresults-examples
  # Is this is not a git repo them clone nidmresults-examples
- - if ! [ -d .git ]; then git clone --depth=50 https://github.com/incf-nidash/nidmresults-examples.git .; fi
+ - if ! [ -d .git ]; then git lfs clone https://github.com/incf-nidash/nidmresults-examples.git .; fi
  - git branch -a
  - git fetch origin
  - git branch -a
