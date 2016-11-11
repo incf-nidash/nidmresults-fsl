@@ -10,6 +10,24 @@ python:
 bundler_args: --retry 20
 # command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
 install:
+ # Download test data using git-lfs
+ - curl -sLo - https://github.com/github/git-lfs/releases/download/v1.4.1/git-lfs-linux-amd64-1.4.1.tar.gz | tar xzvf -
+ - export PATH=$PATH:`pwd`/git-lfs-1.4.1
+ - cd test/data/nidmresults-examples
+ # Is this is not a git repo them clone nidmresults-examples
+ - if ! [ -d .git ]; then git lfs clone https://github.com/incf-nidash/nidmresults-examples.git .; fi
+ - git branch -a
+ - git fetch origin
+ - git branch -a
+ - git remote -v
+ - git lfs install
+ # Delete any previous changes (retry because lfs might download files)
+ - travis_retry git stash --include-untracked 
+ - git checkout small_fixes
+ - git pull origin small_fixes
+ # stash in case lfs failed and need to download more files
+ - travis_retry git stash --include-untracked 
+ - cd ../../..
  # Install FSL using Neurodebian
  - bash <(wget -q -O- http://neuro.debian.net/_files/neurodebian-travis.sh)
  - sudo apt-get -y update
@@ -20,19 +38,6 @@ install:
  - pip install --upgrade setuptools
  - pip install -r requirements.txt
  - python setup.py install # install nidmfsl from sources
- - curl -sLo - https://github.com/github/git-lfs/releases/download/v1.1.2/git-lfs-linux-amd64-1.1.2.tar.gz | tar xzvf -
- - export PATH=$PATH:`pwd`/git-lfs-1.1.2
- - cd test/data/nidmresults-examples
- # Is this is not a git repo them clone nidmresults-examples
- - if ! [ -d .git ]; then git clone git@github.com:incf-nidash/nidmresults-examples.git .; fi
- - git lfs install
- # Delete any previous changes (retry because lfs might download files)
- - travis_retry git stash --include-untracked 
- - git checkout small_fixes
- - git pull origin small_fixes
- # stash in case lfs failed and need to download more files
- - travis_retry git stash --include-untracked 
- - cd ../../..
  # Packages only needed for testing (others are set up in requirements.txt)
  - pip install vcrpy
  - pip install ddt
