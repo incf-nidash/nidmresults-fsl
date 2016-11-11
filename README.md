@@ -1,6 +1,8 @@
 
 # NIDM-Results for FSL
 
+[![Build Status](https://travis-ci.org/incf-nidash/nidmresults-fsl.svg?branch=master)](https://travis-ci.org/incf-nidash/nidmresults-fsl)
+
 Export mass-univariate neuroimaging results computed in FSL (using FEAT) as NIDM-Results packs.
 
 A *NIDM-Results pack* is a compressed file containing a NIDM-Results serialization and some or all of the referenced image data files in compliance with [NIDM-Results specification](http://nidm.nidash.org/specs/nidm-results.html).
