@@ -88,6 +88,21 @@ if __name__ == '__main__':
                             data_dir, "*.nidm.zip")):
                         os.remove(nidmpack)
 
+                    if test_name == "fsl_full_examples001":
+                    # For our test case full_examples001 we need to change path
+                    # to the onset files (stored in the feat folder) so that
+                    # the type of model (mixed, event, block) can be retreived
+                        fsf_file = os.path.join(data_dir, "design.fsf")
+                        fsf_cp = os.path.join(data_dir, "design_cp.fsf")
+                        shutil.copy(fsf_file, fsf_cp)
+                        with open(fsf_file, 'r') as fsf:
+                            design = fsf.read()
+                        with open(fsf_file, 'w') as fsf:
+                            fsf.write(
+                                design.replace(
+                                "/storage/wmsmfe/fsl_course_data/fmri_fluency",
+                                data_dir))
+
                     # Export to NIDM using FSL export tool
                     # fslnidm = FSL_NIDM(feat_dir=DATA_DIR_001);
                     featdir_arg = str(data_dir)
@@ -104,6 +119,9 @@ if __name__ == '__main__':
                         "nidmfsl " + featdir_arg + group_arg + version_arg]
                     print("\nRunning " + str(nidmfsl_cmd))
                     subprocess.check_call(nidmfsl_cmd, shell=True)
+
+                    if test_name == "fsl_full_examples001":
+                        shutil.move(fsf_cp, fsf_file)
 
                     zipped_dir = os.path.join(
                         data_dir, os.path.basename(data_dir) + ".nidm.zip")
