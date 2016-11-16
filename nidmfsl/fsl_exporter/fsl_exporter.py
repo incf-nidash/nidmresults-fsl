@@ -518,11 +518,12 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                         "connectivity information will not be reported")
                     feat_post_log = None
 
-                if cluster_thresh:
-                    # Clusters (and associated peaks)
-                    clusters = self._get_clusters_peaks(
-                        analysis_dir,
-                        stat_num, stat_type, len(exc_sets))
+                # Clusters (and associated peaks)
+                clusters = self._get_clusters_peaks(
+                    analysis_dir,
+                    stat_num, stat_type, len(exc_sets))
+
+                if clusters is not None:
                     # Peak and Cluster are only reported for cluster-wise
                     # thresholds
                     peak_criteria = PeakCriteria(
@@ -533,6 +534,8 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                         stat_num,
                         self._get_connectivity(feat_post_log))
                 else:
+                    # Missing peaks and clusters (this happens for voxel-wise
+                    # threshold with FSL < x.x)
                     clusters = None
                     peak_criteria = None
                     clus_criteria = None
@@ -1245,6 +1248,8 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                             pFWER=pFWER, peaks=peaks[
                                 cluster_id], x=x, y=y, z=z,
                             x_std=x_std, y_std=y_std, z_std=z_std))
+        else:
+            clusters = None
 
         return clusters
 
