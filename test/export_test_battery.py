@@ -88,7 +88,7 @@ if __name__ == '__main__':
         else:
             shutil.rmtree(EXPORTED_TEST_DIR)
 
-        os.mkdir(EXPORTED_TEST_DIR)
+    os.mkdir(EXPORTED_TEST_DIR)
 
     for cfg in test_data_cfg:
         with open(cfg) as data_file:
