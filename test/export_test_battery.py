@@ -15,6 +15,7 @@ import json
 import copy
 import zipfile
 import subprocess
+import argparse
 
 import logging
 logger = logging.getLogger(__name__)
@@ -31,6 +32,30 @@ TEST_DIR = os.path.dirname(os.path.abspath(__file__))
 TEST_DATA_DIR = os.path.join(TEST_DIR, "data")
 
 if __name__ == '__main__':
+    # Arguments and description
+    parser = argparse.ArgumentParser(
+        description='Export FSL NIDM-Results test data as NIDM packs.')
+    parser.add_argument(
+        "-o", "--out_dir",
+        help='Path to output directory.', default=None)
+    args = parser.parse_args()
+
+    test_only = True
+    if args.out_dir is None:
+        EXPORTED_TEST_DIR = os.path.join(TEST_DIR, 'exported')
+    else:
+        test_only = False
+        EXPORTED_TEST_DIR = args.out_dir
+
+    # # Parse feat dir and export to NIDM
+    # fslnidm = FSLtoNIDMExporter(
+    #     out_dirname=args.output_name, zipped=(not args.directory_output),
+    #     version=args.nidm_version, feat_dir=args.feat_dir, groups=args.group)
+    # fslnidm.parse()
+    # output_path = fslnidm.export()
+
+    ###############
+
     config_file = os.path.join(TEST_DIR, 'config.json')
     if os.path.isfile(config_file):
         # Read config json file to find nidmresults-examples repository
@@ -51,9 +76,18 @@ if __name__ == '__main__':
     #     version = metadata["version"]
 
     # *** Once for all, run the export
-    EXPORTED_TEST_DIR = os.path.join(TEST_DIR, 'exported')
     if os.path.isdir(EXPORTED_TEST_DIR):
-        shutil.rmtree(EXPORTED_TEST_DIR)
+        if not test_only:
+            msg = EXPORTED_TEST_DIR+" already exists, overwrite?"
+            if not input("%s (y/N) " % msg).lower() == 'y':
+                quit("Bye.")
+            if os.path.isdir(EXPORTED_TEST_DIR):
+                shutil.rmtree(EXPORTED_TEST_DIR)
+            else:
+                os.remove(EXPORTED_TEST_DIR)
+        else:
+            shutil.rmtree(EXPORTED_TEST_DIR)
+
         os.mkdir(EXPORTED_TEST_DIR)
 
     for cfg in test_data_cfg:
@@ -131,11 +165,13 @@ if __name__ == '__main__':
                         EXPORTED_TEST_DIR,
                         'ex_' + test_name + '_' + version_str)
 
-                    if not os.path.exists(test_export_dir):
-                        os.makedirs(test_export_dir)
-
-                    with zipfile.ZipFile(zipped_dir) as z:
-                        z.extract('nidm.ttl', test_export_dir)
+                    if test_only:
+                        if not os.path.exists(test_export_dir):
+                            os.makedirs(test_export_dir)
+                        with zipfile.ZipFile(zipped_dir) as z:
+                            z.extract('nidm.ttl', test_export_dir)
+                    else:
+                        shutil.copy(zipped_dir, EXPORTED_TEST_DIR)
 
                     cfg_file = os.path.join(test_export_dir, 'config.json')
 
@@ -144,33 +180,35 @@ if __name__ == '__main__':
                     del test_metadata['software']
                     test_metadata['version'] = version
 
-                    with open(cfg_file, 'w') as outfile:
-                        json.dump(test_metadata,
-                                  outfile,
-                                  sort_keys=True,
-                                  indent=4,
-                                  separators=(',', ': '))
+                    if test_only:
+                        with open(cfg_file, 'w') as outfile:
+                            json.dump(test_metadata,
+                                      outfile,
+                                      sort_keys=True,
+                                      indent=4,
+                                      separators=(',', ': '))
 
-                    gt_dir = os.path.join(EXPORTED_TEST_DIR, '_ground_truth')
-                    if not os.path.exists(gt_dir):
-                        os.makedirs(gt_dir)
+                        gt_dir = os.path.join(
+                            EXPORTED_TEST_DIR, '_ground_truth')
+                        if not os.path.exists(gt_dir):
+                            os.makedirs(gt_dir)
 
-                    # with open(config_file) as config:
-                    #     metadata = json.load(config)
+                        # with open(config_file) as config:
+                        #     metadata = json.load(config)
 
-                    for gt in metadata["ground_truth"]:
-                        gt_file = os.path.join(
-                            data_dir, "..", "_ground_truth", version, gt)
-                        version_dir = os.path.join(gt_dir, version)
-                        if not os.path.exists(version_dir):
-                            os.makedirs(version_dir)
+                        for gt in metadata["ground_truth"]:
+                            gt_file = os.path.join(
+                                data_dir, "..", "_ground_truth", version, gt)
+                            version_dir = os.path.join(gt_dir, version)
+                            if not os.path.exists(version_dir):
+                                os.makedirs(version_dir)
 
-                        sub_gt_dir = os.path.join(
-                            version_dir, os.path.dirname(gt))
-                        if not os.path.exists(sub_gt_dir):
-                            os.makedirs(sub_gt_dir)
-                        shutil.copy(gt_file, os.path.join(
-                            sub_gt_dir, os.path.basename(gt)))
+                            sub_gt_dir = os.path.join(
+                                version_dir, os.path.dirname(gt))
+                            if not os.path.exists(sub_gt_dir):
+                                os.makedirs(sub_gt_dir)
+                            shutil.copy(gt_file, os.path.join(
+                                sub_gt_dir, os.path.basename(gt)))
 
                     # delete nidm export folder
                     os.remove(zipped_dir)
