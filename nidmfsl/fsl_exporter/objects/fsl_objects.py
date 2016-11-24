@@ -50,7 +50,7 @@ class FSLNeuroimagingSoftware(NeuroimagingSoftware):
         super(FSLNeuroimagingSoftware, self).export(nidm_version)
         self.add_attributes([(FSL_FEAT_VERSION, self.feat_version)])
 
-        return self.p
+        
 
 
 class FSLExporterSoftware(ExporterSoftware):
@@ -69,4 +69,4 @@ class FSLExporterSoftware(ExporterSoftware):
         """
         super(FSLExporterSoftware, self).export(nidm_version)
 
-        return self.p
+        
