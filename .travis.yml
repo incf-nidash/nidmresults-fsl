@@ -4,6 +4,10 @@ cache:
   pip: true
   directories:
   - test/data/nidmresults-examples
+env:
+  global:
+    - CCACHE_COMPRESS=1
+    - CASHER_TIME_OUT=500
 python:
   - "2.7"
   - "3.5"
