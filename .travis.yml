@@ -23,8 +23,8 @@ install:
  - git lfs install
  # Delete any previous changes (retry because lfs might download files)
  - travis_retry git stash --include-untracked 
- - git checkout fsl_dev
- - git pull origin fsl_dev
+ - travis_retry git checkout fsl_dev
+ - travis_retry git pull origin fsl_dev
  # stash in case lfs failed and need to download more files
  - travis_retry git stash --include-untracked 
  - cd ../../..
