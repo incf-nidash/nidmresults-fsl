@@ -47,7 +47,7 @@ script:
  # - coverage run --source=nidmfsl -m unittest discover
  - python test/export_test_battery.py
  - python -m unittest discover
- - cat debug.log
+ # - cat debug.log
 # Update subtree nidm from main nidm repository
 before_install: 
  - git config --global user.name "TravisCI"
