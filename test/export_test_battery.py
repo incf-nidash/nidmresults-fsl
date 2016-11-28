@@ -170,6 +170,7 @@ if __name__ == '__main__':
                             os.makedirs(test_export_dir)
                         with zipfile.ZipFile(zipped_dir) as z:
                             z.extract('nidm.ttl', test_export_dir)
+                            z.extract('nidm.json', test_export_dir)
                     else:
                         shutil.copy(zipped_dir, EXPORTED_TEST_DIR)
 
