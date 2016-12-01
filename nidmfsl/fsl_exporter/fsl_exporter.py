@@ -925,13 +925,14 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         cluster.
         """
         if feat_post_log is not None:
-            conn_re = r'.* --connectivity=(?P<connectivity>\d+)+ .*'
+            conn_re = r'cluster.* --connectivity=(?P<connectivity>\d+)+ .*'
             connectivity_search = re.compile(conn_re)
             connectivity = int(
                 connectivity_search.search(
                     feat_post_log).group('connectivity'))
         else:
-            connectivity = None
+            # Default connectivity in FSL (26)
+            connectivity = 26
 
         return connectivity
 
