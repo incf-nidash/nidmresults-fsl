@@ -685,6 +685,15 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             if tempo_deriv:
                 real_ev.append(ev_name+'*temporal_derivative')
 
+        # Sanity check: one regressor name per column of the design matrix
+        if (len(real_ev) != design_mat_values.shape[1]):
+            print(design_mat_values.shape)
+            print(real_ev)
+            raise Exception('Inconsistency: ' +
+                            'number of columns in the design matrix (' +
+                            str(design_mat_values.shape[1]) + ') ' +
+                            'is not equal to number of regressor names (' +
+                            str(len(real_ev)) + ')')
         design_matrix = DesignMatrix(design_mat_values, design_mat_image,
                                      self.export_dir, real_ev, design_type,
                                      hrf_model, drift_model,
