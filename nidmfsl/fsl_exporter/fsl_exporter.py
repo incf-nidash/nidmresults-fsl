@@ -680,7 +680,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             # derivative
             tempo_deriv_re = \
                 r'.*set fmri\(deriv_yn'+str(ev_num)+'\) (?P<info>[\d]+).*'
-            tempo_deriv = bool(self._search_in_fsf(tempo_deriv_re))
+            tempo_deriv = bool(int(self._search_in_fsf(tempo_deriv_re)))
 
             if tempo_deriv:
                 real_ev.append(ev_name+'*temporal_derivative')
