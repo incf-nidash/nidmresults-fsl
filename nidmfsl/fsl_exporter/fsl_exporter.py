@@ -681,6 +681,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 FSL_GAUSSIAN_RUNNING_LINE_DRIFT_MODEL, cut_off)
 
         else:
+            hrf = None
             design_type = None
             hrf_model = None
             drift_model = None
@@ -690,7 +691,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             real_ev.append(ev_name)
 
             # basis functions
-            if hrf > 3:
+            if hrf and hrf > 3:
                 if hrf == 4:
                     basis = 'GammaBasis'
                 elif hrf == 5:
