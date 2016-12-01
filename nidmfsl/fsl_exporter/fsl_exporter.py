@@ -637,11 +637,24 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             else:
                 design_type = None
 
-            # HRF model (only look at first ev)
-            m = re.search(
-                r"set fmri\(convolve1\) (?P<hrf>\d)", self.design_txt)
-            assert m is not None
-            hrf = int(m.group("hrf"))
+            # HRF model
+            prev_hrf = None
+            for ev_num, ev_name in list(orig_ev.items()):
+                m = re.search(
+                    r"set fmri\(convolve" + str(ev_num) + "\) (?P<hrf>\d)",
+                    self.design_txt)
+                assert m is not None
+                hrf = int(m.group("hrf"))
+
+                if prev_hrf is not None:
+                    # Sanity check: all regressors should have the same hrf
+                    if (prev_hrf != hrf):
+                        raise Exception('Inconsistency: all regressors ' +
+                                        'must have the same type of HRF (' +
+                                        str(prev_hrf) + ' and ' + str(hrf) +
+                                        ' found)')
+                prev_hrf = hrf
+
             if hrf == 1:    # 1: Gaussian
                 hrf_model = NIDM_GAUSSIAN_HRF
             elif hrf == 2:  # 2 : Gamma
