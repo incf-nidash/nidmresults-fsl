@@ -676,6 +676,22 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         for ev_num, ev_name in list(orig_ev.items()):
             real_ev.append(ev_name)
 
+            # basis functions
+            if hrf > 3:
+                if hrf == 4:
+                    basis = 'GammaBasis'
+                elif hrf == 5:
+                    basis = 'SineBasis'
+                elif hrf == 6:
+                    basis = 'FIRBasis'
+
+                # Number of basis functions
+                fir_basis_num_re = \
+                    r'.*set fmri\(basisfnum'+str(ev_num)+'\) (?P<info>[\d]+).*'
+                fir_basis_num = int(self._search_in_fsf(fir_basis_num_re))
+                for i in range(1, fir_basis_num):
+                    real_ev.append(ev_name+'*'+basis+'_'+str(i))
+
             # Add one regressor name if there is an extra column for a temporal
             # derivative
             tempo_deriv_re = \
