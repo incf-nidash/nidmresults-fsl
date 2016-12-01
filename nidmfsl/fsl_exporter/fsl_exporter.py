@@ -792,7 +792,9 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     param_estimate = ParameterEstimateMap(
                         full_path_file,
                         penum, self.coord_space,
-                        suffix=self.analyses_num[analysis_dir])
+                        suffix='_' + self.analyses_num[analysis_dir] +
+                        "{0:0>3}".format(penum),
+                        export_dir=self.export_dir)
                     param_estimates.append(param_estimate)
         return param_estimates
 
