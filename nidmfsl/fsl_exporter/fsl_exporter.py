@@ -1113,8 +1113,39 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     cluster_file, skiprows=1, ndmin=2)
 
         # Cluster list (positions in mm)
-        cluster_std_file = os.path.join(
-            analysis_dir, 'cluster_' + prefix + str(stat_num) + '_std.txt')
+        if not self.first_level:
+            cluster_std_file = os.path.join(
+                analysis_dir, 'cluster_' + prefix + str(stat_num) + '_std.txt')
+        else:
+            # Compute the positions in mm (by default FSL only output positions
+            # in mm in standard space, not in subject-space)
+            if self.fsl_path is not None:
+                log_file = os.path.join(analysis_dir, 'logs', 'feat4_post')
+
+                with open(log_file, "r") as fp:
+                    log_txt = fp.read()
+
+                cmd = os.path.join(self.fsl_path, "bin", "cluster")
+
+                cluster_file = "cluster_" + prefix + str(stat_num) + ".txt"
+
+                cmd_match = re.search(
+                    "(?P<cmd>cluster.*"+cluster_file+")\n", log_txt)
+                cmd = cmd_match.group("cmd")
+                # Amend the call to cluster command to export coordinates in mm
+                cmd = cmd.replace("cluster ",
+                                  "cluster --mm ").replace(".txt", "_sub.txt")
+                cmd = cmd.replace(
+                    "cluster ", os.path.join(self.fsl_path, "bin", "cluster "))
+                subprocess.check_call(
+                    "cd "+analysis_dir+";"+cmd, shell=True)
+            else:
+                raise Exception(
+                    "Error: FSL not found, position in mm cannot be computed")
+
+            cluster_std_file = os.path.join(
+                analysis_dir, 'cluster_' + prefix + str(stat_num) + '_sub.txt')
+
         if not os.path.isfile(cluster_std_file):
             cluster_std_file = None
             # cluster_std_table = np.zeros_like(cluster_table)*float('nan')
