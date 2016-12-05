@@ -1132,13 +1132,35 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 cmd_match = re.search(
                     "(?P<cmd>cluster.*"+cluster_file+")\n", log_txt)
                 cmd = cmd_match.group("cmd")
-                # Amend the call to cluster command to export coordinates in mm
-                cmd = cmd.replace("cluster ",
-                                  "cluster --mm ").replace(".txt", "_sub.txt")
-                cmd = cmd.replace(
-                    "cluster ", os.path.join(self.fsl_path, "bin", "cluster "))
-                subprocess.check_call(
-                    "cd "+analysis_dir+";"+cmd, shell=True)
+
+                if cmd:
+                    # Copy input file (as is typically done before call to
+                    # cluster command in FSL) in order to prevent overwriting
+                    # the original output
+                    org_thresh = os.path.join(
+                        analysis_dir,
+                        "thresh_" + prefix + str(stat_num) + ".nii.gz")
+                    upd_thresh = os.path.join(
+                        analysis_dir,
+                        "thresh_" + prefix + str(stat_num) + "_sub.nii.gz")
+                    shutil.copy(org_thresh, upd_thresh)
+                    # Amend the call to cluster command to export coordinates
+                    # in mm
+                    cmd = cmd.replace(
+                        "cluster ", "cluster --mm ").replace(
+                        prefix + str(stat_num),
+                        prefix + str(stat_num) + "_sub")
+                    cmd = cmd.replace(
+                        "cluster ",
+                        os.path.join(self.fsl_path, "bin", "cluster "))
+                    print(cmd)
+                    subprocess.check_call(
+                        "cd "+analysis_dir+";"+cmd, shell=True)
+                else:
+                    warnings.warn(
+                        "'cluster' command (from FSL) not found in log, " +
+                        "clusters and peaks will not be reported")
+
             else:
                 raise Exception(
                     "Error: FSL not found, position in mm cannot be computed")
