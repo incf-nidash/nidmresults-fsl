@@ -1114,7 +1114,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
         # Cluster list (positions in mm)
         if not self.first_level:
-            cluster_std_file = os.path.join(
+            cluster_mm_file = os.path.join(
                 analysis_dir, 'cluster_' + prefix + str(stat_num) + '_std.txt')
         else:
             # Compute the positions in mm (by default FSL only output positions
@@ -1170,18 +1170,18 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 raise Exception(
                     "Error: FSL not found, position in mm cannot be computed")
 
-            cluster_std_file = os.path.join(
+            cluster_mm_file = os.path.join(
                 analysis_dir, 'cluster_' + prefix + str(stat_num) + '_sub.txt')
 
-        if not os.path.isfile(cluster_std_file):
-            cluster_std_file = None
-            # cluster_std_table = np.zeros_like(cluster_table)*float('nan')
+        if not os.path.isfile(cluster_mm_file):
+            cluster_mm_file = None
+            # cluster_mm_table = np.zeros_like(cluster_table)*float('nan')
         else:
             with warnings.catch_warnings():
                 # Ignore "Empty input file" for no significant cluster
                 warnings.simplefilter("ignore")
-                cluster_std_table = np.loadtxt(
-                    cluster_std_file, skiprows=1, ndmin=2)
+                cluster_mm_table = np.loadtxt(
+                    cluster_mm_file, skiprows=1, ndmin=2)
 
         # Peaks
         peak_file = os.path.join(
@@ -1292,9 +1292,9 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
                 peakIndex = peakIndex + 1
 
-        if (cluster_file is not None) and (cluster_std_file is not None):
+        if (cluster_file is not None) and (cluster_mm_file is not None):
             clusters_join_table = np.column_stack((cluster_table,
-                                                   cluster_std_table))
+                                                   cluster_mm_table))
             for cluster_row in clusters_join_table:
                 cluster_id = int(cluster_row[0])
                 size = int(cluster_row[1])
@@ -1332,8 +1332,8 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                             pFWER=pFWER, peaks=peaks[
                                 cluster_id], x=x, y=y, z=z,
                             x_std=x_std, y_std=y_std, z_std=z_std))
-        elif (cluster_std_file is not None):
-            for cluster_row in cluster_std_table:
+        elif (cluster_mm_file is not None):
+            for cluster_row in cluster_mm_table:
                 cluster_id = int(cluster_row[0])
                 size = int(cluster_row[1])
                 pFWER = float(cluster_row[2])
