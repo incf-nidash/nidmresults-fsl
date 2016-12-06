@@ -35,13 +35,9 @@ install:
  - echo $FSLCONFDIR
  - git clone https://github.com/cmaumet/fsl.git src_patched
  - export FSL_PATCHED=`pwd`/src_patched
- - echo ${FSL_PATCHED}
- - ls ${FSLDIR}
- # Make the patched cluster binary
- # - cp -r ${FSLDIR}/src .
- # Overwrite patched files from src 
- # - rsync -av /src_patched/ /src/
- - cd src_patched/cluster; make cluster
+ - cd ${FSL_PATCHED}
+ - git checkout voxelwise_thresh_table_buildable
+ - cd cluster; make cluster
  # Overwrite patched files from src 
  - sudo mv $FSL_PATCHED/cluster/cluster $FSLDIR/bin/cluster
  - sudo cp $FSL_PATCHED/feat5/featlib.tcl $FSLDIR/tcl/
