@@ -26,26 +26,22 @@ install:
  - cwd=`pwd`
  # Set up FSL to allow for rebuilding the cluster binary
  - cd ${FSLDIR}/etc/fslconf/
- - perl -pi -e 's/#FSLCONFDIR/FSLCONFDIR/g' ./fsl.sh 
- - perl -pi -e 's/#FSLMACHTYPE/FSLMACHTYPE/g' ./fsl.sh 
+ - sudo perl -pi -e 's/#FSLCONFDIR/FSLCONFDIR/g' ./fsl.sh 
+ - sudo perl -pi -e 's/#FSLMACHTYPE/FSLMACHTYPE/g' ./fsl.sh 
  - . ${FSLDIR}/etc/fslconf/fsl.sh
  # Download patched version of FSL
- - cd cwd
+ - cd $cwd
  - echo $FSLCONFDIR
  - git clone https://github.com/cmaumet/fsl.git src_patched
  - export FSL_PATCHED=`pwd`/src_patched
  - echo ${FSL_PATCHED}
- # Make the patched cluster binary and replace the original one
+ # Make the patched cluster binary
  - cd src_patched/cluster; make cluster
- - mv $FSL_PATCHED/cluster/cluster $FSLDIR/bin/cluster
+ # Overwrite patched files from src 
+ - sudo mv $FSL_PATCHED/cluster/cluster $FSLDIR/bin/cluster
+ - sudo cp $FSL_PATCHED/feat5/featlib.tcl $FSLDIR/tcl/
  - echo ${FSLDIR}
  - cd ${FSLDIR} 
- # Overwrite patched files from src 
- - rsync -av /src_patched/ /src/
- - cp $FSLDIR/src/feat5/featlib.tcl $FSLDIR/tcl/
- # Make the patched cluster binary and replace the original one
- - cd $FSLDIR/src/cluster; make cluster
- - mv $FSLDIR/src/cluster/cluster $FSLDIR/bin/cluster
  # Download test data using git-lfs
  - curl -sLo - https://github.com/github/git-lfs/releases/download/v1.4.1/git-lfs-linux-amd64-1.4.1.tar.gz | tar xzvf -
  - export PATH=$PATH:`pwd`/git-lfs-1.4.1
