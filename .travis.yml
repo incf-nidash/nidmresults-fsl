@@ -30,9 +30,17 @@ install:
  - perl -pi -e 's/#FSLMACHTYPE/FSLMACHTYPE/g' ./fsl.sh 
  - . ${FSLDIR}/etc/fslconf/fsl.sh
  # Download patched version of FSL
- - echo ${FSLDIR}
- - cd ${FSLDIR}
+ - cd cwd
+ - echo $FSLCONFDIR
  - git clone https://github.com/cmaumet/fsl.git src_patched
+ - export FSL_PATCHED=`pwd`/src_patched
+ - echo ${FSL_PATCHED}
+ # Make the patched cluster binary and replace the original one
+ - cd src_patched/cluster; make cluster
+ - mv $FSL_PATCHED/src/cluster/cluster $FSL_PATCHED/bin/cluster
+
+ - echo ${FSLDIR}
+ - cd ${FSLDIR} 
  # Overwrite patched files from src 
  - rsync -av /src_patched/ /src/
  - cp $FSLDIR/src/feat5/featlib.tcl $FSLDIR/tcl/
