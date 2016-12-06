@@ -1116,7 +1116,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         if not self.first_level:
             cluster_mm_file = os.path.join(
                 analysis_dir, 'cluster_' + prefix + str(stat_num) + '_std.txt')
-            peak_suffix = ""
+            peak_mm_suffix = "_std"
         else:
             # Compute the positions in mm (by default FSL only output positions
             # in mm in standard space, not in subject-space)
@@ -1172,7 +1172,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
             cluster_mm_file = os.path.join(
                 analysis_dir, 'cluster_' + prefix + str(stat_num) + '_sub.txt')
-            peak_suffix = "_sub"
+            peak_mm_suffix = "_sub"
 
         if not os.path.isfile(cluster_mm_file):
             cluster_mm_file = None
@@ -1185,32 +1185,31 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     cluster_mm_file, skiprows=1, ndmin=2)
 
         # Peaks
-        peak_file = os.path.join(
-            analysis_dir,
-            'lmax_' + prefix + str(stat_num) + peak_suffix + '.txt')
-        if not os.path.isfile(peak_file):
-            peak_file = None
+        peak_file_vox = os.path.join(
+            analysis_dir, 'lmax_' + prefix + str(stat_num) + '.txt')
+        if not os.path.isfile(peak_file_vox):
+            peak_file_vox = None
         else:
             with warnings.catch_warnings():
                 # Ignore "Empty input file" for no significant peak
                 warnings.simplefilter("ignore")
-                peak_table = np.loadtxt(peak_file, skiprows=1, ndmin=2)
+                peak_table = np.loadtxt(peak_file_vox, skiprows=1, ndmin=2)
 
-        peak_std_file = os.path.join(
+        peak_file_mm = os.path.join(
             analysis_dir,
-            'lmax_' + prefix + str(stat_num) + '_std.txt')
-        if not os.path.isfile(peak_std_file):
-            peak_std_file = None
+            'lmax_' + prefix + str(stat_num) + peak_mm_suffix + '.txt')
+        if not os.path.isfile(peak_file_mm):
+            peak_file_mm = None
         else:
             with warnings.catch_warnings():
                 # Ignore "Empty input file" for no significant peak
                 warnings.simplefilter("ignore")
                 peak_std_table = np.loadtxt(
-                    peak_std_file, skiprows=1, ndmin=2)
+                    peak_file_mm, skiprows=1, ndmin=2)
 
         peaks = dict()
         prev_cluster = -1
-        if (peak_file is not None) and (peak_std_file is not None):
+        if (peak_file_vox is not None) and (peak_file_mm is not None):
 
             peaks_join_table = np.column_stack(
                 (peak_table, peak_std_table))
@@ -1244,7 +1243,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 prev_cluster = cluster_id
 
                 peakIndex = peakIndex + 1
-        elif (peak_file is not None):
+        elif (peak_file_vox is not None):
             num_clusters = peak_table.max(axis=0)[0]
             max_num_peaks = peak_table.shape[0]
 
@@ -1269,7 +1268,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 prev_cluster = cluster_id
 
                 peakIndex = peakIndex + 1
-        elif (peak_std_file is not None) and (peak_std_table.size > 0):
+        elif (peak_file_mm is not None) and (peak_std_table.size > 0):
             num_clusters = peak_std_table.max(axis=0)[0]
             max_num_peaks = peak_std_table.shape[0]
 
