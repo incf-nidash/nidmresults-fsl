@@ -8,6 +8,9 @@ env:
   global:
     - CCACHE_COMPRESS=1
     - CASHER_TIME_OUT=500
+  matrix:
+    - PATCHED_FSL=true
+    - PATCHED_FSL=false
 python:
   - "2.7"
   - "3.5"
@@ -21,6 +24,7 @@ install:
  # Is this is not a git repo them clone nidmresults-examples
  - if ! [ -d .git ]; then git lfs clone https://github.com/incf-nidash/nidmresults-examples.git .; fi
  - git fetch origin
+ - echo $PATCHED_FSL
  - git lfs install
  # Delete any previous changes (retry because lfs might download files)
  - travis_retry git reset --hard origin/fsl_dev
