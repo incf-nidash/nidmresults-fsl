@@ -26,8 +26,8 @@ install:
  - cwd=`pwd`
  # Set up FSL to allow for rebuilding the cluster binary
  - cd ${FSLDIR}/etc/fslconf/
- - sudo perl -pi -e 's/#FSLCONFDIR/FSLCONFDIR/g' ./fsl.sh 
- - sudo perl -pi -e 's/#FSLMACHTYPE/FSLMACHTYPE/g' ./fsl.sh 
+ - sudo perl -pi -e 's/# FSLCONFDIR/FSLCONFDIR/g' ./fsl.sh 
+ - sudo perl -pi -e 's/# FSLMACHTYPE/FSLMACHTYPE/g' ./fsl.sh 
  - . ${FSLDIR}/etc/fslconf/fsl.sh
  # Download patched version of FSL
  - cd $cwd
