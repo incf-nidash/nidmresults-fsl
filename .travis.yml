@@ -36,6 +36,9 @@ install:
  - export FSL_PATCHED=`pwd`/src_patched
  - echo ${FSL_PATCHED}
  # Make the patched cluster binary
+ - cp -r ${FSLDIR}/src .
+ # Overwrite patched files from src 
+ - rsync -av /src_patched/ /src/
  - cd src_patched/cluster; make cluster
  # Overwrite patched files from src 
  - sudo mv $FSL_PATCHED/cluster/cluster $FSLDIR/bin/cluster
