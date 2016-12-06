@@ -30,6 +30,7 @@ install:
  - perl -pi -e 's/#FSLMACHTYPE/FSLMACHTYPE/g' ./fsl.sh 
  - . ${FSLDIR}/etc/fslconf/fsl.sh
  # Download patched version of FSL
+ - echo ${FSLDIR}
  - cd ${FSLDIR}
  - git clone https://github.com/cmaumet/fsl.git src_patched
  # Overwrite patched files from src 
