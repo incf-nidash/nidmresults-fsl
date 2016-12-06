@@ -1156,6 +1156,11 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     print(cmd)
                     subprocess.check_call(
                         "cd "+analysis_dir+";"+cmd, shell=True)
+                    # Remove *_zstat1_sub.nii.gz images (created temporarily)
+                    tmp_files = glob.glob(
+                        os.path.join(analysis_dir, '*_sub.nii.gz'))
+                    for tmp_file in tmp_files:
+                        os.remove(tmp_file)
                 else:
                     warnings.warn(
                         "'cluster' command (from FSL) not found in log, " +
