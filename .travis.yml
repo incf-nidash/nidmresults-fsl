@@ -29,16 +29,18 @@ install:
  - sudo perl -pi -e 's/# FSLCONFDIR/FSLCONFDIR/g' ./fsl.sh 
  - sudo perl -pi -e 's/# FSLMACHTYPE/FSLMACHTYPE/g' ./fsl.sh 
  - . ${FSLDIR}/etc/fslconf/fsl.sh
+ - cat ${FSLDIR}/etc/fslconf/fsl.sh
  # Download patched version of FSL
  - cd $cwd
  - echo $FSLCONFDIR
  - git clone https://github.com/cmaumet/fsl.git src_patched
  - export FSL_PATCHED=`pwd`/src_patched
  - echo ${FSL_PATCHED}
+ - ls ${FSLDIR}
  # Make the patched cluster binary
- - cp -r ${FSLDIR}/src .
+ # - cp -r ${FSLDIR}/src .
  # Overwrite patched files from src 
- - rsync -av /src_patched/ /src/
+ # - rsync -av /src_patched/ /src/
  - cd src_patched/cluster; make cluster
  # Overwrite patched files from src 
  - sudo mv $FSL_PATCHED/cluster/cluster $FSLDIR/bin/cluster
