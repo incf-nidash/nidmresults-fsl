@@ -1116,6 +1116,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         if not self.first_level:
             cluster_mm_file = os.path.join(
                 analysis_dir, 'cluster_' + prefix + str(stat_num) + '_std.txt')
+            peak_suffix = ""
         else:
             # Compute the positions in mm (by default FSL only output positions
             # in mm in standard space, not in subject-space)
@@ -1172,6 +1173,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
             cluster_mm_file = os.path.join(
                 analysis_dir, 'cluster_' + prefix + str(stat_num) + '_sub.txt')
+            peak_suffix = "_sub"
 
         if not os.path.isfile(cluster_mm_file):
             cluster_mm_file = None
@@ -1185,7 +1187,8 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
         # Peaks
         peak_file = os.path.join(
-            analysis_dir, 'lmax_' + prefix + str(stat_num) + '.txt')
+            analysis_dir,
+            'lmax_' + prefix + str(stat_num) + peak_suffix + '.txt')
         if not os.path.isfile(peak_file):
             peak_file = None
         else:
