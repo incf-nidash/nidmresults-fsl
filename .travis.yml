@@ -20,10 +20,11 @@ install:
  # Install FSL using Neurodebian
  - bash <(wget -q -O- http://neuro.debian.net/_files/neurodebian-travis.sh)
  - sudo apt-get -y update
- - sudo apt-get -y install fsl
+ - sudo apt-get -y install fsl-complete
  - source /etc/fsl/fsl.sh;
  - export FSLOUTPUTTYPE=NIFTI_GZ
  - cwd=`pwd`
+ - ls ${FSLDIR}
  # Set up FSL to allow for rebuilding the cluster binary
  - cd ${FSLDIR}/etc/fslconf/
  - sudo perl -pi -e 's/# FSLCONFDIR/FSLCONFDIR/g' ./fsl.sh 
@@ -42,7 +43,6 @@ install:
  - sudo mv $FSL_PATCHED/cluster/cluster $FSLDIR/bin/cluster
  - sudo cp $FSL_PATCHED/feat5/featlib.tcl $FSLDIR/tcl/
  - echo ${FSLDIR}
- - cd ${FSLDIR} 
  # Download test data using git-lfs
  - curl -sLo - https://github.com/github/git-lfs/releases/download/v1.4.1/git-lfs-linux-amd64-1.4.1.tar.gz | tar xzvf -
  - export PATH=$PATH:`pwd`/git-lfs-1.4.1
