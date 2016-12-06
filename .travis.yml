@@ -38,7 +38,6 @@ install:
  # Make the patched cluster binary and replace the original one
  - cd src_patched/cluster; make cluster
  - mv $FSL_PATCHED/src/cluster/cluster $FSL_PATCHED/bin/cluster
-
  - echo ${FSLDIR}
  - cd ${FSLDIR} 
  # Overwrite patched files from src 
