@@ -1154,7 +1154,6 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     cmd = cmd.replace(
                         "cluster ",
                         os.path.join(self.fsl_path, "bin", "cluster "))
-                    print(cmd)
                     subprocess.check_call(
                         "cd "+analysis_dir+";"+cmd, shell=True)
                     # Remove *_zstat1_sub.nii.gz images (created temporarily)
