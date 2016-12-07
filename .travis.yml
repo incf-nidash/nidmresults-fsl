@@ -8,7 +8,7 @@ env:
   global:
     - CCACHE_COMPRESS=1
     - CASHER_TIME_OUT=500
-    - NIDM_EX_BRANCH=master
+    - NIDM_EX_BRANCH=ground_truth_fixes
 python:
   - "2.7"
   - "3.5"
