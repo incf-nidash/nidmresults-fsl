@@ -1101,16 +1101,16 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         else:
             prefix = 'zstat'
         # Cluster list (positions in voxels)
-        cluster_file = os.path.join(
+        cluster_vox_file = os.path.join(
             analysis_dir, 'cluster_' + prefix + str(stat_num) + '.txt')
-        if not os.path.isfile(cluster_file):
-            cluster_file = None
+        if not os.path.isfile(cluster_vox_file):
+            cluster_vox_file = None
         else:
             with warnings.catch_warnings():
                 # Ignore "Empty input file" for no significant cluster
                 warnings.simplefilter("ignore")
                 cluster_table = np.loadtxt(
-                    cluster_file, skiprows=1, ndmin=2)
+                    cluster_vox_file, skiprows=1, ndmin=2)
 
         # Cluster list (positions in mm)
         if not self.first_level:
@@ -1293,7 +1293,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
                 peakIndex = peakIndex + 1
 
-        if (cluster_file is not None) and (cluster_mm_file is not None):
+        if (cluster_vox_file is not None) and (cluster_mm_file is not None):
             clusters_join_table = np.column_stack((cluster_table,
                                                    cluster_mm_table))
             for cluster_row in clusters_join_table:
@@ -1317,7 +1317,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                                 cluster_id], x=x, y=y, z=z,
                             x_std=x_std, y_std=y_std, z_std=z_std))
 
-        elif (cluster_file is not None):
+        elif (cluster_vox_file is not None):
             for cluster_row in cluster_table:
                 cluster_id = int(cluster_row[0])
                 size = int(cluster_row[1])
