@@ -1132,9 +1132,9 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
                 cmd_match = re.search(
                     "(?P<cmd>cluster.*"+cluster_file+")\n", log_txt)
-                cmd = cmd_match.group("cmd")
 
-                if cmd:
+                if cmd_match:
+                    cmd = cmd_match.group("cmd")
                     # Copy input file (as is typically done before call to
                     # cluster command in FSL) in order to prevent overwriting
                     # the original output
