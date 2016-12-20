@@ -38,7 +38,6 @@ install:
  - cd ../../..
  # Avoid "html5lib requires setuptools version 18.5" error
  - pip install --upgrade setuptools
- - pip install --upgrade --no-deps git+https://github.com/cmaumet/nidmresults.git@json_ld#egg=nidmresults
  - pip install -r requirements.txt
  - python setup.py install # install nidmfsl from sources
  # Packages only needed for testing (others are set up in requirements.txt)
