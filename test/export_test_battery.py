@@ -88,7 +88,7 @@ if __name__ == '__main__':
         else:
             shutil.rmtree(EXPORTED_TEST_DIR)
 
-        os.mkdir(EXPORTED_TEST_DIR)
+    os.mkdir(EXPORTED_TEST_DIR)
 
     for cfg in test_data_cfg:
         with open(cfg) as data_file:
@@ -170,8 +170,13 @@ if __name__ == '__main__':
                             os.makedirs(test_export_dir)
                         with zipfile.ZipFile(zipped_dir) as z:
                             z.extract('nidm.ttl', test_export_dir)
+                            z.extract('nidm.json', test_export_dir)
                     else:
-                        shutil.copy(zipped_dir, EXPORTED_TEST_DIR)
+                        zipped_ver_dir = os.path.join(
+                            EXPORTED_TEST_DIR,
+                            os.path.basename(data_dir) +
+                            "_" + version.replace(".", "") + ".nidm.zip")
+                        shutil.copyfile(zipped_dir, zipped_ver_dir)
 
                     cfg_file = os.path.join(test_export_dir, 'config.json')
 

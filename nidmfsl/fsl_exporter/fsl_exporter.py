@@ -518,11 +518,12 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                         "connectivity information will not be reported")
                     feat_post_log = None
 
-                if cluster_thresh:
-                    # Clusters (and associated peaks)
-                    clusters = self._get_clusters_peaks(
-                        analysis_dir,
-                        stat_num, stat_type, len(exc_sets))
+                # Clusters (and associated peaks)
+                clusters = self._get_clusters_peaks(
+                    analysis_dir,
+                    stat_num, stat_type, len(exc_sets))
+
+                if clusters is not None:
                     # Peak and Cluster are only reported for cluster-wise
                     # thresholds
                     peak_criteria = PeakCriteria(
@@ -533,6 +534,8 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                         stat_num,
                         self._get_connectivity(feat_post_log))
                 else:
+                    # Missing peaks and clusters (this happens for voxel-wise
+                    # threshold with FSL < x.x)
                     clusters = None
                     peak_criteria = None
                     clus_criteria = None
@@ -634,11 +637,24 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             else:
                 design_type = None
 
-            # HRF model (only look at first ev)
-            m = re.search(
-                r"set fmri\(convolve1\) (?P<hrf>\d)", self.design_txt)
-            assert m is not None
-            hrf = int(m.group("hrf"))
+            # HRF model
+            prev_hrf = None
+            for ev_num, ev_name in list(orig_ev.items()):
+                m = re.search(
+                    r"set fmri\(convolve" + str(ev_num) + "\) (?P<hrf>\d)",
+                    self.design_txt)
+                assert m is not None
+                hrf = int(m.group("hrf"))
+
+                if prev_hrf is not None:
+                    # Sanity check: all regressors should have the same hrf
+                    if (prev_hrf != hrf):
+                        raise Exception('Inconsistency: all regressors ' +
+                                        'must have the same type of HRF (' +
+                                        str(prev_hrf) + ' and ' + str(hrf) +
+                                        ' found)')
+                prev_hrf = hrf
+
             if hrf == 1:    # 1: Gaussian
                 hrf_model = NIDM_GAUSSIAN_HRF
             elif hrf == 2:  # 2 : Gamma
@@ -665,6 +681,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 FSL_GAUSSIAN_RUNNING_LINE_DRIFT_MODEL, cut_off)
 
         else:
+            hrf = None
             design_type = None
             hrf_model = None
             drift_model = None
@@ -673,15 +690,40 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         for ev_num, ev_name in list(orig_ev.items()):
             real_ev.append(ev_name)
 
+            # basis functions
+            if hrf and hrf > 3:
+                if hrf == 4:
+                    basis = 'GammaBasis'
+                elif hrf == 5:
+                    basis = 'SineBasis'
+                elif hrf == 6:
+                    basis = 'FIRBasis'
+
+                # Number of basis functions
+                fir_basis_num_re = \
+                    r'.*set fmri\(basisfnum'+str(ev_num)+'\) (?P<info>[\d]+).*'
+                fir_basis_num = int(self._search_in_fsf(fir_basis_num_re))
+                for i in range(1, fir_basis_num):
+                    real_ev.append(ev_name+'*'+basis+'_'+str(i))
+
             # Add one regressor name if there is an extra column for a temporal
             # derivative
             tempo_deriv_re = \
                 r'.*set fmri\(deriv_yn'+str(ev_num)+'\) (?P<info>[\d]+).*'
-            tempo_deriv = bool(self._search_in_fsf(tempo_deriv_re))
+            tempo_deriv = bool(int(self._search_in_fsf(tempo_deriv_re)))
 
             if tempo_deriv:
                 real_ev.append(ev_name+'*temporal_derivative')
 
+        # Sanity check: one regressor name per column of the design matrix
+        if (len(real_ev) != design_mat_values.shape[1]):
+            print(design_mat_values.shape)
+            print(real_ev)
+            raise Exception('Inconsistency: ' +
+                            'number of columns in the design matrix (' +
+                            str(design_mat_values.shape[1]) + ') ' +
+                            'is not equal to number of regressor names (' +
+                            str(len(real_ev)) + ')')
         design_matrix = DesignMatrix(design_mat_values, design_mat_image,
                                      self.export_dir, real_ev, design_type,
                                      hrf_model, drift_model,
@@ -789,7 +831,9 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     param_estimate = ParameterEstimateMap(
                         full_path_file,
                         penum, self.coord_space,
-                        suffix=self.analyses_num[analysis_dir])
+                        suffix='_' + self.analyses_num[analysis_dir] +
+                        "{0:0>3}".format(penum),
+                        export_dir=self.export_dir)
                     param_estimates.append(param_estimate)
         return param_estimates
 
@@ -920,13 +964,14 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         cluster.
         """
         if feat_post_log is not None:
-            conn_re = r'.* --connectivity=(?P<connectivity>\d+)+ .*'
+            conn_re = r'cluster.* --connectivity=(?P<connectivity>\d+)+ .*'
             connectivity_search = re.compile(conn_re)
             connectivity = int(
                 connectivity_search.search(
                     feat_post_log).group('connectivity'))
         else:
-            connectivity = None
+            # Default connectivity in FSL (26)
+            connectivity = 26
 
         return connectivity
 
@@ -1056,56 +1101,115 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         else:
             prefix = 'zstat'
         # Cluster list (positions in voxels)
-        cluster_file = os.path.join(
+        cluster_vox_file = os.path.join(
             analysis_dir, 'cluster_' + prefix + str(stat_num) + '.txt')
-        if not os.path.isfile(cluster_file):
-            cluster_file = None
+        if not os.path.isfile(cluster_vox_file):
+            cluster_vox_file = None
         else:
             with warnings.catch_warnings():
                 # Ignore "Empty input file" for no significant cluster
                 warnings.simplefilter("ignore")
                 cluster_table = np.loadtxt(
-                    cluster_file, skiprows=1, ndmin=2)
+                    cluster_vox_file, skiprows=1, ndmin=2)
 
         # Cluster list (positions in mm)
-        cluster_std_file = os.path.join(
-            analysis_dir, 'cluster_' + prefix + str(stat_num) + '_std.txt')
-        if not os.path.isfile(cluster_std_file):
-            cluster_std_file = None
-            # cluster_std_table = np.zeros_like(cluster_table)*float('nan')
+        if not self.first_level:
+            cluster_mm_file = os.path.join(
+                analysis_dir, 'cluster_' + prefix + str(stat_num) + '_std.txt')
+            peak_mm_suffix = "_std"
+        else:
+            # Compute the positions in mm (by default FSL only output positions
+            # in mm in standard space, not in subject-space)
+            if self.fsl_path is not None:
+                log_file = os.path.join(analysis_dir, 'logs', 'feat4_post')
+
+                with open(log_file, "r") as fp:
+                    log_txt = fp.read()
+
+                cmd = os.path.join(self.fsl_path, "bin", "cluster")
+
+                cluster_file = "cluster_" + prefix + str(stat_num) + ".txt"
+
+                cmd_match = re.search(
+                    "(?P<cmd>cluster.*"+cluster_file+")\n", log_txt)
+
+                if cmd_match:
+                    cmd = cmd_match.group("cmd")
+                    # Copy input file (as is typically done before call to
+                    # cluster command in FSL) in order to prevent overwriting
+                    # the original output
+                    org_thresh = os.path.join(
+                        analysis_dir,
+                        "thresh_" + prefix + str(stat_num) + ".nii.gz")
+                    upd_thresh = os.path.join(
+                        analysis_dir,
+                        "thresh_" + prefix + str(stat_num) + "_sub.nii.gz")
+                    shutil.copy(org_thresh, upd_thresh)
+                    # Amend the call to cluster command to export coordinates
+                    # in mm
+                    cmd = cmd.replace(
+                        "cluster ", "cluster --mm ").replace(
+                        prefix + str(stat_num),
+                        prefix + str(stat_num) + "_sub")
+                    cmd = cmd.replace(
+                        "cluster ",
+                        os.path.join(self.fsl_path, "bin", "cluster "))
+                    subprocess.check_call(
+                        "cd "+analysis_dir+";"+cmd, shell=True)
+                    # Remove *_zstat1_sub.nii.gz images (created temporarily)
+                    tmp_files = glob.glob(
+                        os.path.join(analysis_dir, '*_sub.nii.gz'))
+                    for tmp_file in tmp_files:
+                        os.remove(tmp_file)
+                else:
+                    warnings.warn(
+                        "'cluster' command (from FSL) not found in log, " +
+                        "clusters and peaks will not be reported")
+
+            else:
+                raise Exception(
+                    "Error: FSL not found, position in mm cannot be computed")
+
+            cluster_mm_file = os.path.join(
+                analysis_dir, 'cluster_' + prefix + str(stat_num) + '_sub.txt')
+            peak_mm_suffix = "_sub"
+
+        if not os.path.isfile(cluster_mm_file):
+            cluster_mm_file = None
+            # cluster_mm_table = np.zeros_like(cluster_table)*float('nan')
         else:
             with warnings.catch_warnings():
                 # Ignore "Empty input file" for no significant cluster
                 warnings.simplefilter("ignore")
-                cluster_std_table = np.loadtxt(
-                    cluster_std_file, skiprows=1, ndmin=2)
+                cluster_mm_table = np.loadtxt(
+                    cluster_mm_file, skiprows=1, ndmin=2)
 
         # Peaks
-        peak_file = os.path.join(
+        peak_file_vox = os.path.join(
             analysis_dir, 'lmax_' + prefix + str(stat_num) + '.txt')
-        if not os.path.isfile(peak_file):
-            peak_file = None
+        if not os.path.isfile(peak_file_vox):
+            peak_file_vox = None
         else:
             with warnings.catch_warnings():
                 # Ignore "Empty input file" for no significant peak
                 warnings.simplefilter("ignore")
-                peak_table = np.loadtxt(peak_file, skiprows=1, ndmin=2)
+                peak_table = np.loadtxt(peak_file_vox, skiprows=1, ndmin=2)
 
-        peak_std_file = os.path.join(
+        peak_file_mm = os.path.join(
             analysis_dir,
-            'lmax_' + prefix + str(stat_num) + '_std.txt')
-        if not os.path.isfile(peak_std_file):
-            peak_std_file = None
+            'lmax_' + prefix + str(stat_num) + peak_mm_suffix + '.txt')
+        if not os.path.isfile(peak_file_mm):
+            peak_file_mm = None
         else:
             with warnings.catch_warnings():
                 # Ignore "Empty input file" for no significant peak
                 warnings.simplefilter("ignore")
                 peak_std_table = np.loadtxt(
-                    peak_std_file, skiprows=1, ndmin=2)
+                    peak_file_mm, skiprows=1, ndmin=2)
 
         peaks = dict()
         prev_cluster = -1
-        if (peak_file is not None) and (peak_std_file is not None):
+        if (peak_file_vox is not None) and (peak_file_mm is not None):
 
             peaks_join_table = np.column_stack(
                 (peak_table, peak_std_table))
@@ -1139,7 +1243,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 prev_cluster = cluster_id
 
                 peakIndex = peakIndex + 1
-        elif (peak_file is not None):
+        elif (peak_file_vox is not None):
             num_clusters = peak_table.max(axis=0)[0]
             max_num_peaks = peak_table.shape[0]
 
@@ -1164,7 +1268,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 prev_cluster = cluster_id
 
                 peakIndex = peakIndex + 1
-        elif (peak_std_file is not None) and (peak_std_table.size > 0):
+        elif (peak_file_mm is not None) and (peak_std_table.size > 0):
             num_clusters = peak_std_table.max(axis=0)[0]
             max_num_peaks = peak_std_table.shape[0]
 
@@ -1189,9 +1293,9 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
                 peakIndex = peakIndex + 1
 
-        if (cluster_file is not None) and (cluster_std_file is not None):
+        if (cluster_vox_file is not None) and (cluster_mm_file is not None):
             clusters_join_table = np.column_stack((cluster_table,
-                                                   cluster_std_table))
+                                                   cluster_mm_table))
             for cluster_row in clusters_join_table:
                 cluster_id = int(cluster_row[0])
                 size = int(cluster_row[1])
@@ -1213,7 +1317,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                                 cluster_id], x=x, y=y, z=z,
                             x_std=x_std, y_std=y_std, z_std=z_std))
 
-        elif (cluster_file is not None):
+        elif (cluster_vox_file is not None):
             for cluster_row in cluster_table:
                 cluster_id = int(cluster_row[0])
                 size = int(cluster_row[1])
@@ -1229,8 +1333,8 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                             pFWER=pFWER, peaks=peaks[
                                 cluster_id], x=x, y=y, z=z,
                             x_std=x_std, y_std=y_std, z_std=z_std))
-        elif (cluster_std_file is not None):
-            for cluster_row in cluster_std_table:
+        elif (cluster_mm_file is not None):
+            for cluster_row in cluster_mm_table:
                 cluster_id = int(cluster_row[0])
                 size = int(cluster_row[1])
                 pFWER = float(cluster_row[2])
@@ -1245,6 +1349,8 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                             pFWER=pFWER, peaks=peaks[
                                 cluster_id], x=x, y=y, z=z,
                             x_std=x_std, y_std=y_std, z_std=z_std))
+        else:
+            clusters = None
 
         return clusters
 

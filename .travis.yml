@@ -4,36 +4,38 @@ cache:
   pip: true
   directories:
   - test/data/nidmresults-examples
+env:
+  global:
+    - CCACHE_COMPRESS=1
+    - CASHER_TIME_OUT=500
+    - NIDM_EX_BRANCH=ground_truth_fixes
 python:
   - "2.7"
   - "3.5"
-bundler_args: --retry 20
+bundler_args: --retry 9
 # command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
 install:
+ # Install FSL using Neurodebian
+ - bash <(wget -q -O- http://neuro.debian.net/_files/neurodebian-travis.sh)
+ - sudo apt-get -y update
+ - sudo apt-get -y install fsl-complete
+ - source /etc/fsl/fsl.sh;
+ - export FSLOUTPUTTYPE=NIFTI_GZ
+ - cwd=`pwd`
  # Download test data using git-lfs
  - curl -sLo - https://github.com/github/git-lfs/releases/download/v1.4.1/git-lfs-linux-amd64-1.4.1.tar.gz | tar xzvf -
  - export PATH=$PATH:`pwd`/git-lfs-1.4.1
  - cd test/data/nidmresults-examples
  # Is this is not a git repo them clone nidmresults-examples
  - if ! [ -d .git ]; then git lfs clone https://github.com/incf-nidash/nidmresults-examples.git .; fi
- - git branch -a
  - git fetch origin
- - git branch -a
- - git remote -v
  - git lfs install
- # Delete any previous changes (retry because lfs might download files)
- - travis_retry git stash --include-untracked 
- - git checkout master
- - git pull origin master
- # stash in case lfs failed and need to download more files
- - travis_retry git stash --include-untracked 
+  # Delete any previous changes (retry because lfs might download files)
+ - travis_retry git reset --hard origin/${NIDM_EX_BRANCH}
+ # A second time to allow for 3 more retries as "--retry 9" does not seem to be
+ # taken into account by Travis CI
+ - travis_retry git reset --hard origin/${NIDM_EX_BRANCH}
  - cd ../../..
- # Install FSL using Neurodebian
- - bash <(wget -q -O- http://neuro.debian.net/_files/neurodebian-travis.sh)
- - sudo apt-get -y update
- - sudo apt-get -y install fsl
- - source /etc/fsl/fsl.sh;
- - export FSLOUTPUTTYPE=NIFTI_GZ
  # Avoid "html5lib requires setuptools version 18.5" error
  - pip install --upgrade setuptools
  - pip install -r requirements.txt
@@ -46,7 +48,7 @@ script:
  # - coverage run --source=nidmfsl -m unittest discover
  - python test/export_test_battery.py
  - python -m unittest discover
- - cat debug.log
+ # - cat debug.log
 # Update subtree nidm from main nidm repository
 before_install: 
  - git config --global user.name "TravisCI"
