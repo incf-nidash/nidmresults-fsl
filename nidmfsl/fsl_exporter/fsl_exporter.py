@@ -715,6 +715,25 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             if tempo_deriv:
                 real_ev.append(ev_name+'*temporal_derivative')
 
+        # Add regressor names for motion regressors
+        m = re.search(
+            r"set fmri\(motionevs\) (?P<motionreg>\d+)", self.design_txt)
+        assert m is not None
+        motion_reg = int(m.group("motionreg"))
+        # 6 motion regressors added
+        if motion_reg == 1:
+            real_ev.extend(('mot_1', 'mot_2', 'mot_3',
+                            'mot_4', 'mot_5', 'mot_6'))
+        elif motion_reg == 2:
+            real_ev.extend(('mot_01', 'mot_02', 'mot_03', 'mot_04', 'mot_05',
+                            'mot_06', 'mot_07', 'mot_08', 'mot_09', 'mot_10',
+                            'mot_11', 'mot_12', 'mot_13', 'mot_14', 'mot_15',
+                            'mot_16', 'mot_17', 'mot_18', 'mot_19', 'mot_20',
+                            'mot_21', 'mot_22', 'mot_23', 'mot_24'))
+        elif not motion_reg == 0:
+            raise Exception('Unknow value for motion regressors: '
+                            + str(motion_reg))
+
         # Sanity check: one regressor name per column of the design matrix
         if (len(real_ev) != design_mat_values.shape[1]):
             print(design_mat_values.shape)
