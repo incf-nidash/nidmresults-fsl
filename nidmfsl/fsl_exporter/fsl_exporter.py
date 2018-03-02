@@ -76,6 +76,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
             self.coord_space = None
             self.t_contrast_names_by_num = dict()
+            self.f_contrast_names_by_num = dict()
 
             self.groups = groups
 
@@ -245,6 +246,13 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             exc_sets_f = glob.glob(os.path.join(analysis_dir,
                                               'thresh_zfstat*.nii.gz'))
             
+            # If we have F contrasts we need to record certain T contrast
+            # details.
+            if len(exc_sets_f) > 0:
+                numOfTCons = len(exc_sets_t)
+                tWeights = ['']*numOfTCons
+                tNames = ['']*numOfTCons
+            
             # This ordering is important. T statistics must be recorded first.
             exc_sets = exc_sets_t + exc_sets_f
             
@@ -277,31 +285,76 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                         re.findall(weight_search,
                                    self.design_txt)).replace("'", '')
                     
-                    print(stat_num_idx)
-                    print(contrast_name)
-                    print(contrast_weights)
-                    print(stat_type)
-                    weights = ContrastWeights(stat_num_idx, contrast_name,
-                                              contrast_weights, stat_type)
+                    # If we have F contrasts we need to record some T contrast
+                    # details.
+                    if len(exc_sets_f) > 0:
+                        tWeights[con_num-1] = [float(i) for i in 
+                                    re.findall(weight_search, self.design_txt)]
+                        tNames[con_num-1] = contrast_name
+                        
+                    # For parameter estimate maps.
+                    pe_weights = contrast_weights
                     
                 else:
                     
-                    print('FFFFFFFF')
+                    # Record relations between T and F stats.
+                    TtoF_re = r'.*set fmri\(ftest_real' + str(con_num) +\
+                        '\.\d+\) (?P<info>-?\d+)'
+                    
+                    TtoF_search = re.compile(TtoF_re)
+                    TtoF_vec = re.findall(TtoF_search, self.design_txt)
+                    TtoF_vec = [float(i) for i in TtoF_vec]
+                    
+                    print(TtoF_vec)
+                    print(type(TtoF_vec[1]))
+                    
+                    # Using the T contrast weights that have been recorded 
+                    # already, create the F contrast weight matrix and contrast
+                    # name.
+                    contrast_weights = []
+                    contrast_name = ''
+                    pe_weights = [0]*len(tWeights[0])
+                    for i in range(numOfTCons):
+                        
+                        if TtoF_vec[i] == 1:
+                            
+                            contrast_weights.append(tWeights[i])
+                            contrast_name += tNames[i].strip() + ' & '
+                            
+                            # Record parameter estmates used.
+                            weightsZero = [int(j != 0) for j in tWeights[i]]
+                            pe_weights = [sum(i) for i in 
+                                                 zip(weightsZero, pe_weights)]
+                    
+                    contrast_weights = str(contrast_weights).replace("'", '')
+                    contrast_name = contrast_name[:-3]
+                    pe_weights = str(pe_weights).replace("'", '')
+                    
+                    # Record the contrast name.
+                    self.f_contrast_names_by_num[con_num] = contrast_name
+                    
+                weights = ContrastWeights(stat_num_idx, contrast_name,
+                                          contrast_weights, stat_type)
+                
+                print('Con Weights')
+                print(contrast_weights)
+                print('PE weights')
+                print(pe_weights)
 
                 # Find which parameter estimates were used to compute the
                 # contrast
                 pe_ids = list()
                 pe_index = 1
-                contrast_weights = contrast_weights.replace(' ', '')
-                contrast_weights = contrast_weights.replace('[', '')
-                contrast_weights = contrast_weights.replace(']', '')
-                contrast_weights = contrast_weights.split(',')
+                pe_weights = pe_weights.replace(' ', '')
+                pe_weights = pe_weights.replace('[', '')
+                pe_weights = pe_weights.replace(']', '')
+                pe_weights = pe_weights.split(',')
 
-                # Whenever a non-zero element is found in contrast_weights, the
+                # Whenever a non-zero element is found in pe_weights, the
                 # parameter estimate map identified by the corresponding
                 # index is in use
-                for beta_index in contrast_weights:
-                    if abs(int(beta_index)) != 0:
+                for beta_index in pe_weights:
+                    if abs(float(beta_index)) != 0:
                         for model_fitting in list(self.model_fittings.values()):
                             for pe in model_fitting.param_estimates:
                                 s = re.compile('pe\d+')
@@ -313,8 +366,9 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                                 pe_num = int(pe_num.replace('pe', ''))
                                 if pe_num == pe_index:
                                     pe_ids.append(pe.id)
+                    
                     pe_index += 1
-
+                
                 # Convert to immutable tuple to be used as key
                 pe_ids = tuple(pe_ids)
 
@@ -396,13 +450,16 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         zstatnum = zstatnum.group()
 
         if zstatnum.startswith("zstat"):
+            print('T')
             stat_type = "T"
             con_num = zstatnum.replace('zstat', '')
         elif zstatnum.startswith("zfstat"):
+            print('F')
             stat_type = "F"
             con_num = zstatnum.replace('zfstat', '')
 
         con_num = int(con_num)
+        print(con_num)
 
         # If more than one excursion set is reported, we need to
         # use an index in the file names of the file exported in
@@ -412,6 +469,8 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 stat_type.upper() + "{0:0>3}".format(con_num)
         else:
             stat_num_idx = ""
+            
+        print(stat_num_idx)
 
         return (con_num, stat_type, stat_num_idx)
 
@@ -433,37 +492,57 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         for analysis_dir in self.analysis_dirs:
             exc_sets = glob.glob(os.path.join(analysis_dir,
                                               'thresh_z*.nii.gz'))
+            
+            print(exc_sets)
 
             # Find excursion sets (in a given feat directory we have one
             # excursion set per contrast)
             for filename in exc_sets:
-                stat_num, stat_type, stat_num_t = self._get_stat_num(
+                
+                print('Active')
+                stat_num, stat_type, stat_num_idx = self._get_stat_num(
                     filename, analysis_dir, exc_sets)
 
                 # Find corresponding contrast estimation activity
                 con_id = None
                 for contrasts in list(self.contrasts.values()):
                     for contrast in contrasts:
-                        if contrast.contrast_num == stat_num_t:
+                        if contrast.contrast_num == stat_num_idx:
                             con_id = contrast.estimation.id
                 assert con_id is not None
-
-                # Inference activity
-                inference_act = InferenceActivity(
-                    stat_num,
-                    self.t_contrast_names_by_num[stat_num])
-
+                
+                if stat_type == 'T':
+                    
+                    # Inference activity
+                    inference_act = InferenceActivity(
+                        stat_num,
+                        self.t_contrast_names_by_num[stat_num])
+                    
+                    # Excursion set png image
+                    visualisation = os.path.join(
+                        analysis_dir,
+                        'rendered_thresh_zstat' + str(stat_num) + '.png')
+                
+                else:
+                    
+                    # Inference activity
+                    inference_act = InferenceActivity(
+                        stat_num,
+                        self.f_contrast_names_by_num[stat_num]) 
+                    
+                    # Excursion set png image
+                    visualisation = os.path.join(
+                        analysis_dir,
+                        'rendered_thresh_zfstat' + str(stat_num) + '.png')
+                    
                 # Excursion set png image
-                visualisation = os.path.join(
-                    analysis_dir,
-                    'rendered_thresh_zstat' + str(stat_num) + '.png')
                 zFileImg = filename
 
                 # Cluster Labels Map
                 if self.fsl_path is not None:
                     cmd = os.path.join(self.fsl_path, "bin", "cluster")
                     cluster_labels_map = os.path.join(
-                        analysis_dir, 'tmp_clustmap' + stat_num_t + '.nii.gz')
+                        analysis_dir, 'tmp_clustmap' + stat_num_idx + '.nii.gz') #### Should add statType in this
                     cmd = cmd + " -i " + zFileImg + \
                                 " -o " + cluster_labels_map + " -t 0.01"
 
@@ -476,7 +555,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     temporary = True
                     clust_map = ClusterLabelsMap(
                         cluster_labels_map, self.coord_space,
-                        export_dir=self.export_dir, suffix=stat_num_t,
+                        export_dir=self.export_dir, suffix=stat_num_idx,
                         temporary=temporary)
                 else:
                     warnings.warn(
@@ -495,7 +574,9 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 # --> fsl_contrast_mask
                 exc_set = ExcursionSet(
                     zFileImg, self.coord_space, visualisation,
-                    self.export_dir, suffix=stat_num_t, clust_map=clust_map)
+                    self.export_dir, suffix=stat_num_idx, clust_map=clust_map)
+                
+                ############# FIX IMPLEMENTED UP TO HERE WIP
 
                 # Height Threshold
                 prob_re = r'.*set fmri\(prob_thresh\) (?P<info>\d+\.?\d+).*'
