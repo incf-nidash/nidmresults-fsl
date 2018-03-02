@@ -75,7 +75,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             self.design_file = os.path.join(self.feat_dir, 'design.fsf')
 
             self.coord_space = None
-            self.contrast_names_by_num = dict()
+            self.t_contrast_names_by_num = dict()
 
             self.groups = groups
 
@@ -237,33 +237,56 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             # Degrees of freedom
             dof_file = open(os.path.join(stat_dir, 'dof'), 'r')
             dof = float(dof_file.read())
-
-            exc_sets = glob.glob(os.path.join(analysis_dir,
-                                              'thresh_z*.nii.gz'))
-
+            
+            # We must get the T statistics first. We need to have recorded all
+            # T statistics in order to then record F statistics.
+            exc_sets_t = glob.glob(os.path.join(analysis_dir,
+                                              'thresh_zstat*.nii.gz'))
+            exc_sets_f = glob.glob(os.path.join(analysis_dir,
+                                              'thresh_zfstat*.nii.gz'))
+            
+            # This ordering is important. T statistics must be recorded first.
+            exc_sets = exc_sets_t + exc_sets_f
+            
+            print(exc_sets)
+            
             for filename in exc_sets:
+                
+                print(filename)
+                print('')
+                #### This is fine
                 con_num, stat_type, stat_num_idx = self._get_stat_num(
                     filename, analysis_dir, exc_sets)
-
-                # Contrast name
-                name_re = r'.*set fmri\(conname_real\.' + str(con_num) +\
-                    '\) "(?P<info>[^"]+)".*'
-                contrast_name = self._search_in_fsf(name_re)
-                self.contrast_names_by_num[con_num] = contrast_name
-
-                # Contrast estimation activity
-                estimation = ContrastEstimation(con_num, contrast_name)
-
-                # Contrast weights
-                weights_re = r'.*set fmri\(con_real' + str(con_num) +\
-                    '\.\d+\) (?P<info>-?\d+)'
-                weight_search = re.compile(weights_re)
-                contrast_weights = str(
-                    re.findall(weight_search,
-                               self.design_txt)).replace("'", '')
-
-                weights = ContrastWeights(stat_num_idx, contrast_name,
-                                          contrast_weights, stat_type)
+                
+                if stat_type == 'T':
+                    
+                    # Contrast name
+                    name_re = r'.*set fmri\(conname_real\.' + str(con_num) +\
+                        '\) "(?P<info>[^"]+)".*'
+                    contrast_name = self._search_in_fsf(name_re)
+                    self.t_contrast_names_by_num[con_num] = contrast_name
+    
+                    # Contrast estimation activity
+                    estimation = ContrastEstimation(con_num, contrast_name)
+    
+                    # Contrast weights
+                    weights_re = r'.*set fmri\(con_real' + str(con_num) +\
+                        '\.\d+\) (?P<info>-?\d+)'
+                    weight_search = re.compile(weights_re)
+                    contrast_weights = str(
+                        re.findall(weight_search,
+                                   self.design_txt)).replace("'", '')
+                    
+                    print(stat_num_idx)
+                    print(contrast_name)
+                    print(contrast_weights)
+                    print(stat_type)
+                    weights = ContrastWeights(stat_num_idx, contrast_name,
+                                              contrast_weights, stat_type)
+                    
+                else:
+                    
+                    print('FFFFFFFF')
 
                 # Find which parameter estimates were used to compute the
                 # contrast
@@ -345,6 +368,8 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
                     sigma_sq_file = os.path.join(
                         stat_dir, 'sigmasquareds.nii.gz')
+                    
+                    print(sigma_sq_file)
 
                     expl_mean_sq_map = ContrastExplainedMeanSquareMap(
                         stat_file, sigma_sq_file, stat_num_idx,
@@ -426,7 +451,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 # Inference activity
                 inference_act = InferenceActivity(
                     stat_num,
-                    self.contrast_names_by_num[stat_num])
+                    self.t_contrast_names_by_num[stat_num])
 
                 # Excursion set png image
                 visualisation = os.path.join(
