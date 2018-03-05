@@ -1427,7 +1427,8 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 prev_cluster = cluster_id
 
                 peakIndex = peakIndex + 1
-
+        
+        print('cvf: ' + str(cluster_vox_file))
         if (cluster_vox_file is not None) and (cluster_mm_file is not None):
             clusters_join_table = np.column_stack((cluster_table,
                                                    cluster_mm_table))
