@@ -1100,6 +1100,20 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             connectivity = 26
 
         return connectivity
+    
+    # Given a text file containing a table and a string, this function finds 
+    # the indices of all columns whose headers contain the string.
+    def _get_column_indices(self, tableFile, colHeadStr):
+
+        with open(tableFile) as f:
+            header = f.readline().split('\t')
+            
+        print('Header: ' + str(header))
+        print(tableFile)
+        print(colHeadStr)
+        print('xyzcols: ' + str([i for i, s in enumerate(header) if colHeadStr in s]))
+        
+        return([i for i, s in enumerate(header) if colHeadStr in s])
 
     def _get_search_space(self, analysis_dir):
         """
@@ -1432,36 +1446,25 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
                 peakIndex = peakIndex + 1
         
-        print('cvf: ' + repr(cluster_vox_file))
-        print('cmmf: ' + repr(cluster_mm_file))
         if (cluster_vox_file is not None) and (cluster_mm_file is not None):
             clusters_join_table = np.column_stack((cluster_table,
                                                    cluster_mm_table))
-            print('table: ' + str(clusters_join_table))
+            
+            xyzcols = self._get_column_indices(cluster_vox_file, 'Z-COG ')
+            xyzcols_std = [cluster_table.shape[1] - 1 + i for i in 
+                           self._get_column_indices(cluster_mm_file, 'Z-COG ')]
+            
             for cluster_row in clusters_join_table:
                 
-                print('row: ' + str(cluster_row))
-                print(str(len(cluster_row)))
                 cluster_id = int(cluster_row[0])
                 size = int(cluster_row[1])
                 pFWER = float(cluster_row[2])
-                x = float(cluster_row[8])
-                y = float(cluster_row[9])
-                z = float(cluster_row[10])
-                if stat_type.lower() == 't':
-                    x_std = float(cluster_row[24])
-                    print('x_std: ' + str(x_std))
-                    y_std = float(cluster_row[25])
-                    print('y_std: ' + str(y_std))
-                    z_std = float(cluster_row[26])
-                    print('z_std: ' + str(z_std))
-                else:
-                    x_std = float(cluster_row[19])
-                    print('x_std: ' + str(x_std))
-                    y_std = float(cluster_row[20])
-                    print('y_std: ' + str(y_std))
-                    z_std = float(cluster_row[21])
-                    print('z_std: ' + str(z_std))
+                x = float(cluster_row[xyzcols[0]])
+                y = float(cluster_row[xyzcols[1]])
+                z = float(cluster_row[xyzcols[2]])
+                x_std = float(cluster_row[xyzcols_std[0]])
+                y_std = float(cluster_row[xyzcols_std[1]])
+                z_std = float(cluster_row[xyzcols_std[2]])
                 clusters.append(
                     Cluster(cluster_num=cluster_id, size=size,
                             pFWER=pFWER, peaks=peaks[
@@ -1469,13 +1472,16 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                             x_std=x_std, y_std=y_std, z_std=z_std))
 
         elif (cluster_vox_file is not None):
+            
+            xyzcols = self._get_column_indices(cluster_vox_file, 'Z-COG ')
+            
             for cluster_row in cluster_table:
                 cluster_id = int(cluster_row[0])
                 size = int(cluster_row[1])
                 pFWER = float(cluster_row[2])
-                x = float(cluster_row[8])
-                y = float(cluster_row[9])
-                z = float(cluster_row[10])
+                x = float(cluster_row[xyzcols[0]])
+                y = float(cluster_row[xyzcols[1]])
+                z = float(cluster_row[xyzcols[2]])
                 x_std = None
                 y_std = None
                 z_std = None
@@ -1486,12 +1492,15 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                             x_std=x_std, y_std=y_std, z_std=z_std))
         elif (cluster_mm_file is not None):
             for cluster_row in cluster_mm_table:
+                
+                xyzcols_std = self._get_column_indices(cluster_mm_file, 
+                                                       'Z-COG ')
                 cluster_id = int(cluster_row[0])
                 size = int(cluster_row[1])
                 pFWER = float(cluster_row[2])
-                x_std = float(cluster_row[8])
-                y_std = float(cluster_row[9])
-                z_std = float(cluster_row[10])
+                x_std = float(cluster_row[xyzcols_std[0]])
+                y_std = float(cluster_row[xyzcols_std[1]])
+                z_std = float(cluster_row[xyzcols_std[2]])
                 x = None
                 y = None
                 z = None
