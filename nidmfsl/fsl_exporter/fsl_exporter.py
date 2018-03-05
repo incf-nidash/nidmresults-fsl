@@ -260,9 +260,6 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             
             for filename in exc_sets:
                 
-                print(filename)
-                print('')
-                #### This is fine
                 con_num, stat_type, stat_num_idx = self._get_stat_num(
                     filename, analysis_dir, exc_sets)
                 
@@ -306,7 +303,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     TtoF_vec = [float(i) for i in TtoF_vec]
                     
                     print(TtoF_vec)
-                    print(type(TtoF_vec[1]))
+                    print(type(TtoF_vec[0]))
                     
                     # Using the T contrast weights that have been recorded 
                     # already, create the F contrast weight matrix and contrast
@@ -542,7 +539,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 if self.fsl_path is not None:
                     cmd = os.path.join(self.fsl_path, "bin", "cluster")
                     cluster_labels_map = os.path.join(
-                        analysis_dir, 'tmp_clustmap' + stat_num_idx + '.nii.gz') #### Should add statType in this
+                        analysis_dir, 'tmp_clustmap' + stat_num_idx + '.nii.gz')
                     cmd = cmd + " -i " + zFileImg + \
                                 " -o " + cluster_labels_map + " -t 0.01"
 
@@ -623,7 +620,11 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                         "Log file feat4_post not found, " +
                         "connectivity information will not be reported")
                     feat_post_log = None
-
+                
+                print('clusdata')
+                print('Analysis dir: ' + str(analysis_dir))
+                print('stat_num: ' + str(stat_num))
+                print('numExc: ' + str(len(exc_sets)))
                 # Clusters (and associated peaks)
                 clusters = self._get_clusters_peaks(
                     analysis_dir,
@@ -1225,9 +1226,14 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             prefix = 'zfstat'
         else:
             prefix = 'zstat'
+            
+        print('Prefix: ' + prefix)
+        
         # Cluster list (positions in voxels)
         cluster_vox_file = os.path.join(
             analysis_dir, 'cluster_' + prefix + str(stat_num) + '.txt')
+        
+        print('File: ' + cluster_vox_file)
         if not os.path.isfile(cluster_vox_file):
             cluster_vox_file = None
         else:
@@ -1254,6 +1260,8 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 cmd = os.path.join(self.fsl_path, "bin", "cluster")
 
                 cluster_file = "cluster_" + prefix + str(stat_num) + ".txt"
+                
+                print('File2: ' + cluster_file)
 
                 cmd_match = re.search(
                     "(?P<cmd>cluster.*"+cluster_file+")\n", log_txt)
@@ -1334,6 +1342,8 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
         peaks = dict()
         prev_cluster = -1
+        
+        print('PeakFileVox: ' + str(peak_file_vox))
         if (peak_file_vox is not None) and (peak_file_mm is not None):
 
             peaks_join_table = np.column_stack(
@@ -1430,12 +1440,18 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 z = float(cluster_row[10])
                 if stat_type.lower() == 't':
                     x_std = float(cluster_row[24])
+                    print('x_std: ' + str(x_std))
                     y_std = float(cluster_row[25])
+                    print('y_std: ' + str(y_std))
                     z_std = float(cluster_row[26])
+                    print('z_std: ' + str(z_std))
                 else:
                     x_std = float(cluster_row[19])
+                    print('x_std: ' + str(x_std))
                     y_std = float(cluster_row[20])
+                    print('y_std: ' + str(y_std))
                     z_std = float(cluster_row[21])
+                    print('z_std: ' + str(z_std))
                 clusters.append(
                     Cluster(cluster_num=cluster_id, size=size,
                             pFWER=pFWER, peaks=peaks[
