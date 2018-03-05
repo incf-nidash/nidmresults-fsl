@@ -1242,6 +1242,10 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 warnings.simplefilter("ignore")
                 cluster_table = np.loadtxt(
                     cluster_vox_file, skiprows=1, ndmin=2)
+                cluster_table_wh = np.loadtxt(
+                    cluster_vox_file, skiprows=1, ndmin=2)
+                print(str(cluster_table_wh))
+
 
         # Cluster list (positions in mm)
         if not self.first_level:
