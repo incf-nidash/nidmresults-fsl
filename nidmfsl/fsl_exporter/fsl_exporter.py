@@ -1106,6 +1106,8 @@ class FSLtoNIDMExporter(NIDMExporter, object):
     def _get_column_indices(self, tableFile, colHeadStr):
 
         with open(tableFile) as f:
+            print(str(header))
+            print(repr(header))
             header = f.readline().split('\t')
 
         with open(tableFile) as f:
