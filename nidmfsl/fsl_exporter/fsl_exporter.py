@@ -1108,6 +1108,9 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         with open(tableFile) as f:
             header = f.readline().split('\t')
 
+            for line in f:
+                print(line)
+
         return([i for i, s in enumerate(header) if colHeadStr in s])
 
     def _get_search_space(self, analysis_dir):
