@@ -322,7 +322,8 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
                     # Compute the effect degrees of freedom as the rank of the
                     # contrast weight matrix.
-                    effdof = np.linalg.matrix_rank(np.array(contrast_weights))
+                    effdof = float(np.linalg.matrix_rank(
+                                    np.array(contrast_weights)))
 
                     # Convert contrast_weights to string representation.
                     contrast_weights = str(contrast_weights).replace("'", '')
