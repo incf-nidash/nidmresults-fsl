@@ -5,8 +5,6 @@ specification.
 @author: Camille Maumet <c.m.j.maumet@warwick.ac.uk>
 @copyright: University of Warwick 2013-2014
 """
-
-
 import re
 import os
 import sys
@@ -110,14 +108,14 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 if self.groups is None:
                     self.num_subjects = 1
                 else:
-                    raise Exception("Groups specified as input in" \
-                                    "a first-level analysis: (groups=" \
+                    raise Exception("Groups specified as input in"
+                                    "a first-level analysis: (groups="
                                     ",".join(str(self.groups))+")")
             else:
                 if not self.groups:
                     # Number of subject per groups was introduced in 1.3.0
                     if self.version['num'] not in self.without_group_versions:
-                        raise Exception("Group analysis with unspecified" \
+                        raise Exception("Group analysis with unspecified"
                                         "groups.")
                 # If feat was called with the GUI then the analysis directory
                 # is in the nested cope folder.
@@ -245,9 +243,9 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             # We must get the T statistics first. We need to have recorded all
             # T statistics in order to then record F statistics.
             exc_sets_t = glob.glob(os.path.join(analysis_dir,
-                                              'thresh_zstat*.nii.gz'))
+                                                'thresh_zstat*.nii.gz'))
             exc_sets_f = glob.glob(os.path.join(analysis_dir,
-                                              'thresh_zfstat*.nii.gz'))
+                                                'thresh_zfstat*.nii.gz'))
 
             # If we have F contrasts we need to record certain T contrast
             # details.
@@ -283,8 +281,9 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     # If we have F contrasts we need to record some T contrast
                     # details.
                     if len(exc_sets_f) > 0:
-                        tWeights[con_num-1] = [float(i) for i in
-                                    re.findall(weight_search, self.design_txt)]
+                        tWeights[con_num-1] = [
+                            float(i) for i in re.findall(
+                                weight_search, self.design_txt)]
                         tNames[con_num-1] = contrast_name
 
                     # For parameter estimate maps.
@@ -319,7 +318,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                             # Record parameter estimates used.
                             weightsZero = [int(j != 0) for j in tWeights[i]]
                             pe_weights = [sum(i) for i in
-                                                 zip(weightsZero, pe_weights)]
+                                          zip(weightsZero, pe_weights)]
 
                     # Compute the effect degrees of freedom as the rank of the
                     # contrast weight matrix.
@@ -358,8 +357,12 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 # parameter estimate map identified by the corresponding
                 # index is in use
                 for beta_index in pe_weights:
+
                     if abs(float(beta_index)) != 0:
-                        for model_fitting in list(self.model_fittings.values()):
+
+                        for model_fitting in list(
+                            self.model_fittings.values()):
+
                             for pe in model_fitting.param_estimates:
                                 s = re.compile('pe\d+')
                                 # We need basename to avoid conflict with
@@ -1244,7 +1247,6 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 warnings.simplefilter("ignore")
                 cluster_table = np.loadtxt(
                     cluster_vox_file, skiprows=1, ndmin=2)
-
 
         # Cluster list (positions in mm)
         if not self.first_level:
