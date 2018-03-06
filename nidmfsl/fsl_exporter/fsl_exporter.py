@@ -110,15 +110,17 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 if self.groups is None:
                     self.num_subjects = 1
                 else:
-                    raise Exception("Groups specified as input in\
-     a first-level analysis: (groups=" + ",".join(str(self.groups))+")")
+                    raise Exception("Groups specified as input in" \
+                                    "a first-level analysis: (groups=" \
+                                    ",".join(str(self.groups))+")")
             else:
                 if not self.groups:
                     # Number of subject per groups was introduced in 1.3.0
                     if self.version['num'] not in self.without_group_versions:
-                        raise Exception("Group analysis with unspecified groups.")
-                # If feat was called with the GUI then the analysis directory is in
-                # the nested cope folder
+                        raise Exception("Group analysis with unspecified" \
+                                        "groups.")
+                # If feat was called with the GUI then the analysis directory
+                # is in the nested cope folder.
                 self.analysis_dirs = glob.glob(
                     os.path.join(self.feat_dir, 'cope*.feat'))
 
@@ -136,7 +138,8 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                             ana_num = ana_num.replace("cope", "").replace(
                                 ".feat", "")
                             self.analyses_num[analysis] = \
-                                ("_{0:0>" + str(max_digits) + "}").format(ana_num)
+                                ("_{0:0>" + str(max_digits) + "}").format(
+                                        ana_num)
                     else:
                         # There is a single analysis, no need to add a prefix
                         self.analyses_num[self.analysis_dirs[0]] = ""
@@ -238,37 +241,37 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             # Degrees of freedom
             dof_file = open(os.path.join(stat_dir, 'dof'), 'r')
             dof = float(dof_file.read())
-            
+
             # We must get the T statistics first. We need to have recorded all
             # T statistics in order to then record F statistics.
             exc_sets_t = glob.glob(os.path.join(analysis_dir,
                                               'thresh_zstat*.nii.gz'))
             exc_sets_f = glob.glob(os.path.join(analysis_dir,
                                               'thresh_zfstat*.nii.gz'))
-            
+
             # If we have F contrasts we need to record certain T contrast
             # details.
             if len(exc_sets_f) > 0:
                 numOfTCons = len(exc_sets_t)
                 tWeights = ['']*numOfTCons
                 tNames = ['']*numOfTCons
-            
+
             # This ordering is important. T statistics must be recorded first.
             exc_sets = exc_sets_t + exc_sets_f
-            
+
             for filename in exc_sets:
-                
+
                 con_num, stat_type, stat_num_idx = self._get_stat_num(
                     filename, analysis_dir, exc_sets)
-                
+
                 if stat_type == 'T':
-                    
+
                     # Contrast name
                     name_re = r'.*set fmri\(conname_real\.' + str(con_num) +\
                         '\) "(?P<info>[^"]+)".*'
                     contrast_name = self._search_in_fsf(name_re)
                     self.t_contrast_names_by_num[con_num] = contrast_name
-    
+
                     # Contrast weights
                     weights_re = r'.*set fmri\(con_real' + str(con_num) +\
                         '\.\d+\) (?P<info>-?\d+)'
@@ -276,68 +279,68 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     contrast_weights = str(
                         re.findall(weight_search,
                                    self.design_txt)).replace("'", '')
-                    
+
                     # If we have F contrasts we need to record some T contrast
                     # details.
                     if len(exc_sets_f) > 0:
-                        tWeights[con_num-1] = [float(i) for i in 
+                        tWeights[con_num-1] = [float(i) for i in
                                     re.findall(weight_search, self.design_txt)]
                         tNames[con_num-1] = contrast_name
-                        
+
                     # For parameter estimate maps.
                     pe_weights = contrast_weights
-                    
+
                     # Effect dof
-                    effdof = None
-                    
+                    effdof = 1
+
                 else:
-                    
+
                     # Record relations between T and F stats.
                     TtoF_re = r'.*set fmri\(ftest_real' + str(con_num) +\
                         '\.\d+\) (?P<info>-?\d+)'
-                    
+
                     TtoF_search = re.compile(TtoF_re)
                     TtoF_vec = re.findall(TtoF_search, self.design_txt)
                     TtoF_vec = [float(i) for i in TtoF_vec]
-                    
-                    # Using the T contrast weights that have been recorded 
+
+                    # Using the T contrast weights that have been recorded
                     # already, create the F contrast weight matrix and contrast
                     # name.
                     contrast_weights = []
                     contrast_name = ''
                     pe_weights = [0]*len(tWeights[0])
                     for i in range(numOfTCons):
-                        
+
                         if TtoF_vec[i] == 1:
-                            
+
                             contrast_weights.append(tWeights[i])
                             contrast_name += tNames[i].strip() + ' & '
-                            
+
                             # Record parameter estimates used.
                             weightsZero = [int(j != 0) for j in tWeights[i]]
-                            pe_weights = [sum(i) for i in 
+                            pe_weights = [sum(i) for i in
                                                  zip(weightsZero, pe_weights)]
-                    
+
                     # Compute the effect degrees of freedom as the rank of the
                     # contrast weight matrix.
                     effdof = np.linalg.matrix_rank(np.array(contrast_weights))
-                    
+
                     # Convert contrast_weights to string representation.
                     contrast_weights = str(contrast_weights).replace("'", '')
-                    
+
                     # Remove last ' & ' from contrast name.
                     contrast_name = contrast_name[:-3]
-                    
+
                     # These will ve used for determining which parameters were
                     # used.
                     pe_weights = str(pe_weights).replace("'", '')
-                    
+
                     # Record the contrast name.
                     self.f_contrast_names_by_num[con_num] = contrast_name
 
                 # Contrast estimation activity
                 estimation = ContrastEstimation(con_num, contrast_name)
-                    
+
                 # Contrast Weights object
                 weights = ContrastWeights(stat_num_idx, contrast_name,
                                           contrast_weights, stat_type)
@@ -367,9 +370,9 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                                 pe_num = int(pe_num.replace('pe', ''))
                                 if pe_num == pe_index:
                                     pe_ids.append(pe.id)
-                    
+
                     pe_index += 1
-                
+
                 # Convert to immutable tuple to be used as key
                 pe_ids = tuple(pe_ids)
 
@@ -377,6 +380,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 stat_file = os.path.join(
                     stat_dir,
                     stat_type.lower() + 'stat' + str(con_num) + '.nii.gz')
+
                 stat_map = StatisticMap(
                     location=stat_file, stat_type=stat_type,
                     contrast_name=contrast_name, dof=dof,
@@ -384,7 +388,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     contrast_num=stat_num_idx,
                     export_dir=self.export_dir,
                     effdof = effdof)
-                
+
                 # Z-Statistic Map
                 if stat_type == "F":
                     z_stat_file = os.path.join(
@@ -394,10 +398,10 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     z_stat_file = os.path.join(
                         stat_dir,
                         'zstat' + str(con_num) + '.nii.gz')
-                
+
                 # Create the Z statistic map file.
                 z_stat_map = StatisticMap(
-                    location=z_stat_file, stat_type='Z', 
+                    location=z_stat_file, stat_type='Z',
                     contrast_name=contrast_name, dof=dof,
                     coord_space=self.coord_space,
                     contrast_num=stat_num_idx,
@@ -452,16 +456,13 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         zstatnum = zstatnum.group()
 
         if zstatnum.startswith("zstat"):
-            print('T')
             stat_type = "T"
             con_num = zstatnum.replace('zstat', '')
         elif zstatnum.startswith("zfstat"):
-            print('F')
             stat_type = "F"
             con_num = zstatnum.replace('zfstat', '')
 
         con_num = int(con_num)
-        print(con_num)
 
         # If more than one excursion set is reported, we need to
         # use an index in the file names of the file exported in
@@ -471,8 +472,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 stat_type.upper() + "{0:0>3}".format(con_num)
         else:
             stat_num_idx = ""
-            
-        print(stat_num_idx)
+
 
         return (con_num, stat_type, stat_num_idx)
 
@@ -498,8 +498,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             # Find excursion sets (in a given feat directory we have one
             # excursion set per contrast)
             for filename in exc_sets:
-                
-                print('Active')
+
                 stat_num, stat_type, stat_num_idx = self._get_stat_num(
                     filename, analysis_dir, exc_sets)
 
@@ -510,33 +509,31 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                         if contrast.contrast_num == stat_num_idx:
                             con_id = contrast.estimation.id
                 assert con_id is not None
-                
+
                 if stat_type == 'T':
-                    
+
                     # Inference activity
                     inference_act = InferenceActivity(
                         stat_num,
                         self.t_contrast_names_by_num[stat_num])
-                    print('TconByNum: ' + str(self.t_contrast_names_by_num[stat_num]))
-                    
+
                     # Excursion set png image
                     visualisation = os.path.join(
                         analysis_dir,
                         'rendered_thresh_zstat' + str(stat_num) + '.png')
-                
+
                 else:
-                    
+
                     # Inference activity
                     inference_act = InferenceActivity(
                         stat_num,
-                        self.f_contrast_names_by_num[stat_num]) 
-                    print('FconByNum: ' + str(self.f_contrast_names_by_num[stat_num]))
-                    
+                        self.f_contrast_names_by_num[stat_num])
+
                     # Excursion set png image
                     visualisation = os.path.join(
                         analysis_dir,
                         'rendered_thresh_zfstat' + str(stat_num) + '.png')
-                    
+
                 # Excursion set png image
                 zFileImg = filename
 
@@ -577,8 +574,6 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 exc_set = ExcursionSet(
                     zFileImg, self.coord_space, visualisation,
                     self.export_dir, suffix=stat_num_idx, clust_map=clust_map)
-                
-                ############# FIX IMPLEMENTED UP TO HERE WIP
 
                 # Height Threshold
                 prob_re = r'.*set fmri\(prob_thresh\) (?P<info>\d+\.?\d+).*'
@@ -625,7 +620,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                         "Log file feat4_post not found, " +
                         "connectivity information will not be reported")
                     feat_post_log = None
-            
+
                 # Clusters (and associated peaks)
                 clusters = self._get_clusters_peaks(
                     analysis_dir,
@@ -684,10 +679,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     extent_thresh, peak_criteria, clus_criteria,
                     display_mask, exc_set, clusters, search_space,
                     self.software.id)
-                print('con_id: ' + str(con_id))
-                print('stat_num_id: ' + str(stat_num_idx))
-                print('----------')
-                
+
                 inferences.setdefault(con_id, list()).append(inference)
 
         return inferences
@@ -1104,14 +1096,14 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             connectivity = 26
 
         return connectivity
-    
-    # Given a text file containing a table and a string, this function finds 
+
+    # Given a text file containing a table and a string, this function finds
     # the indices of all columns whose headers contain the string.
     def _get_column_indices(self, tableFile, colHeadStr):
 
         with open(tableFile) as f:
             header = f.readline().split('\t')
-        
+
         return([i for i, s in enumerate(header) if colHeadStr in s])
 
     def _get_search_space(self, analysis_dir):
@@ -1239,11 +1231,11 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             prefix = 'zfstat'
         else:
             prefix = 'zstat'
-        
+
         # Cluster list (positions in voxels)
         cluster_vox_file = os.path.join(
             analysis_dir, 'cluster_' + prefix + str(stat_num) + '.txt')
-        
+
         if not os.path.isfile(cluster_vox_file):
             cluster_vox_file = None
         else:
@@ -1351,7 +1343,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
         peaks = dict()
         prev_cluster = -1
-        
+
         if (peak_file_vox is not None) and (peak_file_mm is not None):
 
             peaks_join_table = np.column_stack(
@@ -1435,17 +1427,17 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 prev_cluster = cluster_id
 
                 peakIndex = peakIndex + 1
-        
+
         if (cluster_vox_file is not None) and (cluster_mm_file is not None):
             clusters_join_table = np.column_stack((cluster_table,
                                                    cluster_mm_table))
-            
+
             xyzcols = self._get_column_indices(cluster_vox_file, 'Z-COG ')
-            xyzcols_std = [cluster_table.shape[1] - 1 + i for i in 
+            xyzcols_std = [cluster_table.shape[1] - 1 + i for i in
                            self._get_column_indices(cluster_mm_file, 'Z-COG ')]
-            
+
             for cluster_row in clusters_join_table:
-                
+
                 cluster_id = int(cluster_row[0])
                 size = int(cluster_row[1])
                 pFWER = float(cluster_row[2])
@@ -1462,9 +1454,9 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                             x_std=x_std, y_std=y_std, z_std=z_std))
 
         elif (cluster_vox_file is not None):
-            
+
             xyzcols = self._get_column_indices(cluster_vox_file, 'Z-COG ')
-            
+
             for cluster_row in cluster_table:
                 cluster_id = int(cluster_row[0])
                 size = int(cluster_row[1])
@@ -1482,8 +1474,8 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                             x_std=x_std, y_std=y_std, z_std=z_std))
         elif (cluster_mm_file is not None):
             for cluster_row in cluster_mm_table:
-                
-                xyzcols_std = self._get_column_indices(cluster_mm_file, 
+
+                xyzcols_std = self._get_column_indices(cluster_mm_file,
                                                        'Z-COG ')
                 cluster_id = int(cluster_row[0])
                 size = int(cluster_row[1])
