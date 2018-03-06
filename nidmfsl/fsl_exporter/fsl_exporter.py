@@ -287,6 +287,9 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     # For parameter estimate maps.
                     pe_weights = contrast_weights
                     
+                    # Effect dof
+                    effdof = None
+                    
                 else:
                     
                     # Record relations between T and F stats.
@@ -310,13 +313,23 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                             contrast_weights.append(tWeights[i])
                             contrast_name += tNames[i].strip() + ' & '
                             
-                            # Record parameter estmates used.
+                            # Record parameter estimates used.
                             weightsZero = [int(j != 0) for j in tWeights[i]]
                             pe_weights = [sum(i) for i in 
                                                  zip(weightsZero, pe_weights)]
                     
+                    # Compute the effect degrees of freedom as the rank of the
+                    # contrast weight matrix.
+                    effdof = np.linalg.matrix_rank(np.array(contrast_weights))
+                    
+                    # Convert contrast_weights to string representation.
                     contrast_weights = str(contrast_weights).replace("'", '')
+                    
+                    # Remove last ' & ' from contrast name.
                     contrast_name = contrast_name[:-3]
+                    
+                    # These will ve used for determining which parameters were
+                    # used.
                     pe_weights = str(pe_weights).replace("'", '')
                     
                     # Record the contrast name.
@@ -325,6 +338,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 # Contrast estimation activity
                 estimation = ContrastEstimation(con_num, contrast_name)
                     
+                # Contrast Weights object
                 weights = ContrastWeights(stat_num_idx, contrast_name,
                                           contrast_weights, stat_type)
 
@@ -368,7 +382,8 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     contrast_name=contrast_name, dof=dof,
                     coord_space=self.coord_space,
                     contrast_num=stat_num_idx,
-                    export_dir=self.export_dir)
+                    export_dir=self.export_dir,
+                    effdof = effdof)
                 
                 # Z-Statistic Map
                 if stat_type == "F":
@@ -380,17 +395,14 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                         stat_dir,
                         'zstat' + str(con_num) + '.nii.gz')
                 
-                print('zstat location: ' + str(z_stat_file))
-                print('contrast name: ' + str(contrast_name))
-                print('dof: ' + str(dof))
-                print('stat num index: ' + str(stat_num_idx))
-                print('exportdir: ' + str(self.export_dir))
+                # Create the Z statistic map file.
                 z_stat_map = StatisticMap(
                     location=z_stat_file, stat_type='Z', 
                     contrast_name=contrast_name, dof=dof,
                     coord_space=self.coord_space,
                     contrast_num=stat_num_idx,
-                    export_dir=self.export_dir)
+                    export_dir=self.export_dir,
+                    effdof = effdof)
 
                 if stat_type is "T":
                     # Contrast Map
