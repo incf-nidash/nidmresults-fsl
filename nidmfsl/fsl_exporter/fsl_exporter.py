@@ -361,7 +361,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     if abs(float(beta_index)) != 0:
 
                         for model_fitting in list(
-                            self.model_fittings.values()):
+                                self.model_fittings.values()):
 
                             for pe in model_fitting.param_estimates:
                                 s = re.compile('pe\d+')
@@ -390,7 +390,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     coord_space=self.coord_space,
                     contrast_num=stat_num_idx,
                     export_dir=self.export_dir,
-                    effdof = effdof)
+                    effdof=effdof)
 
                 # Z-Statistic Map
                 if stat_type == "F":
@@ -409,7 +409,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     coord_space=self.coord_space,
                     contrast_num=stat_num_idx,
                     export_dir=self.export_dir,
-                    effdof = effdof)
+                    effdof=effdof)
 
                 if stat_type is "T":
                     # Contrast Map
@@ -475,7 +475,6 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 stat_type.upper() + "{0:0>3}".format(con_num)
         else:
             stat_num_idx = ""
-
 
         return (con_num, stat_type, stat_num_idx)
 
@@ -544,7 +543,8 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 if self.fsl_path is not None:
                     cmd = os.path.join(self.fsl_path, "bin", "cluster")
                     cluster_labels_map = os.path.join(
-                        analysis_dir, 'tmp_clustmap' + stat_num_idx + '.nii.gz')
+                        analysis_dir, 'tmp_clustmap' + stat_num_idx +
+                        '.nii.gz')
                     cmd = cmd + " -i " + zFileImg + \
                                 " -o " + cluster_labels_map + " -t 0.01"
 
@@ -667,7 +667,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                             contrast_masks.append(c2)
                             conmask_file = os.path.join(
                                 analysis_dir,
-                                'thresh_zstat' + str(c2) + '.nii.gz')####HMM
+                                'thresh_zstat' + str(c2) + '.nii.gz')
 
                             display_mask.append(DisplayMaskMap(
                                 stat_num,
