@@ -290,7 +290,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     pe_weights = contrast_weights
 
                     # Effect dof
-                    effdof = 1
+                    effdof = float(1)
 
                 else:
 
