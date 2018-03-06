@@ -256,8 +256,6 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             # This ordering is important. T statistics must be recorded first.
             exc_sets = exc_sets_t + exc_sets_f
             
-            print(exc_sets)
-            
             for filename in exc_sets:
                 
                 con_num, stat_type, stat_num_idx = self._get_stat_num(
@@ -270,9 +268,6 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                         '\) "(?P<info>[^"]+)".*'
                     contrast_name = self._search_in_fsf(name_re)
                     self.t_contrast_names_by_num[con_num] = contrast_name
-    
-                    # Contrast estimation activity
-                    estimation = ContrastEstimation(con_num, contrast_name)
     
                     # Contrast weights
                     weights_re = r'.*set fmri\(con_real' + str(con_num) +\
@@ -302,9 +297,6 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     TtoF_vec = re.findall(TtoF_search, self.design_txt)
                     TtoF_vec = [float(i) for i in TtoF_vec]
                     
-                    print(TtoF_vec)
-                    print(type(TtoF_vec[0]))
-                    
                     # Using the T contrast weights that have been recorded 
                     # already, create the F contrast weight matrix and contrast
                     # name.
@@ -329,14 +321,12 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     
                     # Record the contrast name.
                     self.f_contrast_names_by_num[con_num] = contrast_name
+
+                # Contrast estimation activity
+                estimation = ContrastEstimation(con_num, contrast_name)
                     
                 weights = ContrastWeights(stat_num_idx, contrast_name,
                                           contrast_weights, stat_type)
-                
-                print('Con Weights')
-                print(contrast_weights)
-                print('PE weights')
-                print(pe_weights)
 
                 # Find which parameter estimates were used to compute the
                 # contrast
@@ -379,7 +369,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     coord_space=self.coord_space,
                     contrast_num=stat_num_idx,
                     export_dir=self.export_dir)
-
+                
                 # Z-Statistic Map
                 if stat_type == "F":
                     z_stat_file = os.path.join(
@@ -389,7 +379,12 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     z_stat_file = os.path.join(
                         stat_dir,
                         'zstat' + str(con_num) + '.nii.gz')
-
+                
+                print('zstat location: ' + str(z_stat_file))
+                print('contrast name: ' + str(contrast_name))
+                print('dof: ' + str(dof))
+                print('stat num index: ' + str(stat_num_idx))
+                print('exportdir: ' + str(self.export_dir))
                 z_stat_map = StatisticMap(
                     location=z_stat_file, stat_type='Z', 
                     contrast_name=contrast_name, dof=dof,
@@ -419,8 +414,6 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
                     sigma_sq_file = os.path.join(
                         stat_dir, 'sigmasquareds.nii.gz')
-                    
-                    print(sigma_sq_file)
 
                     expl_mean_sq_map = ContrastExplainedMeanSquareMap(
                         stat_file, sigma_sq_file, stat_num_idx,
@@ -489,8 +482,6 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         for analysis_dir in self.analysis_dirs:
             exc_sets = glob.glob(os.path.join(analysis_dir,
                                               'thresh_z*.nii.gz'))
-            
-            print(exc_sets)
 
             # Find excursion sets (in a given feat directory we have one
             # excursion set per contrast)
@@ -514,6 +505,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     inference_act = InferenceActivity(
                         stat_num,
                         self.t_contrast_names_by_num[stat_num])
+                    print('TconByNum: ' + str(self.t_contrast_names_by_num[stat_num]))
                     
                     # Excursion set png image
                     visualisation = os.path.join(
@@ -526,6 +518,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     inference_act = InferenceActivity(
                         stat_num,
                         self.f_contrast_names_by_num[stat_num]) 
+                    print('FconByNum: ' + str(self.f_contrast_names_by_num[stat_num]))
                     
                     # Excursion set png image
                     visualisation = os.path.join(
@@ -620,11 +613,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                         "Log file feat4_post not found, " +
                         "connectivity information will not be reported")
                     feat_post_log = None
-                
-                print('clusdata')
-                print('Analysis dir: ' + str(analysis_dir))
-                print('stat_num: ' + str(stat_num))
-                print('numExc: ' + str(len(exc_sets)))
+            
                 # Clusters (and associated peaks)
                 clusters = self._get_clusters_peaks(
                     analysis_dir,
@@ -668,7 +657,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                             contrast_masks.append(c2)
                             conmask_file = os.path.join(
                                 analysis_dir,
-                                'thresh_zstat' + str(c2) + '.nii.gz')
+                                'thresh_zstat' + str(c2) + '.nii.gz')####HMM
 
                             display_mask.append(DisplayMaskMap(
                                 stat_num,
@@ -683,7 +672,10 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     extent_thresh, peak_criteria, clus_criteria,
                     display_mask, exc_set, clusters, search_space,
                     self.software.id)
-
+                print('con_id: ' + str(con_id))
+                print('stat_num_id: ' + str(stat_num_idx))
+                print('----------')
+                
                 inferences.setdefault(con_id, list()).append(inference)
 
         return inferences
@@ -1107,11 +1099,6 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
         with open(tableFile) as f:
             header = f.readline().split('\t')
-            
-        print('Header: ' + str(header))
-        print(tableFile)
-        print(colHeadStr)
-        print('xyzcols: ' + str([i for i, s in enumerate(header) if colHeadStr in s]))
         
         return([i for i, s in enumerate(header) if colHeadStr in s])
 
@@ -1240,14 +1227,11 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             prefix = 'zfstat'
         else:
             prefix = 'zstat'
-            
-        print('Prefix: ' + prefix)
         
         # Cluster list (positions in voxels)
         cluster_vox_file = os.path.join(
             analysis_dir, 'cluster_' + prefix + str(stat_num) + '.txt')
         
-        print('File: ' + cluster_vox_file)
         if not os.path.isfile(cluster_vox_file):
             cluster_vox_file = None
         else:
@@ -1256,9 +1240,6 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 warnings.simplefilter("ignore")
                 cluster_table = np.loadtxt(
                     cluster_vox_file, skiprows=1, ndmin=2)
-                with open(cluster_vox_file) as f:
-                    for row in f:
-                        print(row)
 
 
         # Cluster list (positions in mm)
@@ -1278,8 +1259,6 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 cmd = os.path.join(self.fsl_path, "bin", "cluster")
 
                 cluster_file = "cluster_" + prefix + str(stat_num) + ".txt"
-                
-                print('File2: ' + cluster_file)
 
                 cmd_match = re.search(
                     "(?P<cmd>cluster.*"+cluster_file+")\n", log_txt)
@@ -1361,7 +1340,6 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         peaks = dict()
         prev_cluster = -1
         
-        print('PeakFileVox: ' + str(peak_file_vox))
         if (peak_file_vox is not None) and (peak_file_mm is not None):
 
             peaks_join_table = np.column_stack(
