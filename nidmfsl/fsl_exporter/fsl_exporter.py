@@ -1108,6 +1108,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         with open(tableFile) as f:
             header = f.readline().split('\t')
 
+        with open(tableFile) as f:
             for line in f:
                 print(line)
 
