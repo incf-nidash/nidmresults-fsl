@@ -1442,7 +1442,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                                                    cluster_mm_table))
 
             xyzcols = self._get_column_indices(cluster_vox_file, 'Z-COG ')
-            xyzcols_std = [cluster_table.shape[1] - 1 + i for i in
+            xyzcols_std = [cluster_table.shape[1] + i for i in
                            self._get_column_indices(cluster_mm_file, 'Z-COG ')]
 
             for cluster_row in clusters_join_table:
