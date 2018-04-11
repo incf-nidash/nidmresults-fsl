@@ -33,6 +33,7 @@ from nidmresults.objects.contrast import *
 from nidmresults.objects.inference import *
 from nidmfsl.fsl_exporter.objects.fsl_objects import *
 
+print(NIDM_RESULTS_SRC_DIR)
 
 class FSLtoNIDMExporter(NIDMExporter, object):
 
@@ -745,8 +746,8 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                             'is not equal to number of regressor names (' +
                             str(len(real_ev)) + ')')
         design_matrix = DesignMatrix(design_mat_values, design_mat_image,
-                                     self.export_dir, real_ev, design_type,
-                                     hrf_model, drift_model,
+                                     real_ev, design_type, hrf_model, 
+                                     drift_model,
                                      self.analyses_num[analysis_dir])
         return design_matrix
 
@@ -826,7 +827,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         self.coord_space = CoordinateSpace(self._get_coordinate_system(),
                                            residuals_file)
 
-        rms_map = ResidualMeanSquares(self.export_dir, residuals_file,
+        rms_map = ResidualMeanSquares(residuals_file,
                                       self.coord_space, temporary,
                                       self.analyses_num[analysis_dir])
 
@@ -852,8 +853,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                         full_path_file,
                         penum, self.coord_space,
                         suffix='_' + self.analyses_num[analysis_dir] +
-                        "{0:0>3}".format(penum),
-                        export_dir=self.export_dir)
+                        "{0:0>3}".format(penum))
                     param_estimates.append(param_estimate)
         return param_estimates
 
