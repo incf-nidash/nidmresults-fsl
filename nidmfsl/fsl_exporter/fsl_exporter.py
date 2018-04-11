@@ -282,14 +282,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 for beta_index in contrast_weights:
                     if abs(int(beta_index)) != 0:
                         for model_fitting in list(self.model_fittings.values()):
-                            for pe in model_fitting.param_estimates:
-                                s = re.compile('pe\d+')
-                                # We need basename to avoid conflict with
-                                # "cope" elsewhere in the path
-                                pe_num = s.search(
-                                    os.path.basename(pe.file.path))
-                                pe_num = pe_num.group()
-                                pe_num = int(pe_num.replace('pe', ''))
+                            for pe_num in model_fitting.param_estimates:
                                 if pe_num == pe_index:
                                     pe_ids.append(pe.id)
                     pe_index += 1
@@ -305,8 +298,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     location=stat_file, stat_type=stat_type,
                     contrast_name=contrast_name, dof=dof,
                     coord_space=self.coord_space,
-                    contrast_num=stat_num_idx,
-                    export_dir=self.export_dir)
+                    contrast_num=stat_num_idx)
 
                 # Z-Statistic Map
                 if stat_type == "F":
@@ -322,8 +314,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     location=z_stat_file, stat_type='Z', 
                     contrast_name=contrast_name, dof=dof,
                     coord_space=self.coord_space,
-                    contrast_num=stat_num_idx,
-                    export_dir=self.export_dir)
+                    contrast_num=stat_num_idx)
 
                 if stat_type is "T":
                     # Contrast Map
@@ -340,7 +331,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     std_err_map = ContrastStdErrMap(
                         stat_num_idx,
                         varcontrast_file, is_variance, self.coord_space,
-                        self.coord_space, self.export_dir)
+                        self.coord_space)
                     std_err_map_or_mean_sq_map = std_err_map
                 elif stat_type is "F":
                     contrast_map = None
