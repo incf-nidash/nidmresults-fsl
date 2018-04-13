@@ -321,8 +321,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     con_file = os.path.join(stat_dir,
                                             'cope' + str(con_num) + '.nii.gz')
                     contrast_map = ContrastMap(con_file, stat_num_idx,
-                                               contrast_name, self.coord_space,
-                                               self.export_dir)
+                                               contrast_name, self.coord_space)
 
                     # Contrast Variance and Standard Error Maps
                     varcontrast_file = os.path.join(
@@ -341,7 +340,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
                     expl_mean_sq_map = ContrastExplainedMeanSquareMap(
                         stat_file, sigma_sq_file, stat_num_idx,
-                        self.coord_space, self.export_dir)
+                        self.coord_space)
 
                     std_err_map_or_mean_sq_map = expl_mean_sq_map
                 else:
@@ -460,9 +459,11 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 # "After all thresholding, zstat1 was masked with
                 # thresh_zstat2.
                 # --> fsl_contrast_mask
+                print('visu: ' + repr(visualisation))
                 exc_set = ExcursionSet(
                     zFileImg, self.coord_space, visualisation,
-                    self.export_dir, suffix=stat_num_t, clust_map=clust_map)
+                    suffix=stat_num_t, clust_map=clust_map)
+                print('Exc_set: '+ repr(exc_set))
 
                 # Height Threshold
                 prob_re = r'.*set fmri\(prob_thresh\) (?P<info>\d+\.?\d+).*'
@@ -557,8 +558,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
                             display_mask.append(DisplayMaskMap(
                                 stat_num,
-                                conmask_file, c2, self.coord_space,
-                                self.export_dir))
+                                conmask_file, c2, self.coord_space))
 
                 # Search space
                 search_space = self._get_search_space(analysis_dir)
@@ -840,8 +840,9 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     penum = penum.replace('pe', '')
                     full_path_file = os.path.join(stat_dir, filename)
                     param_estimate = ParameterEstimateMap(
-                        full_path_file,
-                        penum, self.coord_space,
+                        coord_space=self.coord_space,
+                        pe_file=full_path_file,
+                        pe_num=penum, 
                         suffix='_' + self.analyses_num[analysis_dir] +
                         "{0:0>3}".format(penum))
                     param_estimates.append(param_estimate)
@@ -854,9 +855,10 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         type MaskMap.
         """
         mask_file = os.path.join(analysis_dir, 'mask.nii.gz')
-        mask_map = MaskMap(self.export_dir, mask_file,
-                           self.coord_space, False,
-                           self.analyses_num[analysis_dir])
+        mask_map = MaskMap(mask_file,
+                           coord_space=self.coord_space, 
+                           user_defined=False,
+                           suffix=self.analyses_num[analysis_dir])
         return mask_map
 
     def _get_grand_mean(self, mask_file, analysis_dir):
@@ -871,7 +873,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                             " not found.")
         else:
             grand_mean = GrandMeanMap(grand_mean_file, mask_file,
-                                      self.coord_space, self.export_dir,
+                                      self.coord_space,
                                       self.analyses_num[analysis_dir])
 
         return grand_mean
