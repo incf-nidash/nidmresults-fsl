@@ -458,11 +458,9 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 # "After all thresholding, zstat1 was masked with
                 # thresh_zstat2.
                 # --> fsl_contrast_mask
-                print('visu: ' + repr(visualisation))
                 exc_set = ExcursionSet(
                     zFileImg, self.coord_space, visualisation,
                     suffix=stat_num_t, clust_map=clust_map)
-                print('Exc_set: '+ repr(exc_set))
 
                 # Height Threshold
                 prob_re = r'.*set fmri\(prob_thresh\) (?P<info>\d+\.?\d+).*'
@@ -674,7 +672,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         else:
             hrf = None
             design_type = None
-            hrf_model = [None]
+            hrf_model = None
             drift_model = None
 
         real_ev = list()
@@ -734,6 +732,8 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                             str(design_mat_values.shape[1]) + ') ' +
                             'is not equal to number of regressor names (' +
                             str(len(real_ev)) + ')')
+
+        print('Drift Model: ' + repr(drift_model))
         design_matrix = DesignMatrix(design_mat_values, design_mat_image,
                                      real_ev, design_type, hrf_model, 
                                      drift_model,
