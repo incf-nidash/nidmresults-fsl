@@ -417,8 +417,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
                 # Inference activity
                 inference_act = InferenceActivity(
-                    stat_num,
-                    self.contrast_names_by_num[stat_num])
+                    contrast_name=self.contrast_names_by_num[stat_num])
 
                 # Excursion set png image
                 visualisation = os.path.join(
