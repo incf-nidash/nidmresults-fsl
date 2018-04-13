@@ -733,7 +733,6 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                             'is not equal to number of regressor names (' +
                             str(len(real_ev)) + ')')
 
-        print('Drift Model: ' + repr(drift_model))
         design_matrix = DesignMatrix(design_mat_values, design_mat_image,
                                      real_ev, design_type, hrf_model, 
                                      drift_model,
