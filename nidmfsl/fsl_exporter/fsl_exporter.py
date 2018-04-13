@@ -331,7 +331,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     std_err_map = ContrastStdErrMap(
                         stat_num_idx,
                         varcontrast_file, is_variance, self.coord_space,
-                        self.coord_space)
+                        self.coord_space, export_dir=self.export_dir)
                     std_err_map_or_mean_sq_map = std_err_map
                 elif stat_type is "F":
                     contrast_map = None
@@ -443,8 +443,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
                     temporary = True
                     clust_map = ClusterLabelsMap(
-                        cluster_labels_map, self.coord_space,
-                        export_dir=self.export_dir, suffix=stat_num_t,
+                        cluster_labels_map, self.coord_space, suffix=stat_num_t,
                         temporary=temporary)
                 else:
                     warnings.warn(
@@ -649,20 +648,20 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 prev_hrf = hrf
 
             if hrf == 1:    # 1: Gaussian
-                hrf_model = NIDM_GAUSSIAN_HRF
+                hrf_model = [NIDM_GAUSSIAN_HRF]
             elif hrf == 2:  # 2 : Gamma
                 if self.version['num'] in ["1.0.0", "1.1.0", "1.2.0"]:
-                    hrf_model = NIDM_GAMMA_HRF
+                    hrf_model = [NIDM_GAMMA_HRF]
                 else:
-                    hrf_model = FSL_FSLS_GAMMA_HRF
+                    hrf_model = [FSL_FSLS_GAMMA_HRF]
             elif hrf == 3:  # 3 : Double-Gamma HRF
-                hrf_model = FSL_FSLS_GAMMA_DIFFERENCE_HRF
+                hrf_model = [FSL_FSLS_GAMMA_DIFFERENCE_HRF]
             elif hrf == 4:  # 4 : Gamma basis functions
-                hrf_model = NIDM_GAMMA_HRB
+                hrf_model = [NIDM_GAMMA_HRB]
             elif hrf == 5:  # 5 : Sine basis functions
-                hrf_model = NIDM_SINE_BASIS_SET
+                hrf_model = [NIDM_SINE_BASIS_SET]
             elif hrf == 6:  # 6 : FIR basis functions
-                hrf_model = NIDM_FINITE_IMPULSE_RESPONSE_HRB
+                hrf_model = [NIDM_FINITE_IMPULSE_RESPONSE_HRB]
 
             # Drift model
             m = re.search(
@@ -676,7 +675,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         else:
             hrf = None
             design_type = None
-            hrf_model = None
+            hrf_model = [None]
             drift_model = None
 
         real_ev = list()
@@ -1089,12 +1088,10 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             vol_in_units=vol_in_units,
             vol_in_resels=vol_in_resels,
             resel_size_in_voxels=float(d['vox_per_resels']),
-            dlh=float(d['DLH']),
             random_field_stationarity=True,
             noise_fwhm_in_voxels=noise_fwhm_in_voxels,
             noise_fwhm_in_units=noise_fwhm_in_units,
-            coord_space=self.coord_space,
-            export_dir=self.export_dir)
+            coord_space=self.coord_space)
 
         return search_space
 
