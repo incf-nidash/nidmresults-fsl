@@ -458,6 +458,9 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 # "After all thresholding, zstat1 was masked with
                 # thresh_zstat2.
                 # --> fsl_contrast_mask
+                visu_filename = 'ExcursionSet' + stat_num_t + '.png'
+                visualisation = Image(visualisation, visu_filename)
+                
                 exc_set = ExcursionSet(
                     zFileImg, self.coord_space, visualisation,
                     suffix=stat_num_t, clust_map=clust_map)
