@@ -33,8 +33,6 @@ from nidmresults.objects.contrast import *
 from nidmresults.objects.inference import *
 from nidmfsl.fsl_exporter.objects.fsl_objects import *
 
-print(NIDM_RESULTS_SRC_DIR)
-
 class FSLtoNIDMExporter(NIDMExporter, object):
 
     """
@@ -460,7 +458,6 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 # --> fsl_contrast_mask
                 visu_filename = 'ExcursionSet' + stat_num_t + '.png'
                 visualisation = Image(visualisation, visu_filename)
-                
                 exc_set = ExcursionSet(
                     zFileImg, self.coord_space, visualisation,
                     suffix=stat_num_t, clust_map=clust_map)
