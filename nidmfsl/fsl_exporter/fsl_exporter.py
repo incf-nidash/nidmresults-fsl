@@ -115,9 +115,10 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 if not self.groups:
                     # Number of subject per groups was introduced in 1.3.0
                     if self.version['num'] not in self.without_group_versions:
-                        raise Exception("Group analysis with unspecified groups.")
-                # If feat was called with the GUI then the analysis directory is in
-                # the nested cope folder
+                        raise Exception("Group analysis with unspecified"
+                                        "groups.")
+                # If feat was called with the GUI then the analysis directory
+                # is in the nested cope folder
                 self.analysis_dirs = glob.glob(
                     os.path.join(self.feat_dir, 'cope*.feat'))
 
@@ -135,7 +136,8 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                             ana_num = ana_num.replace("cope", "").replace(
                                 ".feat", "")
                             self.analyses_num[analysis] = \
-                                ("_{0:0>" + str(max_digits) + "}").format(ana_num)
+                                ("_{0:0>" + str(max_digits) + "}").format(
+                                        ana_num)
                     else:
                         # There is a single analysis, no need to add a prefix
                         self.analyses_num[self.analysis_dirs[0]] = ""
@@ -279,7 +281,8 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 # index is in use
                 for beta_index in contrast_weights:
                     if abs(int(beta_index)) != 0:
-                        for model_fitting in list(self.model_fittings.values()):
+                        for model_fitting in list(
+                                        self.model_fittings.values()):
                             for pe_num in model_fitting.param_estimates:
                                 if pe_num == pe_index:
                                     pe_ids.append(pe.id)
@@ -309,7 +312,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                         'zstat' + str(con_num) + '.nii.gz')
 
                 z_stat_map = StatisticMap(
-                    location=z_stat_file, stat_type='Z', 
+                    location=z_stat_file, stat_type='Z',
                     contrast_name=contrast_name, dof=dof,
                     coord_space=self.coord_space,
                     contrast_num=stat_num_idx)
@@ -439,7 +442,8 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
                     temporary = True
                     clust_map = ClusterLabelsMap(
-                        cluster_labels_map, self.coord_space, suffix=stat_num_t,
+                        cluster_labels_map, self.coord_space,
+                        suffix=stat_num_t,
                         temporary=temporary)
                 else:
                     warnings.warn(
@@ -734,7 +738,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                             str(len(real_ev)) + ')')
 
         design_matrix = DesignMatrix(design_mat_values, design_mat_image,
-                                     real_ev, design_type, hrf_model, 
+                                     real_ev, design_type, hrf_model,
                                      drift_model,
                                      self.analyses_num[analysis_dir])
         return design_matrix
@@ -840,7 +844,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     param_estimate = ParameterEstimateMap(
                         coord_space=self.coord_space,
                         pe_file=full_path_file,
-                        pe_num=penum, 
+                        pe_num=penum,
                         suffix='_' + self.analyses_num[analysis_dir] +
                         "{0:0>3}".format(penum))
                     param_estimates.append(param_estimate)
@@ -854,7 +858,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         """
         mask_file = os.path.join(analysis_dir, 'mask.nii.gz')
         mask_map = MaskMap(mask_file,
-                           coord_space=self.coord_space, 
+                           coord_space=self.coord_space,
                            user_defined=False,
                            suffix=self.analyses_num[analysis_dir])
         return mask_map

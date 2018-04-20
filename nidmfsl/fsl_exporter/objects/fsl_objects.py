@@ -50,8 +50,6 @@ class FSLNeuroimagingSoftware(NeuroimagingSoftware):
         super(FSLNeuroimagingSoftware, self).export(nidm_version, export_dir)
         self.add_attributes([(FSL_FEAT_VERSION, self.feat_version)])
 
-        
-
 
 class FSLExporterSoftware(ExporterSoftware):
     """
@@ -68,5 +66,3 @@ class FSLExporterSoftware(ExporterSoftware):
         Create prov entities and activities.
         """
         super(FSLExporterSoftware, self).export(nidm_version, export_dir)
-
-        
