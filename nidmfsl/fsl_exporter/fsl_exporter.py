@@ -33,6 +33,7 @@ from nidmresults.objects.contrast import *
 from nidmresults.objects.inference import *
 from nidmfsl.fsl_exporter.objects.fsl_objects import *
 
+
 class FSLtoNIDMExporter(NIDMExporter, object):
 
     """
