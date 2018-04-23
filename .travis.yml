@@ -38,7 +38,9 @@ install:
  - cd ../../..
  # Avoid "html5lib requires setuptools version 18.5" error
  - pip install --upgrade setuptools
- - pip install -r requirements.txt
+ # Installation requirements temporarily changed until Master branch of NIDMResult updated.
+ # - pip install -r requirements.txt
+ - pip install git+https://github.com/TomMaullin/nidmresults@nidmres2
  - python setup.py install # install nidmfsl from sources
  # Packages only needed for testing (others are set up in requirements.txt)
  - pip install vcrpy
