@@ -40,9 +40,9 @@ class FSLNeuroimagingSoftware(NeuroimagingSoftware):
             logging.debug("FSL version unknown for feat version: \"" +
                           feat_version + "\"")
             version = "unknown"
-        
-        super(FSLNeuroimagingSoftware, self).__init__("fsl", version,
-                                                     feat_version=feat_version)
+
+        super(FSLNeuroimagingSoftware, self).__init__(
+                "fsl", version, feat_version=feat_version)
 
     def export(self, nidm_version, export_dir):
         """
