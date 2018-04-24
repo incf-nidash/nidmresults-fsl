@@ -69,7 +69,6 @@ class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
 
         for gt_file in ex.gt_ttl_files:
             logging.info("Ground truth ttl: " + gt_file)
-            print(gt_file)
 
             # RDF obtained by the ground truth export
             gt = Graph()
