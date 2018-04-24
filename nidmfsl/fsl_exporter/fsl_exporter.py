@@ -218,7 +218,6 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 grand_mean_map, machine, subjects)
 
             self.model_fittings[analysis_dir] = model_fitting
-            print('par est ' + str(model_fitting.param_estimates))
 
         return self.model_fittings
 
@@ -1097,7 +1096,8 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             random_field_stationarity=True,
             noise_fwhm_in_voxels=noise_fwhm_in_voxels,
             noise_fwhm_in_units=noise_fwhm_in_units,
-            coord_space=self.coord_space)
+            coord_space=self.coord_space,
+            noise_roughness=float(d['DLH']),)
 
         return search_space
 

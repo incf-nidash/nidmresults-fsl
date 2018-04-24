@@ -37,11 +37,12 @@ class FSLNeuroimagingSoftware(NeuroimagingSoftware):
         if feat_version in feat_to_fsl_versions:
             version = feat_to_fsl_versions[feat_version]
         else:
-            logging.debug("FSL version unknow for feat version: \"" +
+            logging.debug("FSL version unknown for feat version: \"" +
                           feat_version + "\"")
             version = "unknown"
-
-        super(FSLNeuroimagingSoftware, self).__init__("fsl", version)
+        
+        super(FSLNeuroimagingSoftware, self).__init__("fsl", version,
+                                                     feat_version=feat_version)
 
     def export(self, nidm_version, export_dir):
         """
