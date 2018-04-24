@@ -218,6 +218,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 grand_mean_map, machine, subjects)
 
             self.model_fittings[analysis_dir] = model_fitting
+            print('par est ' + str(model_fitting.param_estimates))
 
         return self.model_fittings
 
@@ -284,8 +285,8 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     if abs(int(beta_index)) != 0:
                         for model_fitting in list(
                                         self.model_fittings.values()):
-                            for pe_num in model_fitting.param_estimates:
-                                if pe_num == pe_index:
+                            for pe in model_fitting.param_estimates:
+                                if int(pe.num) == pe_index:
                                     pe_ids.append(pe.id)
                     pe_index += 1
 
@@ -523,8 +524,8 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     # thresholds
                     peak_criteria = PeakCriteria(
                         stat_num,
-                        self._get_num_peaks(feat_post_log),
-                        self._get_peak_dist(feat_post_log))
+                        self._get_peak_dist(feat_post_log),
+                        self._get_num_peaks(feat_post_log))
                     clus_criteria = ClusterCriteria(
                         stat_num,
                         self._get_connectivity(feat_post_log))
