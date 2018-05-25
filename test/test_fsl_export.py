@@ -77,7 +77,7 @@ class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
 
             # Attributes to ignore
             # Version of NIDM exporter -- NIDM_SOFTWARE_VERSION
-            to_ignore = [NIDM_SOFTWARE_VERSION]
+            to_ignore = [NIDM_SOFTWARE_VERSION, PROV['atTime']]
 
             self.compare_full_graphs(gt, ex.graph, ex.owl,
                                      ex.exact_comparison, True,
