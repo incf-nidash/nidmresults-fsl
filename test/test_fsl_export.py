@@ -22,6 +22,7 @@ TEST_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "exported")
 from nidmresults.test.test_results_doc import TestResultDataModel
 from nidmresults.test.test_commons import *
 from nidmresults.test.check_consistency import *
+from nidmresults.objects.constants_rdflib import *
 
 from ddt import ddt, data
 
@@ -74,8 +75,13 @@ class TestFSLResultDataModel(unittest.TestCase, TestResultDataModel):
             gt = Graph()
             gt.parse(gt_file, format='turtle')
 
+            # Attributes to ignore
+            # Version of NIDM exporter -- NIDM_SOFTWARE_VERSION
+            to_ignore = [NIDM_SOFTWARE_VERSION]
+
             self.compare_full_graphs(gt, ex.graph, ex.owl,
-                                     ex.exact_comparison, True)
+                                     ex.exact_comparison, True,
+                                     to_ignore=to_ignore)
 
 if __name__ == '__main__':
     unittest.main()
