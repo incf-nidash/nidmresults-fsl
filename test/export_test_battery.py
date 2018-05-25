@@ -90,6 +90,9 @@ if __name__ == '__main__':
 
     os.mkdir(EXPORTED_TEST_DIR)
 
+    # Ignore 'fsl_con_f_multiple' test -- temporary
+    test_data_cfg = [x for x in test_data_cfg if "fsl_con_f_multiple" not in x]
+
     for cfg in test_data_cfg:
         with open(cfg) as data_file:
             logging.debug(data_file)
