@@ -83,6 +83,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                                            "1.2.0"]
             # Path to FSL library (None if unavailable)
             self.fsl_path = os.getenv('FSLDIR')
+
         except:
             self.cleanup()
             raise
@@ -115,9 +116,10 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 if not self.groups:
                     # Number of subject per groups was introduced in 1.3.0
                     if self.version['num'] not in self.without_group_versions:
-                        raise Exception("Group analysis with unspecified groups.")
-                # If feat was called with the GUI then the analysis directory is in
-                # the nested cope folder
+                        raise Exception("Group analysis with unspecified"
+                                        "groups.")
+                # If feat was called with the GUI then the analysis directory
+                # is in the nested cope folder
                 self.analysis_dirs = glob.glob(
                     os.path.join(self.feat_dir, 'cope*.feat'))
 
@@ -135,7 +137,8 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                             ana_num = ana_num.replace("cope", "").replace(
                                 ".feat", "")
                             self.analyses_num[analysis] = \
-                                ("_{0:0>" + str(max_digits) + "}").format(ana_num)
+                                ("_{0:0>" + str(max_digits) + "}").format(
+                                        ana_num)
                     else:
                         # There is a single analysis, no need to add a prefix
                         self.analyses_num[self.analysis_dirs[0]] = ""
@@ -279,16 +282,10 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 # index is in use
                 for beta_index in contrast_weights:
                     if abs(int(beta_index)) != 0:
-                        for model_fitting in list(self.model_fittings.values()):
+                        for model_fitting in list(
+                                        self.model_fittings.values()):
                             for pe in model_fitting.param_estimates:
-                                s = re.compile('pe\d+')
-                                # We need basename to avoid conflict with
-                                # "cope" elsewhere in the path
-                                pe_num = s.search(
-                                    os.path.basename(pe.file.path))
-                                pe_num = pe_num.group()
-                                pe_num = int(pe_num.replace('pe', ''))
-                                if pe_num == pe_index:
+                                if int(pe.num) == pe_index:
                                     pe_ids.append(pe.id)
                     pe_index += 1
 
@@ -303,8 +300,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     location=stat_file, stat_type=stat_type,
                     contrast_name=contrast_name, dof=dof,
                     coord_space=self.coord_space,
-                    contrast_num=stat_num_idx,
-                    export_dir=self.export_dir)
+                    contrast_num=stat_num_idx)
 
                 # Z-Statistic Map
                 if stat_type == "F":
@@ -317,19 +313,17 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                         'zstat' + str(con_num) + '.nii.gz')
 
                 z_stat_map = StatisticMap(
-                    location=z_stat_file, stat_type='Z', 
+                    location=z_stat_file, stat_type='Z',
                     contrast_name=contrast_name, dof=dof,
                     coord_space=self.coord_space,
-                    contrast_num=stat_num_idx,
-                    export_dir=self.export_dir)
+                    contrast_num=stat_num_idx)
 
                 if stat_type is "T":
                     # Contrast Map
                     con_file = os.path.join(stat_dir,
                                             'cope' + str(con_num) + '.nii.gz')
                     contrast_map = ContrastMap(con_file, stat_num_idx,
-                                               contrast_name, self.coord_space,
-                                               self.export_dir)
+                                               contrast_name, self.coord_space)
 
                     # Contrast Variance and Standard Error Maps
                     varcontrast_file = os.path.join(
@@ -338,7 +332,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     std_err_map = ContrastStdErrMap(
                         stat_num_idx,
                         varcontrast_file, is_variance, self.coord_space,
-                        self.coord_space, self.export_dir)
+                        self.coord_space, export_dir=self.export_dir)
                     std_err_map_or_mean_sq_map = std_err_map
                 elif stat_type is "F":
                     contrast_map = None
@@ -348,7 +342,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
                     expl_mean_sq_map = ContrastExplainedMeanSquareMap(
                         stat_file, sigma_sq_file, stat_num_idx,
-                        self.coord_space, self.export_dir)
+                        self.coord_space)
 
                     std_err_map_or_mean_sq_map = expl_mean_sq_map
                 else:
@@ -425,8 +419,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
                 # Inference activity
                 inference_act = InferenceActivity(
-                    stat_num,
-                    self.contrast_names_by_num[stat_num])
+                    contrast_name=self.contrast_names_by_num[stat_num])
 
                 # Excursion set png image
                 visualisation = os.path.join(
@@ -451,7 +444,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     temporary = True
                     clust_map = ClusterLabelsMap(
                         cluster_labels_map, self.coord_space,
-                        export_dir=self.export_dir, suffix=stat_num_t,
+                        suffix=stat_num_t,
                         temporary=temporary)
                 else:
                     warnings.warn(
@@ -468,9 +461,11 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 # "After all thresholding, zstat1 was masked with
                 # thresh_zstat2.
                 # --> fsl_contrast_mask
+                visu_filename = 'ExcursionSet' + stat_num_t + '.png'
+                visualisation = Image(visualisation, visu_filename)
                 exc_set = ExcursionSet(
                     zFileImg, self.coord_space, visualisation,
-                    self.export_dir, suffix=stat_num_t, clust_map=clust_map)
+                    suffix=stat_num_t, clust_map=clust_map)
 
                 # Height Threshold
                 prob_re = r'.*set fmri\(prob_thresh\) (?P<info>\d+\.?\d+).*'
@@ -528,8 +523,8 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     # thresholds
                     peak_criteria = PeakCriteria(
                         stat_num,
-                        self._get_num_peaks(feat_post_log),
-                        self._get_peak_dist(feat_post_log))
+                        self._get_peak_dist(feat_post_log),
+                        self._get_num_peaks(feat_post_log))
                     clus_criteria = ClusterCriteria(
                         stat_num,
                         self._get_connectivity(feat_post_log))
@@ -565,8 +560,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
                             display_mask.append(DisplayMaskMap(
                                 stat_num,
-                                conmask_file, c2, self.coord_space,
-                                self.export_dir))
+                                conmask_file, c2, self.coord_space))
 
                 # Search space
                 search_space = self._get_search_space(analysis_dir)
@@ -656,20 +650,20 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 prev_hrf = hrf
 
             if hrf == 1:    # 1: Gaussian
-                hrf_model = NIDM_GAUSSIAN_HRF
+                hrf_model = [NIDM_GAUSSIAN_HRF]
             elif hrf == 2:  # 2 : Gamma
                 if self.version['num'] in ["1.0.0", "1.1.0", "1.2.0"]:
-                    hrf_model = NIDM_GAMMA_HRF
+                    hrf_model = [NIDM_GAMMA_HRF]
                 else:
-                    hrf_model = FSL_FSLS_GAMMA_HRF
+                    hrf_model = [FSL_FSLS_GAMMA_HRF]
             elif hrf == 3:  # 3 : Double-Gamma HRF
-                hrf_model = FSL_FSLS_GAMMA_DIFFERENCE_HRF
+                hrf_model = [FSL_FSLS_GAMMA_DIFFERENCE_HRF]
             elif hrf == 4:  # 4 : Gamma basis functions
-                hrf_model = NIDM_GAMMA_HRB
+                hrf_model = [NIDM_GAMMA_HRB]
             elif hrf == 5:  # 5 : Sine basis functions
-                hrf_model = NIDM_SINE_BASIS_SET
+                hrf_model = [NIDM_SINE_BASIS_SET]
             elif hrf == 6:  # 6 : FIR basis functions
-                hrf_model = NIDM_FINITE_IMPULSE_RESPONSE_HRB
+                hrf_model = [NIDM_FINITE_IMPULSE_RESPONSE_HRB]
 
             # Drift model
             m = re.search(
@@ -743,9 +737,10 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                             str(design_mat_values.shape[1]) + ') ' +
                             'is not equal to number of regressor names (' +
                             str(len(real_ev)) + ')')
+
         design_matrix = DesignMatrix(design_mat_values, design_mat_image,
-                                     self.export_dir, real_ev, design_type,
-                                     hrf_model, drift_model,
+                                     real_ev, design_type, hrf_model,
+                                     drift_model,
                                      self.analyses_num[analysis_dir])
         return design_matrix
 
@@ -825,7 +820,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         self.coord_space = CoordinateSpace(self._get_coordinate_system(),
                                            residuals_file)
 
-        rms_map = ResidualMeanSquares(self.export_dir, residuals_file,
+        rms_map = ResidualMeanSquares(residuals_file,
                                       self.coord_space, temporary,
                                       self.analyses_num[analysis_dir])
 
@@ -848,11 +843,11 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     penum = penum.replace('pe', '')
                     full_path_file = os.path.join(stat_dir, filename)
                     param_estimate = ParameterEstimateMap(
-                        full_path_file,
-                        penum, self.coord_space,
+                        coord_space=self.coord_space,
+                        pe_file=full_path_file,
+                        pe_num=penum,
                         suffix='_' + self.analyses_num[analysis_dir] +
-                        "{0:0>3}".format(penum),
-                        export_dir=self.export_dir)
+                        "{0:0>3}".format(penum))
                     param_estimates.append(param_estimate)
         return param_estimates
 
@@ -863,9 +858,10 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         type MaskMap.
         """
         mask_file = os.path.join(analysis_dir, 'mask.nii.gz')
-        mask_map = MaskMap(self.export_dir, mask_file,
-                           self.coord_space, False,
-                           self.analyses_num[analysis_dir])
+        mask_map = MaskMap(mask_file,
+                           coord_space=self.coord_space,
+                           user_defined=False,
+                           suffix=self.analyses_num[analysis_dir])
         return mask_map
 
     def _get_grand_mean(self, mask_file, analysis_dir):
@@ -880,7 +876,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                             " not found.")
         else:
             grand_mean = GrandMeanMap(grand_mean_file, mask_file,
-                                      self.coord_space, self.export_dir,
+                                      self.coord_space,
                                       self.analyses_num[analysis_dir])
 
         return grand_mean
@@ -1097,12 +1093,11 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             vol_in_units=vol_in_units,
             vol_in_resels=vol_in_resels,
             resel_size_in_voxels=float(d['vox_per_resels']),
-            dlh=float(d['DLH']),
             random_field_stationarity=True,
             noise_fwhm_in_voxels=noise_fwhm_in_voxels,
             noise_fwhm_in_units=noise_fwhm_in_units,
             coord_space=self.coord_space,
-            export_dir=self.export_dir)
+            noise_roughness=float(d['DLH']),)
 
         return search_space
 
