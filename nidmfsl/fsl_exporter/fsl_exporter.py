@@ -506,7 +506,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
                     # Inference activity
                     inference_act = InferenceActivity(
-                        self.t_contrast_names_by_num[stat_num])
+                        contrast_name=self.t_contrast_names_by_num[stat_num])
 
                     # Excursion set png image
                     visualisation = os.path.join(
@@ -545,6 +545,11 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     temporary = True
                     print('Stat num')
                     print(stat_num)
+                    print('stat num idx')
+                    print(stat_num_idx)
+                    print('Stat type')
+                    print(stat_type)
+
                     clust_map = ClusterLabelsMap(
                         cluster_labels_map, self.coord_space,
                         suffix=stat_num_idx,
@@ -566,9 +571,9 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 # --> fsl_contrast_mask
 
                 if stat_type == 'T':
-                    visu_filename = 'ExcursionSet_T' + stat_num_idx + '.png'
+                    visu_filename = 'ExcursionSet' + stat_num_idx + '.png'
                 else:
-                    visu_filename = 'ExcursionSet_F' + stat_num_idx + '.png'
+                    visu_filename = 'ExcursionSet' + stat_num_idx + '.png'
 
                 visualisation = Image(visualisation, visu_filename)
                 exc_set = ExcursionSet(
