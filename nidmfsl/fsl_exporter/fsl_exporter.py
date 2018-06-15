@@ -509,7 +509,8 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                         self.t_contrast_names_by_num[stat_num])
 
                     # Excursion set png image
-                    visualisation = Image(visualisation,
+                    visualisation = os.path.join(
+                        analysis_dir,
                         'rendered_thresh_zstat' + str(stat_num) + '.png')
 
                 else:
@@ -519,7 +520,8 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                         contrast_name=self.f_contrast_names_by_num[stat_num])
 
                     # Excursion set png image
-                    visualisation = Image(visualisation,
+                    visualisation = os.path.join(
+                        analysis_dir,
                         'rendered_thresh_zfstat' + str(stat_num) + '.png')
 
                 # Excursion set png image
@@ -543,7 +545,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     temporary = True
                     clust_map = ClusterLabelsMap(
                         cluster_labels_map, self.coord_space,
-                        suffix=stat_num_t,
+                        suffix=stat_num,
                         temporary=temporary)
                 else:
                     warnings.warn(
@@ -560,9 +562,19 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 # "After all thresholding, zstat1 was masked with
                 # thresh_zstat2.
                 # --> fsl_contrast_mask
+
+                print('statnum')
+                print(stat_num)
+
+                if stat_type == 'T':
+                    visu_filename = 'ExcursionSet_T' + stat_num + '.png'
+                else:
+                    visu_filename = 'ExcursionSet_F' + stat_num + '.png'
+
+                visualisation = Image(visualisation, visu_filename)
                 exc_set = ExcursionSet(
                     zFileImg, self.coord_space, visualisation,
-                    suffix=stat_num_t, clust_map=clust_map)
+                    suffix=stat_num, clust_map=clust_map)
 
                 # Height Threshold
                 prob_re = r'.*set fmri\(prob_thresh\) (?P<info>\d+\.?\d+).*'
