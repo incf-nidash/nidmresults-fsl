@@ -543,12 +543,6 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                         stdout=FNULL, stderr=subprocess.STDOUT)
 
                     temporary = True
-                    print('Stat num')
-                    print(stat_num)
-                    print('stat num idx')
-                    print(stat_num_idx)
-                    print('Stat type')
-                    print(stat_type)
 
                     clust_map = ClusterLabelsMap(
                         cluster_labels_map, self.coord_space,
