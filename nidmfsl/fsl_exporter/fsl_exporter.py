@@ -547,7 +547,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     print(stat_num)
                     clust_map = ClusterLabelsMap(
                         cluster_labels_map, self.coord_space,
-                        suffix=stat_num,
+                        suffix=stat_num_idx,
                         temporary=temporary)
                 else:
                     warnings.warn(
@@ -565,18 +565,15 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 # thresh_zstat2.
                 # --> fsl_contrast_mask
 
-                print('statnum')
-                print(stat_num)
-
                 if stat_type == 'T':
-                    visu_filename = 'ExcursionSet_T' + stat_num + '.png'
+                    visu_filename = 'ExcursionSet_T' + stat_num_idx + '.png'
                 else:
-                    visu_filename = 'ExcursionSet_F' + stat_num + '.png'
+                    visu_filename = 'ExcursionSet_F' + stat_num_idx + '.png'
 
                 visualisation = Image(visualisation, visu_filename)
                 exc_set = ExcursionSet(
                     zFileImg, self.coord_space, visualisation,
-                    suffix=stat_num, clust_map=clust_map)
+                    suffix=stat_num_idx, clust_map=clust_map)
 
                 # Height Threshold
                 prob_re = r'.*set fmri\(prob_thresh\) (?P<info>\d+\.?\d+).*'
