@@ -65,7 +65,7 @@ In addition, the test data must also be downloaded from the `nidmresults-example
 git lfs clone https://github.com/incf-nidash/nidmresults-examples.git <path_to_this_repository>/test/data/nidmresults-examples
 ```
 
-##### Running the tests
+###### Running the tests
 
 The below command can be used to generate the test cases.
 ```
