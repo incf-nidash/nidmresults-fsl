@@ -429,28 +429,22 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 zFileImg = filename
 
                 # Cluster Labels Map
-                if self.fsl_path is not None:
-                    cluster_labels_map = os.path.join(
-                        analysis_dir, '..', 'tmp_clustmap' + stat_num_t + '.nii.gz')
+                cluster_labels_map = os.path.join(
+                    analysis_dir, 'tmp_clustmap' + stat_num_t + '.nii.gz')
 
-                    excset_img = nib.load(filename)
-                    # Copy excursion set as cluster label map --> to FIX
-                    labels, unused = scipy.ndimage.label(excset_img.get_data())
-                    clusterlabels_img = nib.Nifti1Image(
-                        labels,
-                        excset_img.affine)
-                    nib.save(clusterlabels_img, cluster_labels_map)
+                excset_img = nib.load(filename)
+                # Copy excursion set as cluster label map --> to FIX
+                labels, unused = scipy.ndimage.label(excset_img.get_data())
+                clusterlabels_img = nib.Nifti1Image(
+                    labels,
+                    excset_img.affine)
+                nib.save(clusterlabels_img, cluster_labels_map)
 
-                    temporary = True
-                    clust_map = ClusterLabelsMap(
-                        cluster_labels_map, self.coord_space,
-                        suffix=stat_num_t,
-                        temporary=temporary)
-                else:
-                    warnings.warn(
-                        "'cluster' command (from FSL) not found, " +
-                        "cluster labels maps will not be exported")
-                    clust_map = None
+                temporary = True
+                clust_map = ClusterLabelsMap(
+                    cluster_labels_map, self.coord_space,
+                    suffix=stat_num_t,
+                    temporary=temporary)
 
                 # FIXME: When doing contrast masking is the excursion set
                 # stored in thresh_zstat the one after or before contrast
