@@ -12,6 +12,7 @@ import os
 import sys
 import glob
 import json
+import scipy.ndimage
 import numpy as np
 import subprocess
 import warnings
@@ -429,17 +430,16 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
                 # Cluster Labels Map
                 if self.fsl_path is not None:
-                    cmd = os.path.join(self.fsl_path, "bin", "cluster")
                     cluster_labels_map = os.path.join(
-                        analysis_dir, 'tmp_clustmap' + stat_num_t + '.nii.gz')
-                    cmd = cmd + " -i " + zFileImg + \
-                                " -o " + cluster_labels_map + " -t 0.01"
+                        analysis_dir, '..', 'tmp_clustmap' + stat_num_t + '.nii.gz')
 
-                    # Discard stdout
-                    FNULL = open(os.devnull, 'w')
-                    subprocess.check_call(
-                        "cd "+analysis_dir+";"+cmd, shell=True,
-                        stdout=FNULL, stderr=subprocess.STDOUT)
+                    excset_img = nib.load(filename)
+                    # Copy excursion set as cluster label map --> to FIX
+                    labels, unused = scipy.ndimage.label(excset_img.get_data())
+                    clusterlabels_img = nib.Nifti1Image(
+                        labels,
+                        excset_img.affine)
+                    nib.save(clusterlabels_img, cluster_labels_map)
 
                     temporary = True
                     clust_map = ClusterLabelsMap(
