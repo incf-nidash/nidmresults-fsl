@@ -5,7 +5,12 @@ specification.
 @author: Camille Maumet <c.m.j.maumet@warwick.ac.uk>
 @copyright: University of Warwick 2013-2014
 """
-
+from nidmresults.exporter import NIDMExporter
+from nidmresults.objects.constants import *
+from nidmresults.objects.modelfitting import *
+from nidmresults.objects.contrast import *
+from nidmresults.objects.inference import *
+from nidmfsl.fsl_exporter.objects.fsl_objects import *
 
 import re
 import os
@@ -26,13 +31,6 @@ NIDM_RESULTS_SRC_DIR = os.path.join(
     os.path.dirname(NIDM_RESULTS_FSL_DIR), "nidmresults")
 if os.path.isdir(NIDM_RESULTS_SRC_DIR):
     sys.path.append(NIDM_RESULTS_SRC_DIR)
-
-from nidmresults.exporter import NIDMExporter
-from nidmresults.objects.constants import *
-from nidmresults.objects.modelfitting import *
-from nidmresults.objects.contrast import *
-from nidmresults.objects.inference import *
-from nidmfsl.fsl_exporter.objects.fsl_objects import *
 
 
 class FSLtoNIDMExporter(NIDMExporter, object):
