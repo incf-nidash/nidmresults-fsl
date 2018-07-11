@@ -1142,15 +1142,18 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
                 cmd = os.path.join(self.fsl_path, "bin", "cluster")
 
-                cluster_file = "cluster_" + prefix + str(stat_num) + ".txt"
+                cluster_name = "cluster_" + prefix + str(stat_num) + ".txt"
 
                 cmd_match = re.search(
-                    "(?P<cmd>cluster.*"+cluster_file+")\n", log_txt)
+                    "(?P<cmd>cluster.*"+cluster_name+")\n", log_txt)
 
                 if cmd_match:
 
-                    exc_set = "thresh_" + prefix + str(stat_num) + ".nii.gz"
+                    # Read in excursion set header.
+                    exc_set = os.path.join(analysis_dir, "thresh_" + prefix + str(stat_num) + ".nii.gz")
 
+                    # Read in cluster file as table and save header.
+                    cluster_file = os.path.join(analysis_dir, cluster_name)
                     clus_tab = np.loadtxt(cluster_file, skiprows=1)
                     tab_hdr = 'Cluster Index    Voxels  P   -log10(P)   Z-MAX   Z-MAX X (vox)   Z-MAX Y (vox)   Z-MAX Z (vox)   Z-COG X (vox)   Z-COG Y (vox)   Z-COG Z (vox)   COPE-MAX    COPE-MAX X (vox)    COPE-MAX Y (vox)    COPE-MAX Z (vox)    COPE-MEAN'
 
