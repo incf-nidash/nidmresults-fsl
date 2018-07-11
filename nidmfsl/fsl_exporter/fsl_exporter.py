@@ -1148,33 +1148,43 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     "(?P<cmd>cluster.*"+cluster_file+")\n", log_txt)
 
                 if cmd_match:
-                    cmd = cmd_match.group("cmd")
-                    # Copy input file (as is typically done before call to
-                    # cluster command in FSL) in order to prevent overwriting
-                    # the original output
-                    org_thresh = os.path.join(
-                        analysis_dir,
-                        "thresh_" + prefix + str(stat_num) + ".nii.gz")
-                    upd_thresh = os.path.join(
-                        analysis_dir,
-                        "thresh_" + prefix + str(stat_num) + "_sub.nii.gz")
-                    shutil.copy(org_thresh, upd_thresh)
-                    # Amend the call to cluster command to export coordinates
-                    # in mm
-                    cmd = cmd.replace(
-                        "cluster ", "cluster --mm ").replace(
-                        prefix + str(stat_num),
-                        prefix + str(stat_num) + "_sub")
-                    cmd = cmd.replace(
-                        "cluster ",
-                        os.path.join(self.fsl_path, "bin", "cluster "))
-                    subprocess.check_call(
-                        "cd "+analysis_dir+";"+cmd, shell=True)
-                    # Remove *_zstat1_sub.nii.gz images (created temporarily)
-                    tmp_files = glob.glob(
-                        os.path.join(analysis_dir, '*_sub.nii.gz'))
-                    for tmp_file in tmp_files:
-                        os.remove(tmp_file)
+
+                    exc_set = "thresh_" + prefix + str(stat_num) + ".nii.gz"
+
+                    clus_tab = np.loadtxt(cluster_file, skiprows=1)
+                    tab_hdr = 'Cluster Index    Voxels  P   -log10(P)   Z-MAX   Z-MAX X (vox)   Z-MAX Y (vox)   Z-MAX Z (vox)   Z-COG X (vox)   Z-COG Y (vox)   Z-COG Z (vox)   COPE-MAX    COPE-MAX X (vox)    COPE-MAX Y (vox)    COPE-MAX Z (vox)    COPE-MEAN'
+
+                    # Replace first 3 columns with coordinates
+                    zmax_vox = np.insert(clus_tab[:,5:8], 3, 1, axis=1)
+                    zcog_vox = np.insert(clus_tab[:,8:11], 3, 1, axis=1)
+                    copemax_vox = np.insert(clus_tab[:,12:15], 3, 1, axis=1)
+
+                    # Read in excursion set
+                    exc_set_img = nib.load(exc_set)
+
+                    # Transformation matrix from voxels to mm
+                    voxToWorld = exc_set_img.affine
+
+                    # Tranform to world space.
+                    zmax_mm = np.dot(zmax_vox, voxToWorld)
+                    zcog_mm = np.dot(zcog_vox, voxToWorld)
+                    copemax_mm = np.dot(copemax_vox, voxToWorld)
+
+                    # Write the new coordinates back into the table
+                    clus_tab[:,5:8] = zmax_mm[:, :3]
+                    clus_tab[:,8:11] = zcog_mm[:, :3]
+                    clus_tab[:,12:15] = copemax_mm[:, :3]
+
+                    print(clus_tab.shape)
+
+                    cluster_mm_file = os.path.join(analysis_dir, 'cluster_' + prefix + str(stat_num) + '_sub.txt')
+
+                    np.savetxt(cluster_mm_file, clus_tab, header=tab_hdr, comments='', fmt='%i %i %.2e %3g %3g %i %i %i %3g %3g %3g %i %i %i %i %i')
+
+
+
+
+
                 else:
                     warnings.warn(
                         "'cluster' command (from FSL) not found in log, " +
