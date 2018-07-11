@@ -1178,8 +1178,6 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     clus_tab[:,8:11] = zcog_mm[:, :3]
                     clus_tab[:,12:15] = copemax_mm[:, :3]
 
-                    print(clus_tab.shape)
-
                     cluster_mm_file = os.path.join(analysis_dir, 'cluster_' + prefix + str(stat_num) + '_sub.txt')
 
                     np.savetxt(cluster_mm_file, clus_tab, header=tab_hdr, comments='', fmt='%i %i %.2e %3g %3g %i %i %i %3g %3g %3g %i %i %i %i %i')
