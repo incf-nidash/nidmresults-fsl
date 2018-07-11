@@ -83,7 +83,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             # Path to FSL library (None if unavailable)
             self.fsl_path = os.getenv('FSLDIR')
 
-        except:
+        except Exception:
             self.cleanup()
             raise
 
@@ -143,7 +143,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                         self.analyses_num[self.analysis_dirs[0]] = ""
 
             super(FSLtoNIDMExporter, self).parse()
-        except:
+        except Exception:
             self.cleanup()
             raise
 
