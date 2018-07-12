@@ -534,7 +534,8 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                         cluster_vox_tab[:, 5:8] = cluster_vox
 
                 if cluster_vox_tab is not None:
-                    # Relabel using new sets of labels (times 10000)
+                    # Relabel using a different set of labels to avoid conflict
+                    # when doing the replacment with FSL labels
                     labels = labels*max(num_feat, 10000)
 
                     # Replace existing labels by FSL labels
