@@ -1074,15 +1074,15 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         Parse FSL result directory to retreive peak connectivity within a
         cluster.
         """
+        # Default connectivity in FSL (26)
+        connectivity = 26
+
         if feat_post_log is not None:
             conn_re = r'cluster.* --connectivity=(?P<connectivity>\d+)+ .*'
             connectivity_search = re.compile(conn_re)
-            connectivity = int(
-                connectivity_search.search(
-                    feat_post_log).group('connectivity'))
-        else:
-            # Default connectivity in FSL (26)
-            connectivity = 26
+            conn_in_log = connectivity_search.search(feat_post_log)
+            if conn_in_log is not None:
+                connectivity = int(conn_in_log.group('connectivity'))
 
         return connectivity
 
