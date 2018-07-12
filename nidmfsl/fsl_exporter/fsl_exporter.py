@@ -1159,8 +1159,8 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
                     # Replace first 3 columns with coordinates
                     zmax_vox = np.insert(clus_tab[:,5:8], 3, 1, axis=1)
-                    #zcog_vox = np.insert(clus_tab[:,8:11], 3, 1, axis=1)
-                    #copemax_vox = np.insert(clus_tab[:,12:15], 3, 1, axis=1)
+                    zcog_vox = np.insert(clus_tab[:,8:11], 3, 1, axis=1)
+                    copemax_vox = np.insert(clus_tab[:,12:15], 3, 1, axis=1)
 
                     # Read in excursion set
                     filterfunc_img = nib.load(filterfunc)
@@ -1177,9 +1177,9 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     copemax_mm = np.dot(copemax_vox, voxToWorld)
 
                     # Write the new coordinates back into the table
-                    clus_tab[:,5:8] = zmax_mm[:, :3]
-                    clus_tab[:,8:11] = zcog_mm[:, :3]
-                    clus_tab[:,12:15] = copemax_mm[:, :3]
+                    clus_tab[:,5:8] = zmax_mm[:, :3] + intrcp
+                    clus_tab[:,8:11] = zcog_mm[:, :3] + intrcp
+                    clus_tab[:,12:15] = copemax_mm[:, :3] + intrcp
 
                     cluster_mm_file = os.path.join(analysis_dir, 'cluster_' + prefix + str(stat_num) + '_sub.txt')
 

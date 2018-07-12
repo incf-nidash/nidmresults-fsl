@@ -20,14 +20,19 @@ exc_set_img = nib.load(exc_set)
 # Transformation matrix from voxels to mm
 voxToWorld = exc_set_img.affine
 
-# Transformation matrix from mm back to voxels
-worldToVox = npla.inv(voxToWorld)
+# Intercept.
+intrcp = voxToWorld[:3, 3]
+
+print(intrcp)
 
 zmax_mm = np.dot(zmax_coords, voxToWorld)
 
 zcog_mm = np.dot(zcog_coords, voxToWorld)
 
 copemax_mm = np.dot(copemax_coords, voxToWorld)
+
+print(zmax_mm[:, :3])
+print(zmax_mm[:, :3] + intrcp)
 
 numberarray[:,5:8] = zmax_mm[:, :3]
 numberarray[:,8:11] = zcog_mm[:, :3]
