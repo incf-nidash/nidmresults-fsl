@@ -527,8 +527,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                         # Transform cluster positions in mm into voxels
                         cluster_mm = cluster_mm_tab[:, 5:8]
                         excset_img = nib.load(filename)
-                        voxToWorld = excset_img.affine
-                        worldToVox = npla.inv(voxToWorld)
+                        worldToVox = npla.inv(excset_img.affine)
                         cluster_vox = apply_affine(worldToVox, cluster_mm)
                         cluster_vox_tab = cluster_mm_tab
                         cluster_vox_tab[:, 5:8] = cluster_vox
