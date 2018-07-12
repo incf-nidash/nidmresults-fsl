@@ -21,6 +21,8 @@ import scipy.ndimage
 import numpy as np
 import subprocess
 import warnings
+import numpy.linalg as npla
+from nibabel.affines import apply_affine
 
 # If "nidmresults" code is available locally work on the source code (used
 # only for development)
@@ -485,8 +487,60 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 labels, num_feat = scipy.ndimage.label(excset_img.get_data(),
                                                        structure)
 
-                # Relabel using new sets of labels (times 10000)
-                labels = labels*max(num_feat, 10000)
+                # Update labels to match FSL's table
+                # If clusters are available in voxel space
+                cluster_vox_file = glob.glob(
+                    os.path.join(analysis_dir,
+                                 'cluster*' + str(stat_num) + '.txt'))
+                if not cluster_vox_file:
+                    cluster_vox_tab = None
+                elif len(cluster_vox_file) > 1:
+                    print(cluster_vox_file)
+                    warnings.warn("Found more than 1 cluster vox file")
+                else:
+                    with warnings.catch_warnings():
+                        # Ignore "Empty input file" for no significant cluster
+                        warnings.simplefilter("ignore")
+                        cluster_vox_tab = np.loadtxt(cluster_vox_file[0],
+                                                     skiprows=1)
+
+                # If cluster vox table was not found look for coordinates in
+                # world space and convert to voxel space
+                if cluster_vox_tab is None:
+                    cluster_file = glob.glob(
+                        os.path.join(analysis_dir,
+                                     'cluster*' + str(stat_num) + '*_std.txt'))
+                    if not cluster_file:
+                        cluster_mm_tab = None
+                    elif len(cluster_file) > 1:
+                        print(cluster_file)
+                        warnings.warn("Found more than 1 cluster file")
+                    else:
+                        with warnings.catch_warnings():
+                            # Ignore "Empty input file" for no significant
+                            # cluster
+                            warnings.simplefilter("ignore")
+                            cluster_mm_tab = np.loadtxt(cluster_file[0],
+                                                        skiprows=1)
+
+                    if cluster_mm_tab is not None:
+                        # Transform cluster positions in mm into voxels
+                        cluster_mm = cluster_mm_tab[:, 5:8]
+                        excset_img = nib.load(filename)
+                        voxToWorld = excset_img.affine
+                        worldToVox = npla.inv(voxToWorld)
+                        cluster_vox = apply_affine(worldToVox, cluster_mm)
+                        cluster_vox_tab = cluster_mm_tab
+                        cluster_vox_tab[:, 5:8] = cluster_vox
+
+                if cluster_vox_tab is not None:
+                    # Relabel using new sets of labels (times 10000)
+                    labels = labels*max(num_feat, 10000)
+
+                    # Replace existing labels by FSL labels
+                    for clid, _, _, _, _, x, y, z, _, _, _, _, _, _, _, _ in \
+                            cluster_vox_tab:
+                        labels[labels == labels[int(x), int(y), int(z)]] = clid
 
                 clusterlabels_img = nib.Nifti1Image(
                     labels,
