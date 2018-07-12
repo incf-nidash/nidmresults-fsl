@@ -484,8 +484,8 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                                     str(connectivity))
 
                 # Compute connected clusters from excursion set
-                labels, num_feat = scipy.ndimage.label(excset_img.get_data(),
-                                                       structure)
+                labels, num_labels = scipy.ndimage.label(excset_img.get_data(),
+                                                         structure)
 
                 # Update labels to match FSL's table
                 # If clusters are available in voxel space
@@ -535,7 +535,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 if cluster_vox_tab is not None:
                     # Relabel using a different set of labels to avoid conflict
                     # when doing the replacment with FSL labels
-                    labels = labels*max(num_feat, 10000)
+                    labels = labels*max(num_labels, 10000)
 
                     # Replace existing labels by FSL labels
                     for clid, _, _, _, _, x, y, z, _, _, _, _, _, _, _, _ in \
