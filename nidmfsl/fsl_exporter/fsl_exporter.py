@@ -441,13 +441,13 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 if os.path.isfile(feat_post_log_file):
                     with open(feat_post_log_file, 'r') as log:
                         feat_post_log = log.read()
-                    connectivity = 26  # FSL's default
+                    connectivity = self._get_connectivity(feat_post_log)
                 else:
                     warnings.warn(
                         "Log file feat4_post not found, " +
                         "connectivity information will not be reported")
                     feat_post_log = None
-                    connectivity = self._get_connectivity(feat_post_log)
+                    connectivity = 26  # FSL's default
 
                 if connectivity == 6:
                     structure = np.array([[[0, 0, 0],
