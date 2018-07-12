@@ -431,8 +431,63 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     analysis_dir, 'tmp_clustmap' + stat_num_t + '.nii.gz')
 
                 excset_img = nib.load(filename)
-                # Copy excursion set as cluster label map --> to FIX
-                labels, unused = scipy.ndimage.label(excset_img.get_data())
+                # Get cluster connectivity
+                # There is not table display listing peaks and clusters for
+                # voxelwise correction
+                feat_post_log_file = os.path.join(
+                    analysis_dir, 'logs', 'feat4_post')
+                if os.path.isfile(feat_post_log_file):
+                    with open(feat_post_log_file, 'r') as log:
+                        feat_post_log = log.read()
+                    connectivity = 26  # FSL's default
+                else:
+                    warnings.warn(
+                        "Log file feat4_post not found, " +
+                        "connectivity information will not be reported")
+                    feat_post_log = None
+                    connectivity = self._get_connectivity(feat_post_log)
+
+                if connectivity == 6:
+                    structure = np.array([[[0, 0, 0],
+                                           [0, 1, 0],
+                                           [0, 0, 0]],
+                                          [[0, 1, 0],
+                                           [1, 1, 1],
+                                           [0, 1, 0]],
+                                          [[0, 0, 0],
+                                           [0, 1, 0],
+                                           [0, 0, 0]]], dtype='uint8')
+                elif connectivity == 18:
+                    structure = np.array([[[0, 1, 0],
+                                           [1, 1, 1],
+                                           [0, 1, 0]],
+                                         [[1, 1, 1],
+                                          [1, 1, 1],
+                                          [1, 1, 1]],
+                                         [[0, 1, 0],
+                                          [1, 1, 1],
+                                          [0, 1, 0]]], dtype='uint8')
+                if connectivity == 26:
+                    structure = np.array([[[1, 1, 1],
+                                           [1, 1, 1],
+                                           [1, 1, 1]],
+                                          [[1, 1, 1],
+                                           [1, 1, 1],
+                                           [1, 1, 1]],
+                                          [[1, 1, 1],
+                                           [1, 1, 1],
+                                           [1, 1, 1]]], dtype='uint8')
+                else:
+                    raise Exception('Unknown connectivity: ' +
+                                    str(connectivity))
+
+                # Compute connected clusters from excursion set
+                labels, num_feat = scipy.ndimage.label(excset_img.get_data(),
+                                                       structure)
+
+                # Relabel using new sets of labels (times 10000)
+                labels = labels*max(num_feat, 10000)
+
                 clusterlabels_img = nib.Nifti1Image(
                     labels,
                     excset_img.affine)
@@ -492,19 +547,6 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 # Extent Threshold
                 extent_thresh = ExtentThreshold(p_corr=extent_p_corr)
 
-                # There is not table display listing peaks and clusters for
-                # voxelwise correction
-                feat_post_log_file = os.path.join(
-                    analysis_dir, 'logs', 'feat4_post')
-                if os.path.isfile(feat_post_log_file):
-                    with open(feat_post_log_file, 'r') as log:
-                        feat_post_log = log.read()
-                else:
-                    warnings.warn(
-                        "Log file feat4_post not found, " +
-                        "connectivity information will not be reported")
-                    feat_post_log = None
-
                 # Clusters (and associated peaks)
                 clusters = self._get_clusters_peaks(
                     analysis_dir,
@@ -519,7 +561,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                         self._get_num_peaks(feat_post_log))
                     clus_criteria = ClusterCriteria(
                         stat_num,
-                        self._get_connectivity(feat_post_log))
+                        connectivity)
                 else:
                     # Missing peaks and clusters (this happens for voxel-wise
                     # threshold with FSL < x.x)
