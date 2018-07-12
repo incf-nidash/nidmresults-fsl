@@ -1167,16 +1167,19 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
                     # Transformation matrix from voxels to mm
                     voxToWorld = filterfunc_img.affine
+                    
+                    # Intercept.
+                    intrcp = voxToWorld[:3, 3]
 
                     # Tranform to world space.
                     zmax_mm = np.dot(zmax_vox, voxToWorld)
-                    #zcog_mm = np.dot(zcog_vox, voxToWorld)
-                    #copemax_mm = np.dot(copemax_vox, voxToWorld)
+                    zcog_mm = np.dot(zcog_vox, voxToWorld)
+                    copemax_mm = np.dot(copemax_vox, voxToWorld)
 
                     # Write the new coordinates back into the table
                     clus_tab[:,5:8] = zmax_mm[:, :3]
-                    #clus_tab[:,8:11] = zcog_mm[:, :3]
-                    #clus_tab[:,12:15] = copemax_mm[:, :3]
+                    clus_tab[:,8:11] = zcog_mm[:, :3]
+                    clus_tab[:,12:15] = copemax_mm[:, :3]
 
                     cluster_mm_file = os.path.join(analysis_dir, 'cluster_' + prefix + str(stat_num) + '_sub.txt')
 
