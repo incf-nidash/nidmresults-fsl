@@ -525,10 +525,18 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
                     if cluster_mm_tab is not None:
                         # Transform cluster positions in mm into voxels
+                        # Read in coordinates of clusters in mm space
                         cluster_mm = cluster_mm_tab[:, 5:8]
+
+                        # Read in excursion set image header to obtain
+                        # world to voxel mapping
                         excset_img = nib.load(filename)
                         worldToVox = npla.inv(excset_img.affine)
+
+                        # Transform cluster coordinates to voxel space
                         cluster_vox = apply_affine(worldToVox, cluster_mm)
+
+                        # Record coordinates
                         cluster_vox_tab = cluster_mm_tab
                         cluster_vox_tab[:, 5:8] = cluster_vox
 
