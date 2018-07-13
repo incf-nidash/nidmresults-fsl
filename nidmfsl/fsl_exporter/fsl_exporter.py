@@ -1245,20 +1245,18 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
                 if cmd_match:
 
-                    # Read in excursion set header.
-                    filterfunc = os.path.join(analysis_dir, "filtered_func_data.nii.gz")
-
-                    # Read in cluster file as table and save header.
-                    cluster_file = os.path.join(analysis_dir, cluster_name)
-                    clus_tab = np.loadtxt(cluster_file, skiprows=1)
-                    tab_hdr = 'Cluster Index    Voxels  P   -log10(P)   Z-MAX   Z-MAX X (mm)   Z-MAX Y (mm)   Z-MAX Z (mm)   Z-COG X (mm)   Z-COG Y (mm)   Z-COG Z (mm)   COPE-MAX    COPE-MAX X (mm)    COPE-MAX Y (mm)    COPE-MAX Z (mm)    COPE-MEAN'
-
                     # Read in filtered functional image to get header.
+                    filterfunc = os.path.join(analysis_dir, "filtered_func_data.nii.gz")
                     filterfunc_img = nib.load(filterfunc)
 
                     # Get transformation matrix from voxels to subject mm from
                     # the header.
                     voxToWorld = filterfunc_img.affine
+
+                    # Read in cluster file as table and save header.
+                    cluster_file = os.path.join(analysis_dir, cluster_name)
+                    clus_tab = np.loadtxt(cluster_file, skiprows=1)
+                    tab_hdr = 'Cluster Index    Voxels  P   -log10(P)   Z-MAX   Z-MAX X (mm)   Z-MAX Y (mm)   Z-MAX Z (mm)   Z-COG X (mm)   Z-COG Y (mm)   Z-COG Z (mm)   COPE-MAX    COPE-MAX X (mm)    COPE-MAX Y (mm)    COPE-MAX Z (mm)    COPE-MEAN'
 
                     # Transform coordinates from voxels to subject mm.
                     clus_tab[:,5:8] = apply_affine(voxToWorld, clus_tab[:,5:8])
@@ -1306,13 +1304,48 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         peak_file_mm = os.path.join(
             analysis_dir,
             'lmax_' + prefix + str(stat_num) + peak_mm_suffix + '.txt')
+
         if not os.path.isfile(peak_file_mm):
-            peak_file_mm = None
+
+            # Check if this is first level
+            if not self.first_level: 
+
+                peak_file_mm = None
+
+            else:
+
+                # If in first level we recreate the peak_sub file if we can.
+                if not peak_file_vox is None:
+
+                    # Read in filtered functional image to get header.
+                    filterfunc = os.path.join(analysis_dir, "filtered_func_data.nii.gz")
+                    filterfunc_img = nib.load(filterfunc)
+
+                    # Get transformation matrix from voxels to subject mm from
+                    # the header.
+                    voxToWorld = filterfunc_img.affine
+
+                    # Read in peak file as table and save header.
+                    peak_tab = np.loadtxt(peak_file_vox, skiprows=1)
+                    tab_hdr = 'Cluster Index    Z   x   y   z '
+
+                    # Transform coordinates from voxels to subject mm.
+                    peak_tab[:,2:5] = apply_affine(voxToWorld, peak_tab[:,2:5])
+
+                    # Write into a new file.
+                    np.savetxt(peak_file_mm, peak_tab, header=tab_hdr, comments='', fmt='%i %.2e %3f %3f %3f')
+
+                    peak_mm_table = peak_tab
+
+                else:
+
+                    peak_file_mm = None
+
         else:
             with warnings.catch_warnings():
                 # Ignore "Empty input file" for no significant peak
                 warnings.simplefilter("ignore")
-                peak_std_table = np.loadtxt(
+                peak_mm_table = np.loadtxt(
                     peak_file_mm, skiprows=1, ndmin=2)
 
         peaks = dict()
@@ -1320,7 +1353,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         if (peak_file_vox is not None) and (peak_file_mm is not None):
 
             peaks_join_table = np.column_stack(
-                (peak_table, peak_std_table))
+                (peak_table, peak_mm_table))
 
             num_clusters = peaks_join_table.max(axis=0)[0]
             max_num_peaks = peaks_join_table.shape[0]
@@ -1376,11 +1409,11 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 prev_cluster = cluster_id
 
                 peakIndex = peakIndex + 1
-        elif (peak_file_mm is not None) and (peak_std_table.size > 0):
-            num_clusters = peak_std_table.max(axis=0)[0]
-            max_num_peaks = peak_std_table.shape[0]
+        elif (peak_file_mm is not None) and (peak_mm_table.size > 0):
+            num_clusters = peak_mm_table.max(axis=0)[0]
+            max_num_peaks = peak_mm_table.shape[0]
 
-            for peak_row in peak_std_table:
+            for peak_row in peak_mm_table:
                 cluster_id = int(peak_row[0])
 
                 if not cluster_id == prev_cluster:
