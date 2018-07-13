@@ -1253,32 +1253,20 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     clus_tab = np.loadtxt(cluster_file, skiprows=1)
                     tab_hdr = 'Cluster Index    Voxels  P   -log10(P)   Z-MAX   Z-MAX X (mm)   Z-MAX Y (mm)   Z-MAX Z (mm)   Z-COG X (mm)   Z-COG Y (mm)   Z-COG Z (mm)   COPE-MAX    COPE-MAX X (mm)    COPE-MAX Y (mm)    COPE-MAX Z (mm)    COPE-MEAN'
 
-                    # Replace first 3 columns with coordinates
-                    zmax_vox = np.insert(clus_tab[:,5:8], 3, 1, axis=1)
-                    zcog_vox = np.insert(clus_tab[:,8:11], 3, 1, axis=1)
-                    copemax_vox = np.insert(clus_tab[:,12:15], 3, 1, axis=1)
-
-                    # Read in excursion set
+                    # Read in filtered functional image to get header.
                     filterfunc_img = nib.load(filterfunc)
 
-                    # Transformation matrix from voxels to mm
+                    # Get transformation matrix from voxels to subject mm from
+                    # the header.
                     voxToWorld = filterfunc_img.affine
-                    
-                    # Intercept.
-                    intrcp = voxToWorld[:3, 3]
 
-                    # Tranform to world space.
-                    zmax_mm = np.dot(zmax_vox, voxToWorld)
-                    zcog_mm = np.dot(zcog_vox, voxToWorld)
-                    copemax_mm = np.dot(copemax_vox, voxToWorld)
+                    # Transform coordinates from voxels to subject mm.
+                    clus_tab[:,5:8] = apply_affine(voxToWorld, clus_tab[:,5:8])
+                    clus_tab[:,8:11] = apply_affine(voxToWorld, clus_tab[:,8:11])
+                    clus_tab[:,12:15] = apply_affine(voxToWorld, clus_tab[:,12:15])
 
-                    # Write the new coordinates back into the table
-                    clus_tab[:,5:8] = zmax_mm[:, :3] + intrcp
-                    clus_tab[:,8:11] = zcog_mm[:, :3] + intrcp
-                    clus_tab[:,12:15] = copemax_mm[:, :3] + intrcp
-
+                    # Write into a new file.
                     cluster_mm_file = os.path.join(analysis_dir, 'cluster_' + prefix + str(stat_num) + '_sub.txt')
-
                     np.savetxt(cluster_mm_file, clus_tab, header=tab_hdr, comments='', fmt='%i %i %.2e %3g %3g %i %i %i %3g %3g %3g %i %i %i %i %i')
 
                 else:
