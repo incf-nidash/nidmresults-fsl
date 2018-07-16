@@ -28,9 +28,9 @@ install:
  - cd test/data/nidmresults-examples
  # Is this is not a git repo them clone nidmresults-examples
  - if ! [ -d .git ]; then git lfs clone https://github.com/incf-nidash/nidmresults-examples.git .; fi
- - git remote add TomMaullin https://github.com/TomMaullin/nidmresults-examples.git 
+ - git remote add TomMaullin https://github.com/TomMaullin/nidmresults-examples.git
+ - git fetch TomMaullin
  - git checkout TomMaullin/CoordinateUpdate
- - git fetch TomMaullin/CoordinateUpdate
  - git lfs install
   # Delete any previous changes (retry because lfs might download files)
  - travis_retry git reset --hard origin/${NIDM_EX_BRANCH}
