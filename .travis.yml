@@ -27,8 +27,9 @@ install:
  - export PATH=$PATH:`pwd`/git-lfs-1.4.1
  - cd test/data/nidmresults-examples
  # Is this is not a git repo them clone nidmresults-examples
- - if ! [ -d .git ]; then git lfs clone https://github.com/incf-nidash/nidmresults-examples.git .; fi
- - git fetch origin
+ - if ! [ -d .git ]; then git lfs clone https://github.com/tommaullin/nidmresults-examples.git .; fi
+ - git checkout CoordinateUpdate
+ - git fetch CoordinateUpdate
  - git lfs install
   # Delete any previous changes (retry because lfs might download files)
  - travis_retry git reset --hard origin/${NIDM_EX_BRANCH}
