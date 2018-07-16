@@ -28,6 +28,7 @@ install:
  - cd test/data/nidmresults-examples
  # Is this is not a git repo them clone nidmresults-examples
  - if ! [ -d .git ]; then git lfs clone https://github.com/incf-nidash/nidmresults-examples.git .; fi
+ - cd nidmresults-examples
  - git remote add TomMaullin https://github.com/TomMaullin/nidmresults-examples.git
  - git fetch TomMaullin
  - git checkout TomMaullin/CoordinateUpdate
