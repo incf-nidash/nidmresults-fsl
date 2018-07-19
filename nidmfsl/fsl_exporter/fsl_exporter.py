@@ -1258,14 +1258,14 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     clus_tab = np.loadtxt(cluster_file, skiprows=1)
                     tab_hdr = 'Cluster Index    Voxels  P   -log10(P)   Z-MAX   Z-MAX X (mm)   Z-MAX Y (mm)   Z-MAX Z (mm)   Z-COG X (mm)   Z-COG Y (mm)   Z-COG Z (mm)   COPE-MAX    COPE-MAX X (mm)    COPE-MAX Y (mm)    COPE-MAX Z (mm)    COPE-MEAN'
 
-                    # Transform coordinates from voxels to subject mm.
+                    # Transform coordinates from voxels to subject mm (casting to a float with only 3 significant figures for cog corrdinates).
                     clus_tab[:,5:8] = apply_affine(voxToWorld, clus_tab[:,5:8])
-                    clus_tab[:,8:11] = apply_affine(voxToWorld, clus_tab[:,8:11])
+                    clus_tab[:,8:11] = [[float('%.3g' % j) for j in i] for i in apply_affine(voxToWorld, clus_tab[:,8:11])]
                     clus_tab[:,12:15] = apply_affine(voxToWorld, clus_tab[:,12:15])
 
                     # Write into a new file.
                     cluster_mm_file = os.path.join(analysis_dir, 'cluster_' + prefix + str(stat_num) + '_sub.txt')
-                    np.savetxt(cluster_mm_file, clus_tab, header=tab_hdr, comments='', fmt='%i %i %.2e %3g %3g %i %i %i %.1f %.1f %.1f %i %i %i %i %i')
+                    np.savetxt(cluster_mm_file, clus_tab, header=tab_hdr, comments='', fmt='%i %i %.2e %3g %3g %i %i %i %s %s %s %i %i %i %i %i')
 
                 else:
                     warnings.warn(
