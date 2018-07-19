@@ -8,8 +8,8 @@ env:
   global:
     - CCACHE_COMPRESS=1
     - CASHER_TIME_OUT=500
-    - NIDM_EX_BRANCH=CoordinateUpdate
-    - NIDM_EX_REMOTE=TomMaullin
+    - NIDM_EX_BRANCH=master
+    - NIDM_EX_REMOTE=origin
 python:
   - "2.7"
   - "3.5"
