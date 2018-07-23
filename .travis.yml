@@ -9,6 +9,7 @@ env:
     - CCACHE_COMPRESS=1
     - CASHER_TIME_OUT=500
     - NIDM_EX_BRANCH=master
+    - NIDM_EX_REMOTE=origin
 python:
   - "2.7"
   - "3.5"
@@ -28,19 +29,20 @@ install:
  - cd test/data/nidmresults-examples
  # Is this is not a git repo them clone nidmresults-examples
  - if ! [ -d .git ]; then git lfs clone https://github.com/incf-nidash/nidmresults-examples.git .; fi
- - git fetch origin
+ - git fetch ${NIDM_EX_REMOTE}
+ - git checkout ${NIDM_EX_REMOTE}/${NIDM_EX_BRANCH}
  - git lfs install
   # Delete any previous changes (retry because lfs might download files)
- - travis_retry git reset --hard origin/${NIDM_EX_BRANCH}
+ - travis_retry git reset --hard ${NIDM_EX_REMOTE}/${NIDM_EX_BRANCH}
  # A second time to allow for 3 more retries as "--retry 9" does not seem to be
  # taken into account by Travis CI
- - travis_retry git reset --hard origin/${NIDM_EX_BRANCH}
+ - travis_retry git reset --hard ${NIDM_EX_REMOTE}/${NIDM_EX_BRANCH}
  - cd ../../..
  # Avoid "html5lib requires setuptools version 18.5" error
  - pip install --upgrade setuptools
  - pip install -r requirements.txt
  - python setup.py install # install nidmfsl from sources
- # Packages only needed for testing (others are set up in requirements.txt)
+  # Packages only needed for testing (others are set up in requirements.txt)
  - pip install vcrpy
  - pip install ddt
 # command to run tests, e.g. python setup.py test
@@ -55,3 +57,4 @@ before_install:
  - git config --global user.email "travis@dummy.com"
 # after_success:
 #   coveralls
+

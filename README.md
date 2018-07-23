@@ -35,9 +35,45 @@ optional arguments:
 
 
 ##### Installation
+
+To install, run the below command in the bash terminal.
 ```
     pip install nidmfsl
 ```
 
 ##### Compatible with 
 FSL version 5.0.9
+
+##### Testing
+
+###### Requirements
+
+To run the tests for this repository, the following must be installed
+
+- Git LFS. Installation instructions for Git LFS can be found [here](https://git-lfs.github.com/).
+
+- The python packages `vcr` and `ddt`. These can be installed using the below commands in the bash terminal:
+
+```
+pip install vcrpy
+pip install ddt
+```
+
+In addition, the test data must also be downloaded from the `nidmresults-examples` repository to `<path_to_this_repository>/test/data/nidmresults-examples`.
+
+```
+git lfs clone https://github.com/incf-nidash/nidmresults-examples.git <path_to_this_repository>/test/data/nidmresults-examples
+```
+
+###### Running the tests
+
+The below command can be used to generate the test cases.
+```
+python <path_to_this_repository>/test/export_test_battery.py
+```
+
+Folowing this, the test cases can be verified against the ground truth provided in the `nidmresults-examples` repository using the below command.
+```
+cd <path_to_this_repository>/test/
+python -m unittest discover
+```

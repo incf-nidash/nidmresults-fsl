@@ -1,1 +1,2 @@
-nidmresults>=1.2.0,<2.0.0
+nidmresults>=2.0.0,<3.0.0
+scipy
