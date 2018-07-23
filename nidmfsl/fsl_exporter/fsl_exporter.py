@@ -84,8 +84,8 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                                            "1.2.0"]
             # Path to FSL library (None if unavailable)
             self.fsl_path = os.getenv('FSLDIR')
-
         except Exception:
+            self.export_dir = out_dir
             self.cleanup()
             raise
 
