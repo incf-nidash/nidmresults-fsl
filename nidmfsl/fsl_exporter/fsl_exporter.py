@@ -5,14 +5,25 @@ specification.
 @author: Camille Maumet <c.m.j.maumet@warwick.ac.uk>
 @copyright: University of Warwick 2013-2014
 """
+
+from nidmresults.exporter import NIDMExporter
+from nidmresults.objects.constants import *
+from nidmresults.objects.modelfitting import *
+from nidmresults.objects.contrast import *
+from nidmresults.objects.inference import *
+from nidmfsl.fsl_exporter.objects.fsl_objects import *
+
 import re
 import os
 import sys
 import glob
 import json
+import scipy.ndimage
 import numpy as np
 import subprocess
 import warnings
+import numpy.linalg as npla
+from nibabel.affines import apply_affine
 
 # If "nidmresults" code is available locally work on the source code (used
 # only for development)
@@ -23,13 +34,6 @@ NIDM_RESULTS_SRC_DIR = os.path.join(
     os.path.dirname(NIDM_RESULTS_FSL_DIR), "nidmresults")
 if os.path.isdir(NIDM_RESULTS_SRC_DIR):
     sys.path.append(NIDM_RESULTS_SRC_DIR)
-
-from nidmresults.exporter import NIDMExporter
-from nidmresults.objects.constants import *
-from nidmresults.objects.modelfitting import *
-from nidmresults.objects.contrast import *
-from nidmresults.objects.inference import *
-from nidmfsl.fsl_exporter.objects.fsl_objects import *
 
 
 class FSLtoNIDMExporter(NIDMExporter, object):
@@ -82,8 +86,8 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                                            "1.2.0"]
             # Path to FSL library (None if unavailable)
             self.fsl_path = os.getenv('FSLDIR')
-
-        except:
+        except Exception:
+            self.export_dir = out_dir
             self.cleanup()
             raise
 
@@ -144,7 +148,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                         self.analyses_num[self.analysis_dirs[0]] = ""
 
             super(FSLtoNIDMExporter, self).parse()
-        except:
+        except Exception:
             self.cleanup()
             raise
 
@@ -528,31 +532,137 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 zFileImg = filename
 
                 # Cluster Labels Map
-                if self.fsl_path is not None:
-                    cmd = os.path.join(self.fsl_path, "bin", "cluster")
-                    cluster_labels_map = os.path.join(
-                        analysis_dir, 'tmp_clustmap' + stat_num_idx +
-                        '.nii.gz')
-                    cmd = cmd + " -i " + zFileImg + \
-                                " -o " + cluster_labels_map + " -t 0.01"
+                cluster_labels_map = os.path.join(
+                    analysis_dir, 'tmp_clustmap' + stat_num_idx + '.nii.gz')
 
-                    # Discard stdout
-                    FNULL = open(os.devnull, 'w')
-                    subprocess.check_call(
-                        "cd "+analysis_dir+";"+cmd, shell=True,
-                        stdout=FNULL, stderr=subprocess.STDOUT)
-
-                    temporary = True
-
-                    clust_map = ClusterLabelsMap(
-                        cluster_labels_map, self.coord_space,
-                        suffix=stat_num_idx,
-                        temporary=temporary)
+                excset_img = nib.load(filename)
+                # Get cluster connectivity
+                # There is not table display listing peaks and clusters for
+                # voxelwise correction
+                feat_post_log_file = os.path.join(
+                    analysis_dir, 'logs', 'feat4_post')
+                if os.path.isfile(feat_post_log_file):
+                    with open(feat_post_log_file, 'r') as log:
+                        feat_post_log = log.read()
+                    connectivity = self._get_connectivity(feat_post_log)
                 else:
                     warnings.warn(
-                        "'cluster' command (from FSL) not found, " +
-                        "cluster labels maps will not be exported")
-                    clust_map = None
+                        "Log file feat4_post not found, " +
+                        "connectivity information will not be reported")
+                    feat_post_log = None
+                    connectivity = 26  # FSL's default
+
+                if connectivity == 6:
+                    structure = np.array([[[0, 0, 0],
+                                           [0, 1, 0],
+                                           [0, 0, 0]],
+                                          [[0, 1, 0],
+                                           [1, 1, 1],
+                                           [0, 1, 0]],
+                                          [[0, 0, 0],
+                                           [0, 1, 0],
+                                           [0, 0, 0]]], dtype='uint8')
+                elif connectivity == 18:
+                    structure = np.array([[[0, 1, 0],
+                                           [1, 1, 1],
+                                           [0, 1, 0]],
+                                         [[1, 1, 1],
+                                          [1, 1, 1],
+                                          [1, 1, 1]],
+                                         [[0, 1, 0],
+                                          [1, 1, 1],
+                                          [0, 1, 0]]], dtype='uint8')
+                if connectivity == 26:
+                    structure = np.array([[[1, 1, 1],
+                                           [1, 1, 1],
+                                           [1, 1, 1]],
+                                          [[1, 1, 1],
+                                           [1, 1, 1],
+                                           [1, 1, 1]],
+                                          [[1, 1, 1],
+                                           [1, 1, 1],
+                                           [1, 1, 1]]], dtype='uint8')
+                else:
+                    raise Exception('Unknown connectivity: ' +
+                                    str(connectivity))
+
+                # Compute connected clusters from excursion set
+                labels, num_labels = scipy.ndimage.label(excset_img.get_data(),
+                                                         structure)
+
+                # Update labels to match FSL's table
+                # If clusters are available in voxel space
+                cluster_vox_file = glob.glob(
+                    os.path.join(analysis_dir,
+                                 'cluster*' + str(stat_num) + '.txt'))
+                if not cluster_vox_file:
+                    cluster_vox_tab = None
+                elif len(cluster_vox_file) > 1:
+                    print(cluster_vox_file)
+                    warnings.warn("Found more than 1 cluster vox file")
+                else:
+                    with warnings.catch_warnings():
+                        # Ignore "Empty input file" for no significant cluster
+                        warnings.simplefilter("ignore")
+                        cluster_vox_tab = np.loadtxt(cluster_vox_file[0],
+                                                     skiprows=1)
+
+                # If cluster vox table was not found look for coordinates in
+                # world space and convert to voxel space
+                if cluster_vox_tab is None:
+                    cluster_file = glob.glob(
+                        os.path.join(analysis_dir,
+                                     'cluster*' + str(stat_num) + '*_std.txt'))
+                    if not cluster_file:
+                        cluster_mm_tab = None
+                    elif len(cluster_file) > 1:
+                        print(cluster_file)
+                        warnings.warn("Found more than 1 cluster file")
+                    else:
+                        with warnings.catch_warnings():
+                            # Ignore "Empty input file" for no significant
+                            # cluster
+                            warnings.simplefilter("ignore")
+                            cluster_mm_tab = np.loadtxt(cluster_file[0],
+                                                        skiprows=1)
+
+                    if cluster_mm_tab is not None:
+                        # Transform cluster positions in mm into voxels
+                        # Read in coordinates of clusters in mm space
+                        cluster_mm = cluster_mm_tab[:, 5:8]
+
+                        # Read in excursion set image header to obtain
+                        # world to voxel mapping
+                        excset_img = nib.load(filename)
+                        worldToVox = npla.inv(excset_img.affine)
+
+                        # Transform cluster coordinates to voxel space
+                        cluster_vox = apply_affine(worldToVox, cluster_mm)
+
+                        # Record coordinates
+                        cluster_vox_tab = cluster_mm_tab
+                        cluster_vox_tab[:, 5:8] = cluster_vox
+
+                if cluster_vox_tab is not None:
+                    # Relabel using a different set of labels to avoid conflict
+                    # when doing the replacment with FSL labels
+                    labels = labels*max(num_labels, 10000)
+
+                    # Replace existing labels by FSL labels
+                    for clid, _, _, _, _, x, y, z, _, _, _, _, _, _, _, _ in \
+                            cluster_vox_tab:
+                        labels[labels == labels[int(x), int(y), int(z)]] = clid
+
+                clusterlabels_img = nib.Nifti1Image(
+                    labels,
+                    excset_img.affine)
+                nib.save(clusterlabels_img, cluster_labels_map)
+
+                temporary = True
+                clust_map = ClusterLabelsMap(
+                    cluster_labels_map, self.coord_space,
+                    suffix=stat_num_idx,
+                    temporary=temporary)
 
                 # FIXME: When doing contrast masking is the excursion set
                 # stored in thresh_zstat the one after or before contrast
@@ -607,19 +717,6 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 # Extent Threshold
                 extent_thresh = ExtentThreshold(p_corr=extent_p_corr)
 
-                # There is not table display listing peaks and clusters for
-                # voxelwise correction
-                feat_post_log_file = os.path.join(
-                    analysis_dir, 'logs', 'feat4_post')
-                if os.path.isfile(feat_post_log_file):
-                    with open(feat_post_log_file, 'r') as log:
-                        feat_post_log = log.read()
-                else:
-                    warnings.warn(
-                        "Log file feat4_post not found, " +
-                        "connectivity information will not be reported")
-                    feat_post_log = None
-
                 # Clusters (and associated peaks)
                 clusters = self._get_clusters_peaks(
                     analysis_dir,
@@ -634,7 +731,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                         self._get_num_peaks(feat_post_log))
                     clus_criteria = ClusterCriteria(
                         stat_num,
-                        self._get_connectivity(feat_post_log))
+                        connectivity)
                 else:
                     # Missing peaks and clusters (this happens for voxel-wise
                     # threshold with FSL < x.x)
@@ -1085,15 +1182,15 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         Parse FSL result directory to retreive peak connectivity within a
         cluster.
         """
+        # Default connectivity in FSL (26)
+        connectivity = 26
+
         if feat_post_log is not None:
             conn_re = r'cluster.* --connectivity=(?P<connectivity>\d+)+ .*'
             connectivity_search = re.compile(conn_re)
-            connectivity = int(
-                connectivity_search.search(
-                    feat_post_log).group('connectivity'))
-        else:
-            # Default connectivity in FSL (26)
-            connectivity = 26
+            conn_in_log = connectivity_search.search(feat_post_log)
+            if conn_in_log is not None:
+                connectivity = int(conn_in_log.group('connectivity'))
 
         return connectivity
 
@@ -1260,39 +1357,35 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
                 cmd = os.path.join(self.fsl_path, "bin", "cluster")
 
-                cluster_file = "cluster_" + prefix + str(stat_num) + ".txt"
+                cluster_name = "cluster_" + prefix + str(stat_num) + ".txt"
 
                 cmd_match = re.search(
-                    "(?P<cmd>cluster.*"+cluster_file+")\n", log_txt)
+                    "(?P<cmd>cluster.*"+cluster_name+")\n", log_txt)
 
                 if cmd_match:
-                    cmd = cmd_match.group("cmd")
-                    # Copy input file (as is typically done before call to
-                    # cluster command in FSL) in order to prevent overwriting
-                    # the original output
-                    org_thresh = os.path.join(
-                        analysis_dir,
-                        "thresh_" + prefix + str(stat_num) + ".nii.gz")
-                    upd_thresh = os.path.join(
-                        analysis_dir,
-                        "thresh_" + prefix + str(stat_num) + "_sub.nii.gz")
-                    shutil.copy(org_thresh, upd_thresh)
-                    # Amend the call to cluster command to export coordinates
-                    # in mm
-                    cmd = cmd.replace(
-                        "cluster ", "cluster --mm ").replace(
-                        prefix + str(stat_num),
-                        prefix + str(stat_num) + "_sub")
-                    cmd = cmd.replace(
-                        "cluster ",
-                        os.path.join(self.fsl_path, "bin", "cluster "))
-                    subprocess.check_call(
-                        "cd "+analysis_dir+";"+cmd, shell=True)
-                    # Remove *_zstat1_sub.nii.gz images (created temporarily)
-                    tmp_files = glob.glob(
-                        os.path.join(analysis_dir, '*_sub.nii.gz'))
-                    for tmp_file in tmp_files:
-                        os.remove(tmp_file)
+
+                    # Read in filtered functional image to get header.
+                    filterfunc = os.path.join(analysis_dir, "filtered_func_data.nii.gz")
+                    filterfunc_img = nib.load(filterfunc)
+
+                    # Get transformation matrix from voxels to subject mm from
+                    # the header.
+                    voxToWorld = filterfunc_img.affine
+
+                    # Read in cluster file as table and save header.
+                    cluster_file = os.path.join(analysis_dir, cluster_name)
+                    clus_tab = np.loadtxt(cluster_file, skiprows=1)
+                    tab_hdr = 'Cluster Index    Voxels  P   -log10(P)   Z-MAX   Z-MAX X (mm)   Z-MAX Y (mm)   Z-MAX Z (mm)   Z-COG X (mm)   Z-COG Y (mm)   Z-COG Z (mm)   COPE-MAX    COPE-MAX X (mm)    COPE-MAX Y (mm)    COPE-MAX Z (mm)    COPE-MEAN'
+
+                    # Transform coordinates from voxels to subject mm (casting to a float with only 3 significant figures for cog corrdinates).
+                    clus_tab[:,5:8] = apply_affine(voxToWorld, clus_tab[:,5:8])
+                    clus_tab[:,8:11] = [[float('%.3g' % j) for j in i] for i in apply_affine(voxToWorld, clus_tab[:,8:11])]
+                    clus_tab[:,12:15] = apply_affine(voxToWorld, clus_tab[:,12:15])
+
+                    # Write into a new file.
+                    cluster_mm_file = os.path.join(analysis_dir, 'cluster_' + prefix + str(stat_num) + '_sub.txt')
+                    np.savetxt(cluster_mm_file, clus_tab, header=tab_hdr, comments='', fmt='%i %i %.2e %3g %3g %i %i %i %s %s %s %i %i %i %i %i')
+
                 else:
                     warnings.warn(
                         "'cluster' command (from FSL) not found in log, " +
@@ -1330,13 +1423,48 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         peak_file_mm = os.path.join(
             analysis_dir,
             'lmax_' + prefix + str(stat_num) + peak_mm_suffix + '.txt')
+
         if not os.path.isfile(peak_file_mm):
-            peak_file_mm = None
+
+            # Check if this is first level
+            if not self.first_level: 
+
+                peak_file_mm = None
+
+            else:
+
+                # If in first level we recreate the peak_sub file if we can.
+                if not peak_file_vox is None:
+
+                    # Read in filtered functional image to get header.
+                    filterfunc = os.path.join(analysis_dir, "filtered_func_data.nii.gz")
+                    filterfunc_img = nib.load(filterfunc)
+
+                    # Get transformation matrix from voxels to subject mm from
+                    # the header.
+                    voxToWorld = filterfunc_img.affine
+
+                    # Read in peak file as table and save header.
+                    peak_tab = np.loadtxt(peak_file_vox, skiprows=1)
+                    tab_hdr = 'Cluster Index    Z   x   y   z '
+
+                    # Transform coordinates from voxels to subject mm.
+                    peak_tab[:,2:5] = apply_affine(voxToWorld, peak_tab[:,2:5])
+
+                    # Write into a new file.
+                    np.savetxt(peak_file_mm, peak_tab, header=tab_hdr, comments='', fmt='%i %.2e %3f %3f %3f')
+
+                    peak_mm_table = peak_tab
+
+                else:
+
+                    peak_file_mm = None
+
         else:
             with warnings.catch_warnings():
                 # Ignore "Empty input file" for no significant peak
                 warnings.simplefilter("ignore")
-                peak_std_table = np.loadtxt(
+                peak_mm_table = np.loadtxt(
                     peak_file_mm, skiprows=1, ndmin=2)
 
         peaks = dict()
@@ -1345,7 +1473,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         if (peak_file_vox is not None) and (peak_file_mm is not None):
 
             peaks_join_table = np.column_stack(
-                (peak_table, peak_std_table))
+                (peak_table, peak_mm_table))
 
             num_clusters = peaks_join_table.max(axis=0)[0]
             max_num_peaks = peaks_join_table.shape[0]
@@ -1401,11 +1529,11 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 prev_cluster = cluster_id
 
                 peakIndex = peakIndex + 1
-        elif (peak_file_mm is not None) and (peak_std_table.size > 0):
-            num_clusters = peak_std_table.max(axis=0)[0]
-            max_num_peaks = peak_std_table.shape[0]
+        elif (peak_file_mm is not None) and (peak_mm_table.size > 0):
+            num_clusters = peak_mm_table.max(axis=0)[0]
+            max_num_peaks = peak_mm_table.shape[0]
 
-            for peak_row in peak_std_table:
+            for peak_row in peak_mm_table:
                 cluster_id = int(peak_row[0])
 
                 if not cluster_id == prev_cluster:
