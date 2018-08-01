@@ -627,9 +627,17 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                                                         skiprows=1)
 
                     if cluster_mm_tab is not None:
+
+                        # Work out which are z-max xyz columns.
+                        xcol = self._get_column_indices(cluster_file[0], 'Z-MAX X')[0]
+                        
                         # Transform cluster positions in mm into voxels
                         # Read in coordinates of clusters in mm space
-                        cluster_mm = cluster_mm_tab[:, 5:8]
+                        cluster_mm = cluster_mm_tab[:, xcol:(xcol+3)]
+
+                        print('cluster mm')
+                        print(repr(cluster_mm))
+                        print(repr(np.shape(cluster_mm)))
 
                         # Read in excursion set image header to obtain
                         # world to voxel mapping
@@ -641,16 +649,44 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
                         # Record coordinates
                         cluster_vox_tab = cluster_mm_tab
-                        cluster_vox_tab[:, 5:8] = cluster_vox
+                        cluster_vox_tab[:, xcol:(xcol+3)] = cluster_vox
 
                 if cluster_vox_tab is not None:
+
+                    # If we have a voxel table it was either derived from the
+                    # mm table and must have the same column layout...
+                    if not cluster_vox_file:
+                        
+                        cluster_file = glob.glob(
+                            os.path.join(analysis_dir,
+                                         'cluster*' + str(stat_num) + '*_std.txt'))
+                    
+                        # Work out which are z-max xyz columns and cluster labels id.
+                        xcol = self._get_column_indices(cluster_file[0], 'Z-MAX X')[0]
+                        clidcol = self._get_column_indices(cluster_file[0], 'Cluster Index')[0]
+
+                    # Or we had a cluster_vox_file already!
+                    else:
+
+                        print('islist')
+                        print(isinstance(cluster_vox_file, list))
+                        # Work out which are z-max xyz columns and cluster labels id.
+                        xcol = self._get_column_indices(cluster_vox_file[0], 'Z-MAX X')[0]
+                        clidcol = self._get_column_indices(cluster_vox_file[0], 'Cluster Index')[0]
+
+                    
+                    
                     # Relabel using a different set of labels to avoid conflict
                     # when doing the replacment with FSL labels
                     labels = labels*max(num_labels, 10000)
 
+                    print(repr(np.shape(cluster_vox_tab)))
+
                     # Replace existing labels by FSL labels
-                    for clid, _, _, _, _, x, y, z, _, _, _, _, _, _, _, _ in \
-                            cluster_vox_tab:
+                    for i in range(0,np.shape(cluster_vox_tab)[0]):
+
+                        clid = cluster_vox_tab[i, clidcol]
+                        x, y, z = cluster_vox_tab[i, xcol:(xcol+3)]
                         labels[labels == labels[int(x), int(y), int(z)]] = clid
 
                 clusterlabels_img = nib.Nifti1Image(
@@ -1201,6 +1237,9 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         with open(tableFile) as f:
             header = f.readline().split('\t')
 
+        print('hdr')
+        print(repr(header))
+        
         return([i for i, s in enumerate(header) if colHeadStr in s])
 
     def _get_search_space(self, analysis_dir):
@@ -1364,6 +1403,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
                 if cmd_match:
 
+                    print('active')
                     # Read in filtered functional image to get header.
                     filterfunc = os.path.join(analysis_dir, "filtered_func_data.nii.gz")
                     filterfunc_img = nib.load(filterfunc)
@@ -1372,15 +1412,35 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     # the header.
                     voxToWorld = filterfunc_img.affine
 
-                    # Read in cluster file as table and save header.
+                    # Read in cluster file as table and make new header.
                     cluster_file = os.path.join(analysis_dir, cluster_name)
                     clus_tab = np.loadtxt(cluster_file, skiprows=1)
-                    tab_hdr = 'Cluster Index    Voxels  P   -log10(P)   Z-MAX   Z-MAX X (mm)   Z-MAX Y (mm)   Z-MAX Z (mm)   Z-COG X (mm)   Z-COG Y (mm)   Z-COG Z (mm)   COPE-MAX    COPE-MAX X (mm)    COPE-MAX Y (mm)    COPE-MAX Z (mm)    COPE-MEAN'
+                    with open(cluster_file) as f:
+                        tab_hdr = f.readline().replace('(vox)', '(mm)')
 
-                    # Transform coordinates from voxels to subject mm (casting to a float with only 3 significant figures for cog corrdinates).
-                    clus_tab[:,5:8] = apply_affine(voxToWorld, clus_tab[:,5:8])
-                    clus_tab[:,8:11] = [[float('%.3g' % j) for j in i] for i in apply_affine(voxToWorld, clus_tab[:,8:11])]
-                    clus_tab[:,12:15] = apply_affine(voxToWorld, clus_tab[:,12:15])
+                    # Look for Z-MAX, Z-COG and COPE-MAX xyz coordinates.
+                    xcol_zm = self._get_column_indices(cluster_file, 'Z-MAX X')
+                    xcol_zc = self._get_column_indices(cluster_file, 'Z-COG X')
+                    xcol_cm = self._get_column_indices(cluster_file, 'COPE-MAX X')
+
+                    print(repr(not xcol_zm))
+                    print(repr(not xcol_zc))
+                    print(repr(not xcol_cm))
+
+                    # Transform coordinates from voxels to subject mm, checking whether each
+                    # column is present first, casting to a float with only 3 significant
+                    # figures for cog corrdinates).
+                    if xcol_zm:
+                        ind = xcol_zm[0]
+                        clus_tab[:,ind:(ind+3)] = apply_affine(voxToWorld, clus_tab[:,ind:(ind+3)])
+
+                    if xcol_zc:
+                        ind = xcol_zc[0]
+                        clus_tab[:,ind:(ind+3)] = [[float('%.3g' % j) for j in i] for i in apply_affine(voxToWorld, clus_tab[:,ind:(ind+3)])]
+
+                    if xcol_cm:
+                        ind = xcol_cm[0]
+                        clus_tab[:,ind:(ind+3)] = apply_affine(voxToWorld, clus_tab[:,ind:(ind+3)])
 
                     # Write into a new file.
                     cluster_mm_file = os.path.join(analysis_dir, 'cluster_' + prefix + str(stat_num) + '_sub.txt')
@@ -1561,6 +1621,10 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             xyzcols = self._get_column_indices(cluster_vox_file, 'Z-COG ')
             xyzcols_std = [cluster_table.shape[1] + i for i in
                            self._get_column_indices(cluster_mm_file, 'Z-COG ')]
+            print('xyzcols_std')
+            print(repr(xyzcols_std))
+            print('clus_mm_file')
+            print(cluster_mm_file)
 
             for cluster_row in clusters_join_table:
 
