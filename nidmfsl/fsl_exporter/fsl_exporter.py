@@ -1422,6 +1422,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     if xcol_zm:
                         ind = xcol_zm[0]
                         clus_tab[:,ind:(ind+3)] = apply_affine(voxToWorld, clus_tab[:,ind:(ind+3)])
+                        print(repr(clus_tab[:,ind:(ind+3)]))
 
                     if xcol_zc:
                         ind = xcol_zc[0]
@@ -1641,12 +1642,23 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             xyzcols = self._get_column_indices(cluster_vox_file, 'Z-COG ')
             xyzcols_std = [cluster_table.shape[1] + i for i in
                            self._get_column_indices(cluster_mm_file, 'Z-COG ')]
-
+            
+            with open(cluster_vox_file) as f:
+                print(cluster_vox_file)
+                print(f.readline())
+                
+            pcol = self._get_column_indices(cluster_vox_file, 'P')[0]
+                        
             for cluster_row in clusters_join_table:
 
                 cluster_id = int(cluster_row[0])
                 size = int(cluster_row[1])
-                pFWER = float(cluster_row[2])
+                
+                if pcol:
+                    pFWER = float(cluster_row[pcol])
+                else:
+                    pFWER = []
+                    
                 x = float(cluster_row[xyzcols[0]])
                 y = float(cluster_row[xyzcols[1]])
                 z = float(cluster_row[xyzcols[2]])
@@ -1663,10 +1675,21 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
             xyzcols = self._get_column_indices(cluster_vox_file, 'Z-COG ')
 
+            with open(cluster_vox_file) as f:
+                print(cluster_vox_file)
+                print(f.readline())
+            
+            pcol = self._get_column_indices(cluster_vox_file, 'P')[0]
+
             for cluster_row in cluster_table:
                 cluster_id = int(cluster_row[0])
                 size = int(cluster_row[1])
-                pFWER = float(cluster_row[2])
+                
+                if pcol:
+                    pFWER = float(cluster_row[pcol])
+                else:
+                    pFWER = []
+                
                 x = float(cluster_row[xyzcols[0]])
                 y = float(cluster_row[xyzcols[1]])
                 z = float(cluster_row[xyzcols[2]])
@@ -1679,13 +1702,25 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                                 cluster_id], x=x, y=y, z=z,
                             x_std=x_std, y_std=y_std, z_std=z_std))
         elif (cluster_mm_file is not None):
+
+            with open(cluster_mm_file) as f:
+                print(cluster_mm_file)
+                print(f.readline())
+            
+            pcol = self._get_column_indices(cluster_mm_file, 'P')[0]
+            
             for cluster_row in cluster_mm_table:
 
                 xyzcols_std = self._get_column_indices(cluster_mm_file,
                                                        'Z-COG ')
                 cluster_id = int(cluster_row[0])
                 size = int(cluster_row[1])
-                pFWER = float(cluster_row[2])
+                
+                if pcol:
+                    pFWER = float(cluster_row[pcol])
+                else:
+                    pFWER = []
+                    
                 x_std = float(cluster_row[xyzcols_std[0]])
                 y_std = float(cluster_row[xyzcols_std[1]])
                 z_std = float(cluster_row[xyzcols_std[2]])
