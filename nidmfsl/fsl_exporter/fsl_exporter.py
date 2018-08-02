@@ -1456,10 +1456,10 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     for colhdr in tab_hdr.split('\t'):
 
                         # These columns should be displayed as ints.
-                        if (('Cluster Index' in colhdr) or
-                              ('Z-MAX' in colhdr) or
-                              ('COPE' in colhdr) or
-                              ('Voxels' in colhdr)):
+                        if (('Cluster Index' in colhdr) or (
+                                'Z-MAX' in colhdr) or (
+                                    'COPE' in colhdr) or (
+                                        'Voxels' in colhdr)):
 
                             if not ((colhdr == 'Z-MAX') or
                                     (colhdr == 'Z-MAX ')):
