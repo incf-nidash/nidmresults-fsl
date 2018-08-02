@@ -599,7 +599,8 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 else:
                     cluster_vox_file = glob.glob(
                         os.path.join(analysis_dir,
-                                     'cluster_zfstat' + str(stat_num) + '.txt'))                  
+                                     'cluster_zfstat' + str(stat_num) + \
+                                        '.txt'))
                 if not cluster_vox_file:
                     cluster_vox_tab = None
                 elif len(cluster_vox_file) > 1:
@@ -635,7 +636,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
                         # Work out which are z-max xyz columns.
                         xcol = self._get_column_indices(cluster_file[0], 'Z-MAX X')[0]
-                        
+
                         # Transform cluster positions in mm into voxels
                         # Read in coordinates of clusters in mm space
                         cluster_mm = cluster_mm_tab[:, xcol:(xcol+3)]
@@ -657,11 +658,11 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     # If we have a voxel table it was either derived from the
                     # mm table and must have the same column layout...
                     if not cluster_vox_file:
-                        
+
                         cluster_file = glob.glob(
                             os.path.join(analysis_dir,
                                          'cluster*' + str(stat_num) + '*_std.txt'))
-                    
+
                         # Work out which are z-max xyz columns and cluster labels id.
                         xcol = self._get_column_indices(cluster_file[0], 'Z-MAX X')[0]
                         clidcol = self._get_column_indices(cluster_file[0], 'Cluster Index')[0]
@@ -673,8 +674,6 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                         xcol = self._get_column_indices(cluster_vox_file[0], 'Z-MAX X')[0]
                         clidcol = self._get_column_indices(cluster_vox_file[0], 'Cluster Index')[0]
 
-                    
-                    
                     # Relabel using a different set of labels to avoid conflict
                     # when doing the replacment with FSL labels
                     labels = labels*max(num_labels, 10000)
@@ -1439,12 +1438,12 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     # Work out the header format.
                     hdrfmt = ''
                     for colhdr in tab_hdr.split('\t'):
-                        
+
                         # These columns should be displayed as ints.
                         if ('Cluster Index' in colhdr) or ('Z-MAX' in colhdr) or ('COPE' in colhdr) or ('Voxels' in colhdr):
 
                             if not ((colhdr == 'Z-MAX') or (colhdr == 'Z-MAX ')):
-                            
+
                                 hdrfmt = hdrfmt + '%i '
 
                             else:
@@ -1465,10 +1464,12 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                         if (colhdr == 'P') or (colhdr == 'P '):
 
                             hdrfmt = hdrfmt + '%.2e '
-                    
+
                     # Write into a new file.
-                    cluster_mm_file = os.path.join(analysis_dir, 'cluster_' + prefix + str(stat_num) + '_sub.txt')
-                    np.savetxt(cluster_mm_file, clus_tab, header=tab_hdr, comments='', fmt=hdrfmt)
+                    cluster_mm_file = os.path.join(analysis_dir, 'cluster_' + \
+                                                   prefix + str(stat_num) + '_sub.txt')
+                    np.savetxt(cluster_mm_file, clus_tab, header=tab_hdr, comments='',
+                               fmt=hdrfmt)
 
                 else:
                     warnings.warn(
@@ -1511,7 +1512,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         if not os.path.isfile(peak_file_mm):
 
             # Check if this is first level
-            if not self.first_level: 
+            if not self.first_level:
 
                 peak_file_mm = None
 
@@ -1537,10 +1538,12 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     x_col = self._get_column_indices(peak_file_vox, 'x')[0]
 
                     # Transform coordinates from voxels to subject mm.
-                    peak_tab[:,x_col:x_col+3] = apply_affine(voxToWorld, peak_tab[:,x_col:x_col+3])
+                    peak_tab[:,x_col:x_col+3] = apply_affine(voxToWorld,
+                                                             peak_tab[:,x_col:x_col+3])
 
                     # Write into a new file.
-                    np.savetxt(peak_file_mm, peak_tab, header=tab_hdr, comments='', fmt='%i %.2e %3f %3f %3f')
+                    np.savetxt(peak_file_mm, peak_tab, header=tab_hdr, comments='',
+                               fmt='%i %.2e %3f %3f %3f')
 
                     peak_mm_table = peak_tab
 
@@ -1591,8 +1594,9 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                                                max_stat_num)
 
                 peak = Peak(
-                    x=int(peak_row[x_col]), y=int(peak_row[x_col+1]), z=int(peak_row[x_col+2]),
-                    x_std=peak_row[x_col_std], y_std=peak_row[x_col_std+1], z_std=peak_row[x_col_std+2],
+                    x=int(peak_row[x_col]), y=int(peak_row[x_col+1]),
+                    z=int(peak_row[x_col+2]), x_std=peak_row[x_col_std],
+                    y_std=peak_row[x_col_std+1], z_std=peak_row[x_col_std+2],
                     equiv_z=float(peak_row[ez_col]), suffix=suffix)
                 if cluster_id in peaks:
                     peaks[cluster_id].append(peak)
@@ -1608,7 +1612,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
             # Find out which columns are the coordinates.
             x_col = self._get_column_indices(peak_file_vox, 'x')[0]
-            
+
             # Find out which column is equivalent Z.
             ez_col = self._get_column_indices(peak_file_vox, 'Z')[0]
 
@@ -1626,8 +1630,9 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                                                num_clusters, max_num_peaks,
                                                max_stat_num)
                 peak = Peak(
-                    x=int(peak_row[x_col]), y=int(peak_row[x_col+1]), z=int(peak_row[x_col+2]),
-                    equiv_z=float(peak_row[ez_col]), suffix=suffix)
+                    x=int(peak_row[x_col]), y=int(peak_row[x_col+1]),
+                    z=int(peak_row[x_col+2]), equiv_z=float(peak_row[ez_col]),
+                    suffix=suffix)
                 if cluster_id in peaks:
                     peaks[cluster_id].append(peak)
                 else:
@@ -1660,8 +1665,9 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                                                num_clusters, max_num_peaks,
                                                max_stat_num)
                 peak = Peak(
-                    x_std=peak_row[x_col_std], y_std=peak_row[x_col_std+1], z_std=peak_row[x_col_std+2],
-                    equiv_z=float(peak_row[ez_col]), suffix=suffix)
+                    x_std=peak_row[x_col_std], y_std=peak_row[x_col_std+1],
+                    z_std=peak_row[x_col_std+2], quiv_z=float(peak_row[ez_col]),
+                    suffix=suffix)
                 if cluster_id in peaks:
                     peaks[cluster_id].append(peak)
                 else:
@@ -1686,18 +1692,18 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             ci_col = self._get_column_indices(cluster_vox_file, 'Cluster Index')[0]
 
             # Find out which column is cluster size.
-            s_col = self._get_column_indices(cluster_vox_file, 'Voxels')[0] 
-                        
+            s_col = self._get_column_indices(cluster_vox_file, 'Voxels')[0]
+
             for cluster_row in clusters_join_table:
 
                 cluster_id = int(cluster_row[ci_col])
                 size = int(cluster_row[s_col])
-                
+
                 if pcol:
                     pFWER = float(cluster_row[pcol[0]])
                 else:
                     pFWER = None
-                    
+
                 x = float(cluster_row[xyzcols[0]])
                 y = float(cluster_row[xyzcols[1]])
                 z = float(cluster_row[xyzcols[2]])
@@ -1719,20 +1725,21 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             pcol = self._get_column_indices(cluster_vox_file, 'P')
 
             # Find out which column is cluster index.
-            ci_col = self._get_column_indices(cluster_vox_file, 'Cluster Index')[0]
+            ci_col = self._get_column_indices(cluster_vox_file,
+                                              'Cluster Index')[0]
 
             # Find out which column is cluster size.
-            s_col = self._get_column_indices(cluster_vox_file, 'Voxels')[0] 
-    
+            s_col = self._get_column_indices(cluster_vox_file, 'Voxels')[0]
+
             for cluster_row in cluster_table:
                 cluster_id = int(cluster_row[ci_col])
                 size = int(cluster_row[s_col])
-                
+
                 if pcol:
                     pFWER = float(cluster_row[pcol[0]])
                 else:
                     pFWER = None
-                
+
                 x = float(cluster_row[xyzcols[0]])
                 y = float(cluster_row[xyzcols[1]])
                 z = float(cluster_row[xyzcols[2]])
@@ -1754,21 +1761,22 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                                                        'Z-COG ')
 
             # Find out which column is cluster index.
-            ci_col = self._get_column_indices(cluster_mm_file, 'Cluster Index')[0]
+            ci_col = self._get_column_indices(cluster_mm_file,
+                                              'Cluster Index')[0]
 
             # Find out which column is cluster size.
-            s_col = self._get_column_indices(cluster_mm_file, 'Voxels')[0] 
-            
+            s_col = self._get_column_indices(cluster_mm_file, 'Voxels')[0]
+
             for cluster_row in cluster_mm_table:
 
                 cluster_id = int(cluster_row[ci_col])
                 size = int(cluster_row[s_col])
-                
+
                 if pcol:
                     pFWER = float(cluster_row[pcol[0]])
                 else:
                     pFWER = None
-                    
+
                 x_std = float(cluster_row[xyzcols_std[0]])
                 y_std = float(cluster_row[xyzcols_std[1]])
                 z_std = float(cluster_row[xyzcols_std[2]])
