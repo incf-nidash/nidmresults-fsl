@@ -1684,11 +1684,14 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
             # Find out which column is cluster index.
             ci_col = self._get_column_indices(cluster_vox_file, 'Cluster Index')[0]
+
+            # Find out which column is cluster size.
+            s_col = self._get_column_indices(cluster_vox_file, 'Voxels')[0] 
                         
             for cluster_row in clusters_join_table:
 
                 cluster_id = int(cluster_row[ci_col])
-                size = int(cluster_row[1])
+                size = int(cluster_row[s_col])
                 
                 if pcol:
                     pFWER = float(cluster_row[pcol[0]])
@@ -1716,11 +1719,14 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             pcol = self._get_column_indices(cluster_vox_file, 'P')
 
             # Find out which column is cluster index.
-            ci_col = self._get_column_indices(cluster_vox_file, 'Cluster Index')[0] 
+            ci_col = self._get_column_indices(cluster_vox_file, 'Cluster Index')[0]
+
+            # Find out which column is cluster size.
+            s_col = self._get_column_indices(cluster_vox_file, 'Voxels')[0] 
     
             for cluster_row in cluster_table:
                 cluster_id = int(cluster_row[ci_col])
-                size = int(cluster_row[1])
+                size = int(cluster_row[s_col])
                 
                 if pcol:
                     pFWER = float(cluster_row[pcol[0]])
@@ -1748,12 +1754,15 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                                                        'Z-COG ')
 
             # Find out which column is cluster index.
-            ci_col = self._get_column_indices(cluster_mm_file, 'Cluster Index')[0] 
+            ci_col = self._get_column_indices(cluster_mm_file, 'Cluster Index')[0]
+
+            # Find out which column is cluster size.
+            s_col = self._get_column_indices(cluster_mm_file, 'Voxels')[0] 
             
             for cluster_row in cluster_mm_table:
 
                 cluster_id = int(cluster_row[ci_col])
-                size = int(cluster_row[1])
+                size = int(cluster_row[s_col])
                 
                 if pcol:
                     pFWER = float(cluster_row[pcol[0]])
