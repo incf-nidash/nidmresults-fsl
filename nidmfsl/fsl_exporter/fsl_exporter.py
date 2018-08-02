@@ -1457,9 +1457,9 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
                         # These columns should be displayed as ints.
                         if (('Cluster Index' in colhdr) or
-                            ('Z-MAX' in colhdr) or
-                            ('COPE' in colhdr) or
-                            ('Voxels' in colhdr)):
+                              ('Z-MAX' in colhdr) or
+                              ('COPE' in colhdr) or
+                              ('Voxels' in colhdr)):
 
                             if not ((colhdr == 'Z-MAX') or
                                     (colhdr == 'Z-MAX ')):

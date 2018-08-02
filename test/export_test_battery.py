@@ -124,9 +124,10 @@ if __name__ == '__main__':
 
                     if test_name == "fsl_full_examples001":
 
-                        # For our test case full_examples001 we need to change path
-                        # to the onset files (stored in the feat folder) so that
-                        # the type of model (mixed, event, block) can be retreived
+                        # For our test case full_examples001 we need to change
+                        # path to the onset files (stored in the feat folder)
+                        # so that the type of model (mixed, event, block)
+                        # can be retreived
                         fsf_file = os.path.join(data_dir, "design.fsf")
                         fsf_cp = os.path.join(data_dir, "design_cp.fsf")
                         shutil.copy(fsf_file, fsf_cp)
@@ -137,8 +138,7 @@ if __name__ == '__main__':
 
                         with open(fsf_file, 'w') as fsf:
 
-                            fsf.write(
-                                design.replace(
+                            fsf.write(design.replace(
                                 "/storage/wmsmfe/fsl_course_data/fmri_fluency",
                                 data_dir))
 
