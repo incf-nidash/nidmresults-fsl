@@ -5,6 +5,7 @@ specification.
 @author: Camille Maumet <c.m.j.maumet@warwick.ac.uk>
 @copyright: University of Warwick 2013-2014
 """
+
 from nidmresults.exporter import NIDMExporter
 from nidmresults.objects.constants import *
 from nidmresults.objects.modelfitting import *
@@ -76,7 +77,8 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             self.design_file = os.path.join(self.feat_dir, 'design.fsf')
 
             self.coord_space = None
-            self.contrast_names_by_num = dict()
+            self.t_contrast_names_by_num = dict()
+            self.f_contrast_names_by_num = dict()
 
             self.groups = groups
 
@@ -111,8 +113,9 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 if self.groups is None:
                     self.num_subjects = 1
                 else:
-                    raise Exception("Groups specified as input in\
-     a first-level analysis: (groups=" + ",".join(str(self.groups))+")")
+                    raise Exception("Groups specified as input in"
+                                    "a first-level analysis: (groups="
+                                    ",".join(str(self.groups))+")")
             else:
                 if not self.groups:
                     # Number of subject per groups was introduced in 1.3.0
@@ -120,7 +123,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                         raise Exception("Group analysis with unspecified"
                                         "groups.")
                 # If feat was called with the GUI then the analysis directory
-                # is in the nested cope folder
+                # is in the nested cope folder.
                 self.analysis_dirs = glob.glob(
                     os.path.join(self.feat_dir, 'cope*.feat'))
 
@@ -242,30 +245,108 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             dof_file = open(os.path.join(stat_dir, 'dof'), 'r')
             dof = float(dof_file.read())
 
-            exc_sets = glob.glob(os.path.join(analysis_dir,
-                                              'thresh_z*.nii.gz'))
+            # We must get the T statistics first. We need to have recorded all
+            # T statistics in order to then record F statistics.
+            exc_sets_t = glob.glob(os.path.join(analysis_dir,
+                                                'thresh_zstat*.nii.gz'))
+            exc_sets_f = glob.glob(os.path.join(analysis_dir,
+                                                'thresh_zfstat*.nii.gz'))
+
+            # If we have F contrasts we need to record certain T contrast
+            # details.
+            if len(exc_sets_f) > 0:
+                numOfTCons = len(exc_sets_t)
+                tWeights = ['']*numOfTCons
+                tNames = ['']*numOfTCons
+
+            # This ordering is important. T statistics must be recorded first.
+            exc_sets = exc_sets_t + exc_sets_f
 
             for filename in exc_sets:
+
                 con_num, stat_type, stat_num_idx = self._get_stat_num(
                     filename, analysis_dir, exc_sets)
 
-                # Contrast name
-                name_re = r'.*set fmri\(conname_real\.' + str(con_num) +\
-                    '\) "(?P<info>[^"]+)".*'
-                contrast_name = self._search_in_fsf(name_re)
-                self.contrast_names_by_num[con_num] = contrast_name
+                if stat_type == 'T':
+
+                    # Contrast name
+                    name_re = r'.*set fmri\(conname_real\.' + str(con_num) +\
+                        '\) "(?P<info>[^"]+)".*'
+                    contrast_name = self._search_in_fsf(name_re)
+                    self.t_contrast_names_by_num[con_num] = contrast_name
+
+                    # Contrast weights
+                    weights_re = r'.*set fmri\(con_real' + str(con_num) +\
+                        '\.\d+\) (?P<info>-?\d+)'
+                    weight_search = re.compile(weights_re)
+                    contrast_weights = str(
+                        re.findall(weight_search,
+                                   self.design_txt)).replace("'", '')
+
+                    # If we have F contrasts we need to record some T contrast
+                    # details.
+                    if len(exc_sets_f) > 0:
+                        tWeights[con_num-1] = [
+                            float(i) for i in re.findall(
+                                weight_search, self.design_txt)]
+                        tNames[con_num-1] = contrast_name
+
+                    # For parameter estimate maps.
+                    pe_weights = contrast_weights
+
+                    # Effect dof
+                    effdof = float(1)
+
+                else:
+
+                    # Record relations between T and F stats.
+                    TtoF_re = r'.*set fmri\(ftest_real' + str(con_num) +\
+                        '\.\d+\) (?P<info>-?\d+)'
+
+                    TtoF_search = re.compile(TtoF_re)
+                    TtoF_vec = re.findall(TtoF_search, self.design_txt)
+                    TtoF_vec = [float(i) for i in TtoF_vec]
+
+                    # Using the T contrast weights that have been recorded
+                    # already, create the F contrast weight matrix and contrast
+                    # name.
+                    contrast_weights = []
+                    contrast_name = ''
+                    pe_weights = [0]*len(tWeights[0])
+                    for i in range(numOfTCons):
+
+                        if TtoF_vec[i] == 1:
+
+                            contrast_weights.append(tWeights[i])
+                            contrast_name += tNames[i].strip() + ' & '
+
+                            # Record parameter estimates used.
+                            weightsZero = [int(j != 0) for j in tWeights[i]]
+                            pe_weights = [sum(i) for i in
+                                          zip(weightsZero, pe_weights)]
+
+                    # Compute the effect degrees of freedom as the rank of the
+                    # contrast weight matrix.
+                    effdof = float(np.linalg.matrix_rank(
+                                    np.array(contrast_weights)))
+
+                    # Convert contrast_weights to string representation.
+                    contrast_weights = str(contrast_weights).replace("'", '')
+
+                    # Remove last ' & ' from contrast name.
+                    contrast_name = contrast_name[:-3]
+
+                    # These will ve used for determining which parameters were
+                    # used.
+                    pe_weights = str(pe_weights).replace("'", '')
+
+                    # Record the contrast name.
+                    self.f_contrast_names_by_num[con_num] = contrast_name
 
                 # Contrast estimation activity
                 estimation = ContrastEstimation(con_num, contrast_name)
 
-                # Contrast weights
-                weights_re = r'.*set fmri\(con_real' + str(con_num) +\
-                    '\.\d+\) (?P<info>-?\d+)'
-                weight_search = re.compile(weights_re)
-                contrast_weights = str(
-                    re.findall(weight_search,
-                               self.design_txt)).replace("'", '')
-
+                # Contrast Weights object
                 weights = ContrastWeights(stat_num_idx, contrast_name,
                                           contrast_weights, stat_type)
 
@@ -273,21 +354,25 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 # contrast
                 pe_ids = list()
                 pe_index = 1
-                contrast_weights = contrast_weights.replace(' ', '')
-                contrast_weights = contrast_weights.replace('[', '')
-                contrast_weights = contrast_weights.replace(']', '')
-                contrast_weights = contrast_weights.split(',')
+                pe_weights = pe_weights.replace(' ', '')
+                pe_weights = pe_weights.replace('[', '')
+                pe_weights = pe_weights.replace(']', '')
+                pe_weights = pe_weights.split(',')
 
-                # Whenever a non-zero element is found in contrast_weights, the
+                # Whenever a non-zero element is found in pe_weights, the
                 # parameter estimate map identified by the corresponding
                 # index is in use
-                for beta_index in contrast_weights:
-                    if abs(int(beta_index)) != 0:
+                for beta_index in pe_weights:
+
+                    if abs(float(beta_index)) != 0:
+
                         for model_fitting in list(
-                                        self.model_fittings.values()):
+                                self.model_fittings.values()):
+
                             for pe in model_fitting.param_estimates:
                                 if int(pe.num) == pe_index:
                                     pe_ids.append(pe.id)
+
                     pe_index += 1
 
                 # Convert to immutable tuple to be used as key
@@ -297,6 +382,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 stat_file = os.path.join(
                     stat_dir,
                     stat_type.lower() + 'stat' + str(con_num) + '.nii.gz')
+
                 stat_map = StatisticMap(
                     location=stat_file, stat_type=stat_type,
                     contrast_name=contrast_name, dof=dof,
@@ -313,6 +399,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                         stat_dir,
                         'zstat' + str(con_num) + '.nii.gz')
 
+                # Create the Z statistic map file.
                 z_stat_map = StatisticMap(
                     location=z_stat_file, stat_type='Z',
                     contrast_name=contrast_name, dof=dof,
@@ -407,30 +494,46 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             # Find excursion sets (in a given feat directory we have one
             # excursion set per contrast)
             for filename in exc_sets:
-                stat_num, stat_type, stat_num_t = self._get_stat_num(
+
+                stat_num, stat_type, stat_num_idx = self._get_stat_num(
                     filename, analysis_dir, exc_sets)
 
                 # Find corresponding contrast estimation activity
                 con_id = None
                 for contrasts in list(self.contrasts.values()):
                     for contrast in contrasts:
-                        if contrast.contrast_num == stat_num_t:
+                        if contrast.contrast_num == stat_num_idx:
                             con_id = contrast.estimation.id
                 assert con_id is not None
 
-                # Inference activity
-                inference_act = InferenceActivity(
-                    contrast_name=self.contrast_names_by_num[stat_num])
+                if stat_type == 'T':
+
+                    # Inference activity
+                    inference_act = InferenceActivity(
+                        contrast_name=self.t_contrast_names_by_num[stat_num])
+
+                    # Excursion set png image
+                    visualisation = os.path.join(
+                        analysis_dir,
+                        'rendered_thresh_zstat' + str(stat_num) + '.png')
+
+                else:
+
+                    # Inference activity
+                    inference_act = InferenceActivity(
+                        contrast_name=self.f_contrast_names_by_num[stat_num])
+
+                    # Excursion set png image
+                    visualisation = os.path.join(
+                        analysis_dir,
+                        'rendered_thresh_zfstat' + str(stat_num) + '.png')
 
                 # Excursion set png image
-                visualisation = os.path.join(
-                    analysis_dir,
-                    'rendered_thresh_zstat' + str(stat_num) + '.png')
                 zFileImg = filename
 
                 # Cluster Labels Map
                 cluster_labels_map = os.path.join(
-                    analysis_dir, 'tmp_clustmap' + stat_num_t + '.nii.gz')
+                    analysis_dir, 'tmp_clustmap' + stat_num_idx + '.nii.gz')
 
                 excset_img = nib.load(filename)
                 # Get cluster connectivity
@@ -489,9 +592,16 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
                 # Update labels to match FSL's table
                 # If clusters are available in voxel space
-                cluster_vox_file = glob.glob(
-                    os.path.join(analysis_dir,
-                                 'cluster*' + str(stat_num) + '.txt'))
+                if stat_type == 'T':
+                    cluster_vox_file = glob.glob(
+                        os.path.join(analysis_dir,
+                                     'cluster_zstat' + str(stat_num) + '.txt'))
+                else:
+                    cluster_vox_file = glob.glob(
+                        os.path.join(
+                            analysis_dir, 'cluster_zfstat' + str(stat_num) +
+                            '.txt'))
+
                 if not cluster_vox_file:
                     cluster_vox_tab = None
                 elif len(cluster_vox_file) > 1:
@@ -524,9 +634,14 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                                                         skiprows=1)
 
                     if cluster_mm_tab is not None:
+
+                        # Work out which are z-max xyz columns.
+                        xcol = self._get_column_indices(
+                            cluster_file[0], 'Z-MAX X')[0]
+
                         # Transform cluster positions in mm into voxels
                         # Read in coordinates of clusters in mm space
-                        cluster_mm = cluster_mm_tab[:, 5:8]
+                        cluster_mm = cluster_mm_tab[:, xcol:(xcol+3)]
 
                         # Read in excursion set image header to obtain
                         # world to voxel mapping
@@ -538,16 +653,45 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
                         # Record coordinates
                         cluster_vox_tab = cluster_mm_tab
-                        cluster_vox_tab[:, 5:8] = cluster_vox
+                        cluster_vox_tab[:, xcol:(xcol+3)] = cluster_vox
 
                 if cluster_vox_tab is not None:
+
+                    # If we have a voxel table it was either derived from the
+                    # mm table and must have the same column layout...
+                    if not cluster_vox_file:
+
+                        cluster_file = glob.glob(
+                            os.path.join(analysis_dir,
+                                         'cluster*' + str(stat_num) +
+                                         '*_std.txt'))
+
+                        # Work out which are z-max xyz columns and cluster
+                        # labels id.
+                        xcol = self._get_column_indices(
+                            cluster_file[0], 'Z-MAX X')[0]
+                        clidcol = self._get_column_indices(
+                            cluster_file[0], 'Cluster Index')[0]
+
+                    # Or we had a cluster_vox_file already!
+                    else:
+
+                        # Work out which are z-max xyz columns and cluster
+                        # labels id.
+                        xcol = self._get_column_indices(
+                            cluster_vox_file[0], 'Z-MAX X')[0]
+                        clidcol = self._get_column_indices(
+                            cluster_vox_file[0], 'Cluster Index')[0]
+
                     # Relabel using a different set of labels to avoid conflict
                     # when doing the replacment with FSL labels
                     labels = labels*max(num_labels, 10000)
 
                     # Replace existing labels by FSL labels
-                    for clid, _, _, _, _, x, y, z, _, _, _, _, _, _, _, _ in \
-                            cluster_vox_tab:
+                    for i in range(0, np.shape(cluster_vox_tab)[0]):
+
+                        clid = cluster_vox_tab[i, clidcol]
+                        x, y, z = cluster_vox_tab[i, xcol:(xcol+3)]
                         labels[labels == labels[int(x), int(y), int(z)]] = clid
 
                 clusterlabels_img = nib.Nifti1Image(
@@ -558,7 +702,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 temporary = True
                 clust_map = ClusterLabelsMap(
                     cluster_labels_map, self.coord_space,
-                    suffix=stat_num_t,
+                    suffix=stat_num_idx,
                     temporary=temporary)
 
                 # FIXME: When doing contrast masking is the excursion set
@@ -570,11 +714,16 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 # "After all thresholding, zstat1 was masked with
                 # thresh_zstat2.
                 # --> fsl_contrast_mask
-                visu_filename = 'ExcursionSet' + stat_num_t + '.png'
+
+                if stat_type == 'T':
+                    visu_filename = 'ExcursionSet' + stat_num_idx + '.png'
+                else:
+                    visu_filename = 'ExcursionSet' + stat_num_idx + '.png'
+
                 visualisation = Image(visualisation, visu_filename)
                 exc_set = ExcursionSet(
                     zFileImg, self.coord_space, visualisation,
-                    suffix=stat_num_t, clust_map=clust_map)
+                    suffix=stat_num_idx, clust_map=clust_map)
 
                 # Height Threshold
                 prob_re = r'.*set fmri\(prob_thresh\) (?P<info>\d+\.?\d+).*'
@@ -1086,6 +1235,20 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
         return connectivity
 
+    # Given a text file containing a table and a string, this function finds
+    # the indices of all columns whose headers contain the string. If a single
+    # character is entered, e.g. 'P', 'x', etc, this function will look for an
+    # exact match to the string.
+    def _get_column_indices(self, tableFile, colHeadStr):
+
+        with open(tableFile) as f:
+            header = f.readline().split('\t')
+
+        if len(colHeadStr) > 1:
+            return([i for i, s in enumerate(header) if colHeadStr in s])
+        else:
+            return([i for i, s in enumerate(header) if s == colHeadStr])
+
     def _get_search_space(self, analysis_dir):
         """
         Parse FSL result directory to retreive information about the search
@@ -1210,9 +1373,11 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             prefix = 'zfstat'
         else:
             prefix = 'zstat'
+
         # Cluster list (positions in voxels)
         cluster_vox_file = os.path.join(
             analysis_dir, 'cluster_' + prefix + str(stat_num) + '.txt')
+
         if not os.path.isfile(cluster_vox_file):
             cluster_vox_file = None
         else:
@@ -1246,26 +1411,87 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 if cmd_match:
 
                     # Read in filtered functional image to get header.
-                    filterfunc = os.path.join(analysis_dir, "filtered_func_data.nii.gz")
+                    filterfunc = os.path.join(analysis_dir,
+                                              "filtered_func_data.nii.gz")
                     filterfunc_img = nib.load(filterfunc)
 
                     # Get transformation matrix from voxels to subject mm from
                     # the header.
                     voxToWorld = filterfunc_img.affine
 
-                    # Read in cluster file as table and save header.
+                    # Read in cluster file as table and make new header.
                     cluster_file = os.path.join(analysis_dir, cluster_name)
                     clus_tab = np.loadtxt(cluster_file, skiprows=1)
-                    tab_hdr = 'Cluster Index    Voxels  P   -log10(P)   Z-MAX   Z-MAX X (mm)   Z-MAX Y (mm)   Z-MAX Z (mm)   Z-COG X (mm)   Z-COG Y (mm)   Z-COG Z (mm)   COPE-MAX    COPE-MAX X (mm)    COPE-MAX Y (mm)    COPE-MAX Z (mm)    COPE-MEAN'
+                    with open(cluster_file) as f:
+                        tab_hdr = f.readline().replace('(vox)', '(mm)')
 
-                    # Transform coordinates from voxels to subject mm (casting to a float with only 3 significant figures for cog corrdinates).
-                    clus_tab[:,5:8] = apply_affine(voxToWorld, clus_tab[:,5:8])
-                    clus_tab[:,8:11] = [[float('%.3g' % j) for j in i] for i in apply_affine(voxToWorld, clus_tab[:,8:11])]
-                    clus_tab[:,12:15] = apply_affine(voxToWorld, clus_tab[:,12:15])
+                    # Look for Z-MAX, Z-COG and COPE-MAX xyz coordinates.
+                    xcol_zm = self._get_column_indices(cluster_file, 'Z-MAX X')
+                    xcol_zc = self._get_column_indices(cluster_file, 'Z-COG X')
+                    xcol_cm = self._get_column_indices(cluster_file,
+                                                       'COPE-MAX X')
+
+                    # Transform coordinates from voxels to subject mm,
+                    # checking whether each column is present first,
+                    # casting to a float with only 3 significant
+                    # figures for cog corrdinates).
+                    if xcol_zm:
+                        ind = xcol_zm[0]
+                        clus_tab[:, ind:(ind+3)] = apply_affine(
+                            voxToWorld, clus_tab[:, ind:(ind+3)])
+
+                    if xcol_zc:
+                        ind = xcol_zc[0]
+                        clus_tab[:, ind:(ind+3)] = [[float(
+                            '%.3g' % j) for j in i] for i in apply_affine(
+                                voxToWorld, clus_tab[:, ind:(ind+3)])]
+
+                    if xcol_cm:
+                        ind = xcol_cm[0]
+                        clus_tab[:, ind:(ind+3)] = apply_affine(
+                            voxToWorld, clus_tab[:, ind:(ind+3)])
+
+                    # Work out the header format.
+                    hdrfmt = ''
+                    for colhdr in tab_hdr.split('\t'):
+
+                        # These columns should be displayed as ints.
+                        if (('Cluster Index' in colhdr) or (
+                                'Z-MAX' in colhdr) or (
+                                    'COPE' in colhdr) or (
+                                        'Voxels' in colhdr)):
+
+                            if not ((colhdr == 'Z-MAX') or
+                                    (colhdr == 'Z-MAX ')):
+
+                                hdrfmt = hdrfmt + '%i '
+
+                            else:
+
+                                hdrfmt = hdrfmt + '%3g '
+
+                        # These should be displayed to 3sf.
+                        if 'log10' in colhdr:
+
+                            hdrfmt = hdrfmt + '%3g '
+
+                        # These have already been formatted and should
+                        # be displayed as they are.
+                        if 'Z-COG' in colhdr:
+
+                            hdrfmt = hdrfmt + '%s '
+
+                        # P values are given to 2 places.
+                        if (colhdr == 'P') or (colhdr == 'P '):
+
+                            hdrfmt = hdrfmt + '%.2e '
 
                     # Write into a new file.
-                    cluster_mm_file = os.path.join(analysis_dir, 'cluster_' + prefix + str(stat_num) + '_sub.txt')
-                    np.savetxt(cluster_mm_file, clus_tab, header=tab_hdr, comments='', fmt='%i %i %.2e %3g %3g %i %i %i %s %s %s %i %i %i %i %i')
+                    cluster_mm_file = os.path.join(analysis_dir, 'cluster_' +
+                                                   prefix + str(stat_num) +
+                                                   '_sub.txt')
+                    np.savetxt(cluster_mm_file, clus_tab, header=tab_hdr,
+                               comments='', fmt=hdrfmt)
 
                 else:
                     warnings.warn(
@@ -1308,17 +1534,18 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         if not os.path.isfile(peak_file_mm):
 
             # Check if this is first level
-            if not self.first_level: 
+            if not self.first_level:
 
                 peak_file_mm = None
 
             else:
 
                 # If in first level we recreate the peak_sub file if we can.
-                if not peak_file_vox is None:
+                if peak_file_vox is not None:
 
                     # Read in filtered functional image to get header.
-                    filterfunc = os.path.join(analysis_dir, "filtered_func_data.nii.gz")
+                    filterfunc = os.path.join(analysis_dir,
+                                              "filtered_func_data.nii.gz")
                     filterfunc_img = nib.load(filterfunc)
 
                     # Get transformation matrix from voxels to subject mm from
@@ -1327,13 +1554,19 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
                     # Read in peak file as table and save header.
                     peak_tab = np.loadtxt(peak_file_vox, skiprows=1)
-                    tab_hdr = 'Cluster Index    Z   x   y   z '
+                    with open(peak_file_vox) as f:
+                        tab_hdr = f.readline().replace('(vox)', '(mm)')
+
+                    # Find out which columns are the coordinates.
+                    x_col = self._get_column_indices(peak_file_vox, 'x')[0]
 
                     # Transform coordinates from voxels to subject mm.
-                    peak_tab[:,2:5] = apply_affine(voxToWorld, peak_tab[:,2:5])
+                    peak_tab[:, x_col:x_col+3] = apply_affine(
+                        voxToWorld, peak_tab[:, x_col:x_col+3])
 
                     # Write into a new file.
-                    np.savetxt(peak_file_mm, peak_tab, header=tab_hdr, comments='', fmt='%i %.2e %3f %3f %3f')
+                    np.savetxt(peak_file_mm, peak_tab, header=tab_hdr,
+                               comments='', fmt='%i %.2e %3f %3f %3f')
 
                     peak_mm_table = peak_tab
 
@@ -1350,16 +1583,29 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
         peaks = dict()
         prev_cluster = -1
+
         if (peak_file_vox is not None) and (peak_file_mm is not None):
 
             peaks_join_table = np.column_stack(
                 (peak_table, peak_mm_table))
 
+            # Find out which columns are the coordinates.
+            x_col = self._get_column_indices(peak_file_vox, 'x')[0]
+            x_col_std = np.shape(peak_table)[1] + \
+                self._get_column_indices(peak_file_mm, 'x')[0]
+
+            # Find out which column is equivalent Z.
+            ez_col = self._get_column_indices(peak_file_vox, 'Z')[0]
+
+            # Find out which column is cluster index.
+            ci_col = self._get_column_indices(peak_file_vox,
+                                              'Cluster Index')[0]
+
             num_clusters = peaks_join_table.max(axis=0)[0]
             max_num_peaks = peaks_join_table.shape[0]
 
             for peak_row in peaks_join_table:
-                cluster_id = int(peak_row[0])
+                cluster_id = int(peak_row[ci_col])
 
                 if not cluster_id == prev_cluster:
                     # First peak in this cluster
@@ -1373,9 +1619,10 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                                                max_stat_num)
 
                 peak = Peak(
-                    x=int(peak_row[2]), y=int(peak_row[3]), z=int(peak_row[4]),
-                    x_std=peak_row[7], y_std=peak_row[8], z_std=peak_row[9],
-                    equiv_z=float(peak_row[1]), suffix=suffix)
+                    x=int(peak_row[x_col]), y=int(peak_row[x_col+1]),
+                    z=int(peak_row[x_col+2]), x_std=peak_row[x_col_std],
+                    y_std=peak_row[x_col_std+1], z_std=peak_row[x_col_std+2],
+                    equiv_z=float(peak_row[ez_col]), suffix=suffix)
                 if cluster_id in peaks:
                     peaks[cluster_id].append(peak)
                 else:
@@ -1388,8 +1635,18 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             num_clusters = peak_table.max(axis=0)[0]
             max_num_peaks = peak_table.shape[0]
 
+            # Find out which columns are the coordinates.
+            x_col = self._get_column_indices(peak_file_vox, 'x')[0]
+
+            # Find out which column is equivalent Z.
+            ez_col = self._get_column_indices(peak_file_vox, 'Z')[0]
+
+            # Find out which column is cluster index.
+            ci_col = self._get_column_indices(peak_file_vox,
+                                              'Cluster Index')[0]
+
             for peak_row in peak_table:
-                cluster_id = int(peak_row[0])
+                cluster_id = int(peak_row[ci_col])
 
                 if not cluster_id == prev_cluster:
                     peakIndex = 1
@@ -1399,8 +1656,9 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                                                num_clusters, max_num_peaks,
                                                max_stat_num)
                 peak = Peak(
-                    x=int(peak_row[2]), y=int(peak_row[3]), z=int(peak_row[4]),
-                    equiv_z=float(peak_row[1]), suffix=suffix)
+                    x=int(peak_row[x_col]), y=int(peak_row[x_col+1]),
+                    z=int(peak_row[x_col+2]), equiv_z=float(peak_row[ez_col]),
+                    suffix=suffix)
                 if cluster_id in peaks:
                     peaks[cluster_id].append(peak)
                 else:
@@ -1413,8 +1671,17 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             num_clusters = peak_mm_table.max(axis=0)[0]
             max_num_peaks = peak_mm_table.shape[0]
 
+            # Find out which columns are the coordinates.
+            x_col_std = self._get_column_indices(peak_file_mm, 'x')[0]
+
+            # Find out which column is equivalent Z.
+            ez_col = self._get_column_indices(peak_file_mm, 'Z')[0]
+
+            # Find out which column is cluster index.
+            ci_col = self._get_column_indices(peak_file_mm, 'Cluster Index')[0]
+
             for peak_row in peak_mm_table:
-                cluster_id = int(peak_row[0])
+                cluster_id = int(peak_row[ci_col])
 
                 if not cluster_id == prev_cluster:
                     peakIndex = 1
@@ -1424,8 +1691,9 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                                                num_clusters, max_num_peaks,
                                                max_stat_num)
                 peak = Peak(
-                    x_std=peak_row[2], y_std=peak_row[3], z_std=peak_row[4],
-                    equiv_z=float(peak_row[1]), suffix=suffix)
+                    x_std=peak_row[x_col_std], y_std=peak_row[x_col_std+1],
+                    z_std=peak_row[x_col_std+2],
+                    equiv_z=float(peak_row[ez_col]), suffix=suffix)
                 if cluster_id in peaks:
                     peaks[cluster_id].append(peak)
                 else:
@@ -1437,21 +1705,38 @@ class FSLtoNIDMExporter(NIDMExporter, object):
         if (cluster_vox_file is not None) and (cluster_mm_file is not None):
             clusters_join_table = np.column_stack((cluster_table,
                                                    cluster_mm_table))
+
+            # Find out which columns have the coordinates.
+            xyzcols = self._get_column_indices(cluster_vox_file, 'Z-COG ')
+            xyzcols_std = [cluster_table.shape[1] + i for i in
+                           self._get_column_indices(cluster_mm_file, 'Z-COG ')]
+
+            # Find out which columns has the p values.
+            pcol = self._get_column_indices(cluster_vox_file, 'P')
+
+            # Find out which column is cluster index.
+            ci_col = self._get_column_indices(cluster_vox_file,
+                                              'Cluster Index')[0]
+
+            # Find out which column is cluster size.
+            s_col = self._get_column_indices(cluster_vox_file, 'Voxels')[0]
+
             for cluster_row in clusters_join_table:
-                cluster_id = int(cluster_row[0])
-                size = int(cluster_row[1])
-                pFWER = float(cluster_row[2])
-                x = float(cluster_row[8])
-                y = float(cluster_row[9])
-                z = float(cluster_row[10])
-                if stat_type.lower() == 't':
-                    x_std = float(cluster_row[24])
-                    y_std = float(cluster_row[25])
-                    z_std = float(cluster_row[26])
+
+                cluster_id = int(cluster_row[ci_col])
+                size = int(cluster_row[s_col])
+
+                if pcol:
+                    pFWER = float(cluster_row[pcol[0]])
                 else:
-                    x_std = float(cluster_row[19])
-                    y_std = float(cluster_row[20])
-                    z_std = float(cluster_row[21])
+                    pFWER = None
+
+                x = float(cluster_row[xyzcols[0]])
+                y = float(cluster_row[xyzcols[1]])
+                z = float(cluster_row[xyzcols[2]])
+                x_std = float(cluster_row[xyzcols_std[0]])
+                y_std = float(cluster_row[xyzcols_std[1]])
+                z_std = float(cluster_row[xyzcols_std[2]])
                 clusters.append(
                     Cluster(cluster_num=cluster_id, size=size,
                             pFWER=pFWER, peaks=peaks[
@@ -1459,13 +1744,32 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                             x_std=x_std, y_std=y_std, z_std=z_std))
 
         elif (cluster_vox_file is not None):
+
+            # Find out which columns have the coordinates.
+            xyzcols = self._get_column_indices(cluster_vox_file, 'Z-COG ')
+
+            # Find out which columns has the p values.
+            pcol = self._get_column_indices(cluster_vox_file, 'P')
+
+            # Find out which column is cluster index.
+            ci_col = self._get_column_indices(cluster_vox_file,
+                                              'Cluster Index')[0]
+
+            # Find out which column is cluster size.
+            s_col = self._get_column_indices(cluster_vox_file, 'Voxels')[0]
+
             for cluster_row in cluster_table:
-                cluster_id = int(cluster_row[0])
-                size = int(cluster_row[1])
-                pFWER = float(cluster_row[2])
-                x = float(cluster_row[8])
-                y = float(cluster_row[9])
-                z = float(cluster_row[10])
+                cluster_id = int(cluster_row[ci_col])
+                size = int(cluster_row[s_col])
+
+                if pcol:
+                    pFWER = float(cluster_row[pcol[0]])
+                else:
+                    pFWER = None
+
+                x = float(cluster_row[xyzcols[0]])
+                y = float(cluster_row[xyzcols[1]])
+                z = float(cluster_row[xyzcols[2]])
                 x_std = None
                 y_std = None
                 z_std = None
@@ -1475,16 +1779,38 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                                 cluster_id], x=x, y=y, z=z,
                             x_std=x_std, y_std=y_std, z_std=z_std))
         elif (cluster_mm_file is not None):
+
+            # Find out which columns has the p values.
+            pcol = self._get_column_indices(cluster_mm_file, 'P')
+
+            # Find out which columns have the coordinates.
+            xyzcols_std = self._get_column_indices(cluster_mm_file,
+                                                   'Z-COG ')
+
+            # Find out which column is cluster index.
+            ci_col = self._get_column_indices(cluster_mm_file,
+                                              'Cluster Index')[0]
+
+            # Find out which column is cluster size.
+            s_col = self._get_column_indices(cluster_mm_file, 'Voxels')[0]
+
             for cluster_row in cluster_mm_table:
-                cluster_id = int(cluster_row[0])
-                size = int(cluster_row[1])
-                pFWER = float(cluster_row[2])
-                x_std = float(cluster_row[8])
-                y_std = float(cluster_row[9])
-                z_std = float(cluster_row[10])
+
+                cluster_id = int(cluster_row[ci_col])
+                size = int(cluster_row[s_col])
+
+                if pcol:
+                    pFWER = float(cluster_row[pcol[0]])
+                else:
+                    pFWER = None
+
+                x_std = float(cluster_row[xyzcols_std[0]])
+                y_std = float(cluster_row[xyzcols_std[1]])
+                z_std = float(cluster_row[xyzcols_std[2]])
                 x = None
                 y = None
                 z = None
+
                 clusters.append(
                     Cluster(cluster_num=cluster_id, size=size,
                             pFWER=pFWER, peaks=peaks[
