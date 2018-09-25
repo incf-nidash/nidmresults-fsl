@@ -8,8 +8,8 @@ env:
   global:
     - CCACHE_COMPRESS=1
     - CASHER_TIME_OUT=500
-    - NIDM_EX_BRANCH=origin
-    - NIDM_EX_REMOTE=fsl_5.0.10
+    - NIDM_EX_BRANCH=fsl_5.0.10
+    - NIDM_EX_REMOTE=origin
 python:
   - "2.7"
   - "3.5"
