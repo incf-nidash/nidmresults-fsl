@@ -386,7 +386,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                 stat_map = StatisticMap(
                     location=stat_file, stat_type=stat_type,
                     contrast_name=contrast_name, dof=dof,
-                    coord_space=self.coord_space,
+                    coord_space=self.coord_space, effdof=effdof,
                     contrast_num=stat_num_idx)
 
                 # Z-Statistic Map
@@ -404,7 +404,8 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                     location=z_stat_file, stat_type='Z',
                     contrast_name=contrast_name, dof=dof,
                     coord_space=self.coord_space,
-                    contrast_num=stat_num_idx)
+                    contrast_num=stat_num_idx,
+                    effdof=effdof)
 
                 if stat_type is "T":
                     # Contrast Map
