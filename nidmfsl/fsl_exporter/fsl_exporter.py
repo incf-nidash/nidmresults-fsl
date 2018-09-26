@@ -1560,7 +1560,7 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
                     # Find out which columns are the coordinates.
                     x_col = self._get_column_indices(peak_file_vox, 'x')[0]
-                    print(repr(x_col))
+                    
                     # Transform coordinates from voxels to subject mm.
                     peak_tab[:, x_col:x_col+3] = apply_affine(
                         voxToWorld, peak_tab[:, x_col:x_col+3])
