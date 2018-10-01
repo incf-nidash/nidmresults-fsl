@@ -1560,14 +1560,19 @@ class FSLtoNIDMExporter(NIDMExporter, object):
 
                     # Find out which columns are the coordinates.
                     x_col = self._get_column_indices(peak_file_vox, 'x')[0]
-
+                    
                     # Transform coordinates from voxels to subject mm.
                     peak_tab[:, x_col:x_col+3] = apply_affine(
                         voxToWorld, peak_tab[:, x_col:x_col+3])
 
                     # Write into a new file.
+                    if x_col==2:
+                        fmtstr = '%i %.2e %3f %3f %3f'
+                    else:
+                        fmtstr = '%i %.2e %.2E %.2e %3f %3f %3f'
                     np.savetxt(peak_file_mm, peak_tab, header=tab_hdr,
-                               comments='', fmt='%i %.2e %3f %3f %3f')
+                               comments='', fmt=fmtstr)
+
 
                     peak_mm_table = peak_tab
 

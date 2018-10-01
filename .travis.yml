@@ -8,7 +8,7 @@ env:
   global:
     - CCACHE_COMPRESS=1
     - CASHER_TIME_OUT=500
-    - NIDM_EX_BRANCH=master
+    - NIDM_EX_BRANCH=fsl_5.0.10
     - NIDM_EX_REMOTE=origin
 python:
   - "2.7"
@@ -29,7 +29,6 @@ install:
  - cd test/data/nidmresults-examples
  # Is this is not a git repo them clone nidmresults-examples
  - if ! [ -d .git ]; then git lfs clone https://github.com/incf-nidash/nidmresults-examples.git .; fi
- - git fetch ${NIDM_EX_REMOTE}
  - git checkout ${NIDM_EX_REMOTE}/${NIDM_EX_BRANCH}
  - git lfs install
   # Delete any previous changes (retry because lfs might download files)
