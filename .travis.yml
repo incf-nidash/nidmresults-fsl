@@ -19,7 +19,7 @@ install:
  # Install FSL using Neurodebian
  - bash <(wget -q -O- http://neuro.debian.net/_files/neurodebian-travis.sh)
  - sudo apt-get -y update
- - sudo apt-get -y install fsl-complete
+ - sudo apt-get -y install fsl-core
  - source /etc/fsl/fsl.sh;
  - export FSLOUTPUTTYPE=NIFTI_GZ
  - cwd=`pwd`
