@@ -632,7 +632,8 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                             # cluster
                             warnings.simplefilter("ignore")
                             cluster_mm_tab = np.loadtxt(cluster_file[0],
-                                                        skiprows=1)
+                                                        skiprows=1,
+                                                        ndmin=2)
 
                     if cluster_mm_tab is not None:
 
