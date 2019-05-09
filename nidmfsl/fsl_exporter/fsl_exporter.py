@@ -492,6 +492,9 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             exc_sets = glob.glob(os.path.join(analysis_dir,
                                               'thresh_z*.nii.gz'))
 
+            # Search space -- a single by analysis dir shared by all exc sets
+            search_space = self._get_search_space(analysis_dir)
+
             # Find excursion sets (in a given feat directory we have one
             # excursion set per contrast)
             for filename in exc_sets:
@@ -808,9 +811,6 @@ class FSLtoNIDMExporter(NIDMExporter, object):
                             display_mask.append(DisplayMaskMap(
                                 stat_num,
                                 conmask_file, c2, self.coord_space))
-
-                # Search space
-                search_space = self._get_search_space(analysis_dir)
 
                 inference = Inference(
                     inference_act, height_thresh,
@@ -1358,7 +1358,8 @@ class FSLtoNIDMExporter(NIDMExporter, object):
             noise_fwhm_in_voxels=noise_fwhm_in_voxels,
             noise_fwhm_in_units=noise_fwhm_in_units,
             coord_space=self.coord_space,
-            noise_roughness=float(d['DLH']),)
+            noise_roughness=float(d['DLH']),
+            suffix=self.analyses_num[analysis_dir])
 
         return search_space
 
