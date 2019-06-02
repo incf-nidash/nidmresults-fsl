@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-readme = open('README.rst').read()
+readme = open('README.md').read()
 
 reqs = [line.strip() for line in open('requirements.txt').readlines()]
 requirements = list(filter(None, reqs))
@@ -21,6 +21,7 @@ setup(
         'prov': 'prov'
     },
     long_description=readme,
+    long_description_content_type="text/markdown",
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Topic :: Utilities",
