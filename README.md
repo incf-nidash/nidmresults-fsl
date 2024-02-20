@@ -7,6 +7,8 @@ Export mass-univariate neuroimaging results computed in FSL (using FEAT) as NIDM
 
 A *NIDM-Results pack* is a compressed file containing a NIDM-Results serialization and some or all of the referenced image data files in compliance with [NIDM-Results specification](http://nidm.nidash.org/specs/nidm-results.html).
 
+
+
 ##### Usage
 ```
 usage: nidmfsl [-h] [-g GROUP_NAME NUM_SUBJECTS] [-o OUTPUT_NAME] [-d]
